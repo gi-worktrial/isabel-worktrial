@@ -76,7 +76,7 @@ function TracePage() {
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
         <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
-          {rows.map(({ span, depth }) => {
+          {rows.slice(1).map(({ span, depth }) => {
             const Icon = KIND_ICONS[spanKind(span)];
             const failing = failed.has(span.span_id) || spanError(span) !== undefined;
             return (
@@ -94,7 +94,7 @@ function TracePage() {
                     search={{ span: span.span_id }}
                     replace
                     aria-current={span === selected ? "true" : undefined}
-                    style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
+                style={{ paddingLeft: `${Math.max(depth - 1, 0) * 1.25 + 0.5}rem` }}
                     className="flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
                   >
                     <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
