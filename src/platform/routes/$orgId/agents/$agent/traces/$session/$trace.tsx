@@ -16,11 +16,13 @@ import { type Grade, GradeRow, TextStep, ToolCall, gradeKey } from "#/trace-view
 import { sessionTitle } from "#/titles";
 import {
   KIND_ICONS,
+  SpanBar,
   formatJson,
   spanError,
   spanKind,
   spanLabel,
   spanRows,
+  spanTiming,
   toolLabel,
 } from "#/traces";
 import { cn } from "#/ui/cn";
@@ -62,6 +64,7 @@ function TracePage() {
   const search = Route.useSearch();
   const { spans, annotations } = useSuspenseQuery(traceQuery({ orgId, agent, trace })).data;
   const rows = spanRows(spans);
+  const timing = spanTiming(spans);
   const root = rows[0]?.span;
   const selected = spans.find(({ span_id }) => span_id === search.span) ?? root;
   const grades = annotations.flatMap((annotation) => {
@@ -112,6 +115,14 @@ function TracePage() {
                     <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
                       {formatDuration(span.duration_ns)}
                     </span>
+                  {!isRoot && (
+                    <SpanBar
+                      span={span}
+                      timing={timing}
+                      failed={failing}
+                      className="w-16"
+                    />
+                  )}
                   </Link>
               </li>
             );
