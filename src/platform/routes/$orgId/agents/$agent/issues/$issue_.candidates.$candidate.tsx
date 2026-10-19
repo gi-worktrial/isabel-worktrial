@@ -1,12 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { CandidateActions, CandidateNotFound } from "#/candidate-results";
 import { useIssue, useIssueChange, useStartIssueWork } from "#/issue-view";
-import { candidateQuery, candidatesQuery, issueQuery } from "#/queries";
-import { IconButton, buttonVariants } from "#/ui/button";
+import { candidateQuery, issueQuery } from "#/queries";
+import { buttonVariants } from "#/ui/button";
 import { Tag } from "#/ui/tag";
 import { crumbs } from "#/crumbs";
 import { ShipDialog } from "#src/features/candidates/approval";
@@ -18,7 +17,6 @@ import {
   debugVariant,
 } from "#src/features/candidates/candidate-page";
 import { EvalResults } from "#src/features/candidates/proofs-view";
-import type { CandidateSummary } from "#src/sdk/index";
 
 export const Route = createFileRoute(
   "/$orgId/agents/$agent/issues/$issue_/candidates/$candidate",
@@ -28,7 +26,6 @@ export const Route = createFileRoute(
     const [candidate, issue] = await Promise.all([
       queryClient.ensureQueryData(candidateQuery(params)),
       queryClient.ensureQueryData(issueQuery(params)),
-      queryClient.ensureQueryData(candidatesQuery(params)),
     ]);
     return crumbs(
       { label: "Inbox", to: "/$orgId/agents/$agent/issues" },
@@ -47,7 +44,6 @@ function CandidatePage() {
   const params = Route.useParams();
   const { orgId, agent } = params;
   const candidate = useSuspenseQuery(candidateQuery(params)).data;
-  const candidates = useSuspenseQuery(candidatesQuery(params)).data;
   const issue = useIssue();
   const startWork = useStartIssueWork();
 
@@ -73,7 +69,6 @@ function CandidatePage() {
               Debug
             </Link>
             {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
-            <CandidateNavigation candidates={candidates} current={candidate.id} />
           </CandidateActionsEnd>
         </h1>
         <CandidateBody body={candidate.body}>
@@ -82,52 +77,6 @@ function CandidatePage() {
       </div>
       <FixCard files={candidate.files} />
     </section>
-  );
-}
-
-function CandidateNavigation({
-  candidates,
-  current,
-}: {
-  candidates: readonly CandidateSummary[];
-  current: string;
-}) {
-  const navigate = Route.useNavigate();
-  const params = Route.useParams();
-  const index = candidates.findIndex(({ id }) => id === current);
-  const previous = index > 0 ? candidates[index - 1] : undefined;
-  const next = index >= 0 ? candidates[index + 1] : undefined;
-  const open = (candidate: CandidateSummary | undefined) => {
-    if (candidate !== undefined) {
-      void navigate({
-        to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
-        params: { ...params, candidate: candidate.id },
-      });
-    }
-  };
-
-  return (
-    <>
-      <IconButton
-        label="Previous candidate"
-        size="small"
-        disabled={previous === undefined}
-        onClick={() => open(previous)}
-      >
-        <ChevronLeft className="size-4" />
-      </IconButton>
-      <span className="type-meta-12 whitespace-nowrap text-muted tabular-nums">
-        {index + 1} of {candidates.length}
-      </span>
-      <IconButton
-        label="Next candidate"
-        size="small"
-        disabled={next === undefined}
-        onClick={() => open(next)}
-      >
-        <ChevronRight className="size-4" />
-      </IconButton>
-    </>
   );
 }
 
