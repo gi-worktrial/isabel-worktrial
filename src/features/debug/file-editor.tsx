@@ -80,6 +80,8 @@ type FileEditorProps = {
   railToTop?: boolean;
   /** Reports the file in view so a surrounding workspace can identify it. */
   onFileChange?: ((path: string | undefined) => void) | undefined;
+  /** Reports whether this editing session has unsaved changes. */
+  onDirtyChange?: ((dirty: boolean) => void) | undefined;
   /** Whether Save is the view's one primary action. */
   primary?: boolean;
   /** The tree the changes are measured from, which turns on diff mode. */
@@ -122,6 +124,7 @@ export function FileEditor({
   saveLabel = "Save",
   railToTop = false,
   onFileChange,
+  onDirtyChange,
   primary = false,
   diff,
   onSave,
@@ -147,6 +150,7 @@ export function FileEditor({
   });
   useEffect(() => onFileChange?.(open), [onFileChange, open]);
   const [drafts, setDrafts] = useState<ReadonlyMap<string, string>>(new Map());
+  useEffect(() => onDirtyChange?.(drafts.size > 0), [drafts.size, onDirtyChange]);
   // saving starts new edit sessions, so the next edits begin at the saved files
   const [session, setSession] = useState(0);
   const [pending, startTransition] = useTransition();

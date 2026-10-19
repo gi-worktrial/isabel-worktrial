@@ -82,6 +82,7 @@ function DebugPage() {
   });
   const initialFile = search.file ?? changes[0]?.filename;
   const [openFile, setOpenFile] = useState(initialFile);
+  const [hasChanges, setHasChanges] = useState(false);
   const { data: tree } = useSuspenseQuery(treeQuery({ orgId, agent, ref: head }));
   const branch = getCandidateBranchById(issue, candidate.id);
   usePebblePage(
@@ -115,6 +116,11 @@ function DebugPage() {
   }
   const branching = useBranching({ candidate, tree, changes, saveHere: save });
   const location = [repo, ...(openFile === undefined ? ["Fix"] : openFile.split("/"))];
+  const cancel = () =>
+    void navigate({
+      to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
+      params: { orgId, agent, issue, candidate: candidate.id },
+    });
 
   return (
     <div className="flex h-[calc(100dvh-6rem)] flex-col gap-3">
@@ -126,6 +132,7 @@ function DebugPage() {
           changes={changes}
           initialPath={initialFile}
           onFileChange={setOpenFile}
+          onDirtyChange={setHasChanges}
           railToTop
           saveInPaneHeader
           saveLabel="Save changes"
@@ -145,19 +152,20 @@ function DebugPage() {
                 ))}
               </nav>
               {branching.error}
-              <ConfirmDialog
-                trigger={<Button variant="secondary">Cancel changes</Button>}
-                title="Cancel changes?"
-                description="Any unsaved changes in this editing session will be lost."
-                confirmLabel="Cancel changes"
-                destructive
-                onConfirm={() =>
-                  void navigate({
-                    to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
-                    params: { orgId, agent, issue, candidate: candidate.id },
-                  })
-                }
-              />
+              {hasChanges ? (
+                <ConfirmDialog
+                  trigger={<Button variant="secondary">Cancel changes</Button>}
+                  title="Cancel changes?"
+                  description="Any unsaved changes in this editing session will be lost."
+                  confirmLabel="Cancel changes"
+                  destructive
+                  onConfirm={cancel}
+                />
+              ) : (
+                <Button variant="secondary" onClick={cancel}>
+                  Cancel changes
+                </Button>
+              )}
             </>
           }
           overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
