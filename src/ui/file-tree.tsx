@@ -1,4 +1,4 @@
-import { PanelLeft } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { IconButton } from "#/ui/button";
@@ -11,7 +11,7 @@ export function RailToggle({ shown, onToggle }: { shown: boolean; onToggle(): vo
       className="text-muted"
       onClick={onToggle}
     >
-      <PanelLeft className="size-4" />
+      {shown ? <PanelLeftClose className="size-4" /> : <PanelLeftOpen className="size-4" />}
     </IconButton>
   );
 }
