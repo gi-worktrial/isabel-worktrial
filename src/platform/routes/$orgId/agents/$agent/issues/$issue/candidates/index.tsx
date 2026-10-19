@@ -182,7 +182,6 @@ function CandidateCards() {
           </header>
           {detail !== undefined && (
             <Tag className="self-start gap-2">
-              <span>Fix</span>
               <span className="font-normal text-muted">
                 {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
               </span>
