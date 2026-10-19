@@ -20,6 +20,7 @@ import { THEME, preloadThemes } from "#/file-diffs";
 import { Button } from "#/ui/button";
 import { cn } from "#/ui/cn";
 import { EmptyState } from "#/ui/empty-state";
+import { SearchField } from "#/ui/search-field";
 import { SegmentedControl } from "#/ui/segmented-control";
 import { TabButton } from "#/ui/tabs";
 import { Tag } from "#/ui/tag";
@@ -115,6 +116,7 @@ export function FileEditor({
   const id = useId();
   const section = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(initialPath);
+  const [query, setQuery] = useState("");
   const [rail, setRail] = useState(true);
   // a narrow editor (Pebble open on a laptop) folds the file list to its toggle so the code keeps the room, and brings
   // it back when the editor widens again, unless the engineer opened or closed it themselves meanwhile
@@ -149,8 +151,14 @@ export function FileEditor({
       gitStatus: changes.map(getGitStatus).filter(({ path }) => !excluded(path)),
     };
   }, [entries, changes, excluded]);
+  const visiblePaths = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase();
+    return normalized === ""
+      ? paths
+      : paths.filter((path) => path.toLocaleLowerCase().includes(normalized));
+  }, [paths, query]);
   const { model } = useFileTree({
-    paths,
+    paths: visiblePaths,
     gitStatus,
     flattenEmptyDirectories: true,
     initialExpansion: "open",
@@ -173,9 +181,9 @@ export function FileEditor({
   });
   // the model keeps its first options, so a reload at a new head resets it
   useEffect(() => {
-    model.resetPaths(paths);
+    model.resetPaths(visiblePaths);
     model.setGitStatus(gitStatus);
-  }, [model, paths, gitStatus]);
+  }, [model, visiblePaths, gitStatus]);
 
   // a hidden view's editor leaves its files to the one in view, and the palette lists them by path
   usePaletteGroups(() =>
@@ -284,15 +292,25 @@ export function FileEditor({
         className="flex min-w-0 flex-1 overflow-hidden card"
       >
         {rail && (
-          <FileRail
-            label="Files"
-            title={<span className="type-label-13 font-medium text-muted">Files</span>}
-            onHide={() => {
-              folded.current = false;
-              setRail(false);
-            }}
-          >
-            <FileTree model={model} aria-label="Files" className="min-h-0 flex-1 p-2" />
+          <FileRail label="Files">
+            <div className="flex shrink-0 items-center gap-1 pr-2">
+              <RailToggle
+                shown
+                onToggle={() => {
+                  folded.current = false;
+                  setRail(false);
+                }}
+              />
+              <SearchField
+                label="Search files"
+                placeholder="Search files"
+                value={query}
+                onChange={setQuery}
+                debounce={0}
+                className="min-w-0 flex-1"
+              />
+            </div>
+            <FileTree model={model} aria-label="Files" className="min-h-0 flex-1 py-2 pr-2" />
           </FileRail>
         )}
         <div className="flex min-w-0 flex-1 flex-col">

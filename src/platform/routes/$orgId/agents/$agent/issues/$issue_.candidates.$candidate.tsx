@@ -126,28 +126,32 @@ function CandidatePage() {
       aria-label={candidate.title}
       className="flex min-h-[calc(100dvh-6rem)] flex-col gap-4"
     >
-      <h1 className="flex min-w-0 items-center gap-2 type-title-18 text-ink">
-        <span className="min-w-0 truncate">{candidate.title}</span>
-        <CandidateBranch candidate={candidate} />
-        {candidate.recommended !== undefined && (
-          <Tag tone="accent" title={candidate.recommended}>
-            Recommended
-          </Tag>
-        )}
-        <CandidateActionsEnd>
-          <CandidateActions agent={agent} candidate={candidate} />
-          <Link
-            to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
-            params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
-            className={buttonVariants({ variant: debugVariant(issue.state, candidate.results) })}
-            onClick={startWork}
-          >
-            Edit
-          </Link>
-          {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
-        </CandidateActionsEnd>
-      </h1>
-      <CandidateBody body={candidate.body} />
+      <header className="flex min-w-0 flex-col gap-2">
+        <h1 className="flex min-w-0 items-center gap-2 type-title-18 text-ink">
+          <span className="min-w-0 truncate">{candidate.title}</span>
+          <CandidateBranch candidate={candidate} />
+          {candidate.recommended !== undefined && (
+            <Tag tone="accent" title={candidate.recommended}>
+              Recommended
+            </Tag>
+          )}
+          <CandidateActionsEnd>
+            <CandidateActions agent={agent} candidate={candidate} />
+            <Link
+              to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
+              params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
+              className={buttonVariants({
+                variant: debugVariant(issue.state, candidate.results),
+              })}
+              onClick={startWork}
+            >
+              Edit
+            </Link>
+            {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
+          </CandidateActionsEnd>
+        </h1>
+        <CandidateBody body={candidate.body} />
+      </header>
       <DebugViews
         search={search}
         fileSummary={{ count: candidate.files.length, ...totalLines(candidate.files) }}

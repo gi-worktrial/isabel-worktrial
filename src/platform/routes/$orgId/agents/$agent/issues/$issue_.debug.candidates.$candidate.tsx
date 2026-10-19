@@ -1,34 +1,29 @@
 import { GroundedError, getCandidateBranchById } from "@grounded-intelligence/grounded-sdk";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { CandidateActions, CandidateNotFound, CandidateStatusTag } from "#/candidate-results";
+import { CandidateNotFound } from "#/candidate-results";
 import { FileDiffs } from "#/file-diffs";
 import { debugSearchSchema } from "#/debug-search";
-import { DebugViews } from "#/debug-views";
 import { FileEditor } from "#/file-editor";
 import { useIssue } from "#/issue-view";
 import { usePebblePage } from "#/pebble/page";
 import {
   RUN_POLL_INTERVAL,
-  SESSION_PAGE_SIZE,
   candidateQuery,
   candidatesQuery,
   isCandidatePending,
   issueQuery,
-  issueTracesQuery,
   treeQuery,
   useAgentRepo,
 } from "#/queries";
+import { buttonVariants } from "#/ui/button";
 import { crumbs } from "#/crumbs";
 import { ShipButton } from "#src/features/candidates/approval";
-import { BranchSwitcher } from "#src/features/candidates/branches";
-import { EvalResults } from "#src/features/candidates/proofs-view";
 import { useBranching } from "#src/features/debug/branching";
 import { DebugBand } from "#src/features/debug/debug-band";
 import { candidateBasehead, useDebugDiff } from "#src/features/debug/debug-diff";
-import { CandidateGrades } from "#src/features/debug/eval-grades";
 
 const BRANCH_MOVED_STATUS = 409;
 // Jobs checks for pushes every 15 seconds, so a save's run can take this long to appear.
@@ -44,15 +39,11 @@ export const Route = createFileRoute(
   staticData: { rail: true },
   validateSearch: debugSearchSchema,
   loaderDeps: ({ search }) => search,
-  loader: async ({ context: { queryClient }, params, deps }) => {
+  loader: async ({ context: { queryClient }, params }) => {
     const [candidate, issue] = await Promise.all([
       queryClient.ensureQueryData(candidateQuery(params)),
       queryClient.ensureQueryData(issueQuery(params)),
       queryClient.ensureQueryData(candidatesQuery(params)),
-      deps.view === "traces" &&
-        queryClient.ensureQueryData(
-          issueTracesQuery({ ...params, after: deps.afters?.at(-1), limit: SESSION_PAGE_SIZE }),
-        ),
     ]);
     await queryClient.ensureQueryData(treeQuery({ ...params, ref: candidate.head_sha }));
     return crumbs(
@@ -131,38 +122,28 @@ function DebugPage() {
   return (
     <div className="flex h-[calc(100dvh-6rem)] flex-col gap-3">
       <DebugBand issue={issueRecord} candidate={candidate.id} />
-      <header aria-label="Debug" className="flex min-w-0 flex-wrap items-center gap-3">
-        <h1 className="flex min-w-0 flex-1 basis-64 items-center gap-2 type-heading-15 text-ink">
-          <span className="min-w-0 truncate">{candidate.title}</span>
-          <BranchSwitcher
-            current={candidate.id}
-            sha={head}
-            onNewCandidate={branching.newCandidate}
-          />
-        </h1>
+      <div className="flex min-w-0 items-center justify-end gap-2">
         {branching.error}
-        <CandidateStatusTag candidate={candidate} />
-        <EvalResults candidate={candidate} />
-        <CandidateActions agent={agent} candidate={candidate} />
-        <ShipButton candidate={candidate} />
-      </header>
+        <Link
+          to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+          params={{ orgId, agent, issue, candidate: candidate.id }}
+          className={buttonVariants({ variant: "secondary" })}
+        >
+          Cancel changes
+        </Link>
+        <ShipButton candidate={candidate} label="Ship changes" />
+      </div>
       {branching.dialog}
       <div className="flex min-h-0 flex-1 gap-3">
-        <DebugViews
-          search={search}
-          files={
-            <FileEditor
-              key={candidate.id}
-              entries={tree}
-              changes={changes}
-              initialPath={search.file}
-              overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
-              primary
-              diff={diff}
-              renderSaveDialog={branching.renderSaveDialog}
-            />
-          }
-          grades={<CandidateGrades candidate={candidate} />}
+        <FileEditor
+          key={candidate.id}
+          entries={tree}
+          changes={changes}
+          initialPath={search.file}
+          overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
+          primary
+          diff={diff}
+          renderSaveDialog={branching.renderSaveDialog}
         />
       </div>
     </div>

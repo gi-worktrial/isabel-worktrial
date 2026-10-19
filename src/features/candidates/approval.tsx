@@ -74,6 +74,7 @@ export function ShipDialog({
   variant,
   disabled,
   debugging = false,
+  label = "Ship",
   onShip,
 }: {
   candidate: CandidateSummary | Candidate;
@@ -81,6 +82,7 @@ export function ShipDialog({
   disabled: boolean;
   /** Whether this is Debug's header, which needs no Debug link. */
   debugging?: boolean;
+  label?: string;
   onShip(): void;
 }) {
   const params = useIssueParams();
@@ -95,7 +97,7 @@ export function ShipDialog({
   return (
     <>
       <Button variant={variant} disabled={disabled} onClick={() => setOpen(true)}>
-        Ship
+        {label}
       </Button>
       <ConfirmDialog
         open={open}
@@ -150,7 +152,7 @@ export function ShipDialog({
 }
 
 /** Debug's Ship action beside a Candidate that's ready to ship. */
-export function ShipButton({ candidate }: { candidate: Candidate }) {
+export function ShipButton({ candidate, label }: { candidate: Candidate; label?: string }) {
   const issue = useIssue();
   const { pending, error, change } = useIssueChange();
   if (!canApprove(issue.state, candidate.results)) {
@@ -169,6 +171,7 @@ export function ShipButton({ candidate }: { candidate: Candidate }) {
         variant="primary"
         disabled={pending}
         debugging
+        {...(label === undefined ? {} : { label })}
         onShip={() => change({ action: "ship", candidate: candidate.id })}
       />
     </span>
