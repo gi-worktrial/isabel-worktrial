@@ -3,9 +3,12 @@ import type { ReactNode } from "react";
 import type { DebugSearch } from "#/debug-search";
 import { IssueTraceTable } from "#/issue-traces";
 import { Tab, Tabs } from "#/ui/tabs";
-import { Tag } from "#/ui/tag";
+import { Count } from "#src/ui/count";
 import { TabActionsEnd } from "#src/ui/tab-actions";
 import { LineCounts } from "#src/ui/file-name";
+
+const TAB_COUNT =
+  "group-aria-[current=page]/tab:bg-divider group-aria-[current=page]/tab:text-ink";
 
 /** Debug's Files, Grades, and Traces tabs. Files stays mounted while hidden so its unsaved edits survive. */
 export function DebugViews({
@@ -33,7 +36,7 @@ export function DebugViews({
           ) : (
             <>
               Files changed
-              <Tag className="h-4 px-1.5">{fileSummary.count}</Tag>
+              <Count className={TAB_COUNT}>{fileSummary.count}</Count>
             </>
           )}
         </Tab>

@@ -1,4 +1,6 @@
-import { useId, type ReactNode } from "react";
+import type { GitStatusEntry } from "@pierre/trees";
+import { FileTree, useFileTree } from "@pierre/trees/react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 import { FileDiffs } from "#/file-diffs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/ui/collapsible";
@@ -12,8 +14,12 @@ import {
   type PullFile,
   getCandidateStatus,
 } from "#src/sdk/index";
-import { FilePath } from "#src/ui/file-name";
+import { FileRail } from "#src/ui/file-tree";
 import { FOLD } from "#src/ui/fold";
+
+import treeStyles from "#src/ui/file-tree.css?inline";
+
+const TREE_ROW_HEIGHT = 28;
 
 /** A Candidate's rationale at the reading width, its Apply prompt folded behind its Copy, since the prompt repeats the rationale and the Fix shown on the page. */
 export function CandidateBody({ body, children }: { body: string; children?: ReactNode }) {
@@ -58,31 +64,60 @@ export function FixCard({ files }: { files: readonly PullFile[] }) {
 
   return (
     <section aria-label="Fix" className="flex items-start gap-3">
-      <nav
-        aria-label="Changed files"
-        className="sticky top-3 hidden max-h-[calc(100dvh-7.5rem)] w-56 shrink-0 flex-col overflow-auto card lg:flex"
-      >
-        <div className="flex h-10 shrink-0 items-center border-b border-divider px-3 type-label-13 font-medium text-muted">
-          Files
-        </div>
-        <ul className="flex flex-col p-2">
-          {files.map((file, index) => (
-            <li key={file.filename}>
-              <a
-                href={`#${fileIds[index]}`}
-                title={file.filename}
-                className="flex h-8 min-w-0 items-center rounded-xs px-2 hover:bg-fill"
-              >
-                <FilePath path={file.filename} className="flex-1 type-mono-12 text-ink" />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <ChangedFilesNav files={files} fileIds={fileIds} />
       <div className="min-w-0 flex-1">
         <FileDiffs files={files} separated fileIds={fileIds} />
       </div>
     </section>
+  );
+}
+
+function ChangedFilesNav({
+  files,
+  fileIds,
+}: {
+  files: readonly PullFile[];
+  fileIds: readonly string[];
+}) {
+  const ready = useRef(false);
+  useEffect(() => {
+    ready.current = true;
+  }, []);
+  const paths = files.map(({ filename }) => filename);
+  const gitStatus: GitStatusEntry[] = files.map(({ filename, status }) => ({
+    path: filename,
+    status: status === "removed" ? "deleted" : status === "added" ? "added" : "modified",
+  }));
+  const { model } = useFileTree({
+    paths,
+    gitStatus,
+    flattenEmptyDirectories: true,
+    initialExpansion: "open",
+    itemHeight: TREE_ROW_HEIGHT,
+    icons: { set: "minimal", colored: false },
+    unsafeCSS: treeStyles,
+    onSelectionChange: (selected) => {
+      if (!ready.current) {
+        return;
+      }
+      const path = model.getFocusedPath();
+      const index = path === null ? -1 : paths.indexOf(path);
+      if (index !== -1 && selected.includes(path!)) {
+        document.getElementById(fileIds[index]!)?.scrollIntoView({ block: "start" });
+      }
+    },
+  });
+
+  return (
+    <div className="sticky top-3 hidden h-[calc(100dvh-7.5rem)] w-56 shrink-0 overflow-hidden card lg:flex">
+      <FileRail
+        label="Changed files"
+        title={<span className="type-label-13 font-medium text-muted">Files</span>}
+        className="w-56 border-r-0"
+      >
+        <FileTree model={model} aria-label="Changed files" className="min-h-0 flex-1 p-2" />
+      </FileRail>
+    </div>
   );
 }
 
