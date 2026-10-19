@@ -129,38 +129,21 @@ export function SpanTimeline({
   failed,
   selected,
   onPick,
-  orientation = "horizontal",
 }: {
   traces: readonly Span[][];
   failed: ReadonlySet<string>;
   selected?: string | undefined;
   onPick(span: Span): void;
-  orientation?: "horizontal" | "vertical";
 }) {
-  const vertical = orientation === "vertical";
   return (
-    <div
-      role="group"
-      aria-label="Timeline"
-      className={cn(
-        "flex",
-        vertical
-          ? "w-1.5 flex-col self-stretch overflow-hidden rounded-full bg-fill"
-          : "h-2 gap-1",
-      )}
-    >
+    <div role="group" aria-label="Timeline" className="flex h-2 gap-1">
       {traces.map((spans, index) => (
         <div
           key={index}
           style={{ flexGrow: Math.max(spanTiming(spans).total, 1) }}
-          className={cn(
-            "flex basis-0 overflow-hidden",
-            vertical ? "min-h-0 flex-col gap-px" : "min-w-0 gap-px",
-          )}
+          className="flex min-w-0 basis-0 gap-px overflow-hidden"
         >
-          {blocks(spans)
-            .filter(({ kind }) => !vertical || kind !== "user")
-            .map(({ span, kind }) => {
+          {blocks(spans).map(({ span, kind }) => {
             const failing = failed.has(span.span_id);
             const name =
               kind === "user"
@@ -179,21 +162,12 @@ export function SpanTimeline({
                   onClick={() => onPick(span)}
                   style={{ flexGrow: kind === "user" ? 0 : span.duration_ns }}
                   className={cn(
-                    "basis-0 hover:brightness-90 focus-visible:outline-2 focus-visible:outline-ring",
-                    vertical
-                      ? "w-full aria-current:bg-ring"
-                      : "rounded-xs aria-current:outline-2 aria-current:outline-offset-1 aria-current:outline-ring",
+                    "basis-0 rounded-xs hover:brightness-90 focus-visible:outline-2 focus-visible:outline-ring aria-current:outline-2 aria-current:outline-offset-1 aria-current:outline-ring",
                     kind === "user"
-                      ? vertical
-                        ? "min-h-1.5"
-                        : "min-w-1.5"
+                      ? "min-w-1.5"
                       : failing || span.span_id === selected
-                        ? vertical
-                          ? "min-h-1"
-                          : "min-w-1"
-                        : vertical
-                          ? "min-h-0"
-                          : "min-w-0",
+                        ? "min-w-1"
+                        : "min-w-0",
                     failing ? "bg-danger" : BLOCKS[kind],
                   )}
                 />

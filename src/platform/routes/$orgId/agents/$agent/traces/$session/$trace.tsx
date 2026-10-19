@@ -16,7 +16,6 @@ import { type Grade, GradeRow, TextStep, ToolCall, gradeKey } from "#/trace-view
 import { sessionTitle } from "#/titles";
 import {
   KIND_ICONS,
-  SpanTimeline,
   formatJson,
   spanError,
   spanKind,
@@ -24,6 +23,7 @@ import {
   spanRows,
   toolLabel,
 } from "#/traces";
+import { cn } from "#/ui/cn";
 import { Fact, Facts } from "#/ui/facts";
 import { formatDuration } from "#src/features/traces/duration";
 import { Markdown } from "#/ui/markdown";
@@ -60,12 +60,10 @@ export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/$tra
 function TracePage() {
   const { orgId, agent, trace } = Route.useParams();
   const search = Route.useSearch();
-  const navigate = Route.useNavigate();
   const { spans, annotations } = useSuspenseQuery(traceQuery({ orgId, agent, trace })).data;
   const rows = spanRows(spans);
   const root = rows[0]?.span;
   const selected = spans.find(({ span_id }) => span_id === search.span) ?? root;
-  const pick = (span: Span) => navigate({ search: { span: span.span_id }, replace: true });
   const grades = annotations.flatMap((annotation) => {
     const criterion = getGradeCriterion(annotation);
     const span_id = annotation.span_id || (root?.span_id ?? "");
@@ -77,19 +75,19 @@ function TracePage() {
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
-        <div className="flex min-w-0 gap-2">
-          <SpanTimeline
-            traces={[spans]}
-            failed={failed}
-            selected={selected?.span_id}
-            onPick={pick}
-            orientation="vertical"
-          />
-          <ol aria-label="Span tree" className="flex min-w-0 flex-1 flex-col">
-            {rows.map(({ span, depth }) => {
-              const Icon = KIND_ICONS[spanKind(span)];
-              return (
-                <li key={span.span_id}>
+        <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
+          {rows.map(({ span, depth }) => {
+            const Icon = KIND_ICONS[spanKind(span)];
+            const failing = failed.has(span.span_id) || spanError(span) !== undefined;
+            return (
+              <li key={span.span_id} className="grid min-w-0 grid-cols-[0.375rem_minmax(0,1fr)] gap-2">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "my-1 w-1.5 rounded-full",
+                    failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
+                  )}
+                />
                   <Link
                     from={Route.fullPath}
                     to="."
@@ -106,11 +104,10 @@ function TracePage() {
                       {formatDuration(span.duration_ns)}
                     </span>
                   </Link>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
+              </li>
+            );
+          })}
+        </ol>
         {selected && (
           <SpanDetails
             key={selected.span_id}
