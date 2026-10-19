@@ -316,6 +316,48 @@
   }
 }
 
+@property --pebble-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.pebble-hint-active::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--pebble-border-angle),
+    var(--color-ring),
+    color-mix(in srgb, var(--color-accent) 25%, transparent),
+    var(--color-accent),
+    var(--color-ring)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pebble-hint-active::before {
+    animation: pebble-border-spin 5s linear infinite;
+  }
+}
+
+@keyframes pebble-border-spin {
+  to {
+    --pebble-border-angle: 360deg;
+  }
+}
+
 /* Fumadocs Editor's tokens, set to ours so Canvas's editor matches the rendered notes. */
 @utility document-editor {
   --fde-background: var(--color-surface);

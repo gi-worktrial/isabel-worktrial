@@ -894,7 +894,7 @@ function Shell() {
                             editingCandidate &&
                               !pebbleHintDismissed &&
                               !pebbleOpen &&
-                              "bg-fill text-ink",
+                              "pebble-hint-active bg-fill text-ink",
                           )}
                         >
                           <PebbleMark />
