@@ -94,7 +94,7 @@ function TracePage() {
                   aria-current={span === selected ? "true" : undefined}
                   className={cn(
                     "min-w-0 rounded-xs text-ink hover:bg-fill aria-current:row-selected",
-                    isRoot ? "block" : "grid h-full grid-cols-[0.375rem_minmax(0,1fr)] gap-2",
+                    isRoot ? "block" : "grid h-full grid-cols-[0.375rem_minmax(0,1fr)] gap-1",
                   )}
                 >
                   {!isRoot && (
