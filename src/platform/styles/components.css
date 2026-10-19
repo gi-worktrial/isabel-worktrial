@@ -331,11 +331,11 @@
   padding: 1.5px;
   background: conic-gradient(
     from var(--pebble-border-angle),
-    #20d9c2 0%,
-    #20d9c2 35%,
+    #22b8e8 0%,
+    #22b8e8 35%,
     #2d7ff9 48%,
     #2d7ff9 87%,
-    #20d9c2 100%
+    #22b8e8 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
