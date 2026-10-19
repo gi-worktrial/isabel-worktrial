@@ -108,7 +108,7 @@ function TracePage() {
                       "min-w-0 rounded-sm text-ink hover:bg-fill",
                       span === selected ? "bg-fill" : "bg-surface",
                       isRoot
-                        ? "relative block after:absolute after:top-8 after:bottom-[-1px] after:left-4 after:border-l after:border-divider-strong"
+                        ? "relative block after:absolute after:top-8 after:bottom-[-2px] after:left-4 after:border-l after:border-divider-strong"
                         : "grid h-10 grid-cols-[2rem_minmax(0,1fr)]",
                   )}
                 >
@@ -116,9 +116,8 @@ function TracePage() {
                     <span
                       aria-hidden="true"
                         className={cn(
-                          "relative self-stretch after:absolute after:top-[-1px] after:right-0 after:bottom-1/2 after:left-1/2 after:rounded-bl-md after:border-b after:border-l after:border-divider-strong",
-                          !isLast &&
-                            "before:absolute before:top-1/2 before:bottom-[-1px] before:left-1/2 before:border-l before:border-divider-strong",
+                          "relative self-stretch before:absolute before:top-[-2px] before:left-1/2 before:border-l before:border-divider-strong after:absolute after:top-[-1px] after:right-0 after:bottom-1/2 after:left-1/2 after:rounded-bl-md after:border-b after:border-l after:border-divider-strong",
+                          isLast ? "before:bottom-1/2" : "before:bottom-[-2px]",
                         )}
                     />
                   )}
