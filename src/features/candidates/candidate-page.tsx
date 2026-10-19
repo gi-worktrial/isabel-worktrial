@@ -55,15 +55,15 @@ export function CandidateBody({ body, children }: { body: string; children?: Rea
 /** The Candidate's Fix in one card: how many files and lines it changes, then each file's diff. */
 export function FixCard({ files }: { files: readonly PullFile[] }) {
   return (
-    <section aria-label="Fix" className="overflow-clip card">
-      <header className="flex h-10 items-center gap-2 border-b border-divider px-3">
+    <section aria-label="Fix" className="flex flex-col gap-2">
+      <header className="flex items-center gap-2">
         <h3 className="type-label-13 font-semibold text-ink">Fix</h3>
         <span className="type-label-13 text-muted tabular-nums">
           {files.length === 1 ? "1 file" : `${files.length} files`}
         </span>
         <LineCounts {...totalLines(files)} className="ml-auto type-mono-12" />
       </header>
-      <FileDiffs files={files} />
+      <FileDiffs files={files} separated />
     </section>
   );
 }

@@ -27,13 +27,33 @@ const filePatch = ({ filename, status, patch }: PullFile) =>
   ].join("\n");
 
 /** Changed files, one unified diff each. */
-export function FileDiffs({ files, empty = "This Candidate doesn't change any files yet." }: { files: readonly PullFile[]; empty?: string }) {
+export function FileDiffs({
+  files,
+  empty = "This Candidate doesn't change any files yet.",
+  separated = false,
+}: {
+  files: readonly PullFile[];
+  empty?: string;
+  separated?: boolean;
+}) {
   if (files.length === 0) {
     return <EmptyState title="No changes" description={empty} />;
   }
 
-  return files.map((file, index) => (
-    <FileFold key={file.filename} path={file.filename} defaultOpen={index === 0} meta={<LineCounts added={file.additions} removed={file.deletions} className="type-mono-12" />}>
+  const folds = files.map((file, index) => (
+    <FileFold
+      key={file.filename}
+      path={file.filename}
+      defaultOpen={index === 0}
+      separated={separated}
+      meta={
+        <LineCounts
+          added={file.additions}
+          removed={file.deletions}
+          className="type-mono-12"
+        />
+      }
+    >
       {file.patch === undefined ? (
         <p className="px-3 py-2 type-meta-12 text-muted">No text diff for this file.</p>
       ) : (
@@ -41,6 +61,7 @@ export function FileDiffs({ files, empty = "This Candidate doesn't change any fi
       )}
     </FileFold>
   ));
+  return separated ? <div className="flex flex-col gap-3">{folds}</div> : folds;
 }
 
 /** One unified diff, highlighted for the current theme. */
