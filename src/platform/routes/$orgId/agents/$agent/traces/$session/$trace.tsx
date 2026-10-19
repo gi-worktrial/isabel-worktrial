@@ -81,9 +81,13 @@ function TracePage() {
             const Icon = KIND_ICONS[spanKind(span)];
             const failing = failed.has(span.span_id) || spanError(span) !== undefined;
             const isRoot = span === root;
+            const rowStyle = isRoot
+              ? undefined
+              : { minHeight: `${Math.max((span.duration_ns / longestProcess) * 72, 28)}px` };
             return (
               <li
                 key={span.span_id}
+                style={rowStyle}
                 className={cn(
                   "min-w-0",
                   !isRoot && "grid grid-cols-[0.375rem_minmax(0,1fr)] gap-2",
@@ -92,11 +96,8 @@ function TracePage() {
                 {!isRoot && (
                   <span
                     aria-hidden="true"
-                    style={{
-                      height: `${Math.max((span.duration_ns / longestProcess) * 20, 2)}px`,
-                    }}
                     className={cn(
-                      "w-1.5 self-center rounded-full",
+                      "w-1.5 self-stretch rounded-xs",
                       failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
                     )}
                   />
@@ -108,7 +109,7 @@ function TracePage() {
                     replace
                     aria-current={span === selected ? "true" : undefined}
                   style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
-                    className="flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
+                  className="flex h-7 min-w-0 self-center items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
                   >
                     <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
                     <span className="min-w-0 truncate">{spanLabel(span)}</span>
