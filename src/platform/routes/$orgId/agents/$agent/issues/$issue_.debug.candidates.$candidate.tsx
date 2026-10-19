@@ -50,10 +50,6 @@ export const Route = createFileRoute(
         label: candidate.title,
         to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
       },
-      {
-        label: "Debugging",
-        to: "/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate",
-      },
     );
   },
   // a save as a new Candidate moves to its own Debug, which starts from that Candidate's head
