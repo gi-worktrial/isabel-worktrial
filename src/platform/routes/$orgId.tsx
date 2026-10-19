@@ -28,7 +28,9 @@ import {
   ArrowLeftRight,
   ArrowLeftToLine,
   ArrowRightToLine,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Columns2,
   Expand,
   PanelRight,
@@ -65,8 +67,9 @@ import { DEFAULT_PROMPTS, PebbleDockContext, type PebblePage } from "../pebble/p
 import { Sidebar, SidebarSkeleton } from "../sidebar";
 import { threadTitle } from "#/lib/pebble/view";
 import { CommandPalette } from "#/command-palette";
+import type { Crumb } from "#/crumbs";
 import { ShortcutsDialog, chord, isPlainKey, isTyping } from "#/shortcuts";
-import { IconButton } from "#/ui/button";
+import { IconButton, buttonVariants } from "#/ui/button";
 import { cn } from "#/ui/cn";
 import { Kbd } from "#/ui/kbd";
 import { PebbleMark } from "#/ui/marks";
@@ -255,7 +258,8 @@ function Shell() {
       matches.flatMap((match) =>
         isMatch(match, "loaderData.crumbs") ? (match.loaderData?.crumbs ?? []) : [],
       ),
-  });
+  }) as Crumb[];
+  const crumbNeighbors = crumbs.at(-1)?.neighbors;
   const router = useRouter();
   // A chat's title comes with its first question or a rename, after its page loaded, so its crumb loads again.
   const chatTitle = useQuery({
@@ -838,6 +842,41 @@ function Shell() {
                           )}
                         </span>
                       ))}
+                      {crumbNeighbors !== undefined && (
+                        <span className="flex shrink-0 items-center">
+                          {[
+                            { key: "up", Icon: ChevronUp, target: crumbNeighbors.up },
+                            { key: "down", Icon: ChevronDown, target: crumbNeighbors.down },
+                          ].map(({ key, Icon, target }) =>
+                            target === undefined ? (
+                              <span
+                                key={key}
+                                aria-hidden="true"
+                                className={cn(
+                                  buttonVariants({ variant: "quiet", size: "small" }),
+                                  "size-6 px-0 text-faint",
+                                )}
+                              >
+                                <Icon className="size-3.5" />
+                              </span>
+                            ) : (
+                              <Link
+                                key={key}
+                                to={target.to}
+                                params={(current) => ({ ...current, ...target.params })}
+                                aria-label={target.label}
+                                title={target.label}
+                                className={cn(
+                                  buttonVariants({ variant: "quiet", size: "small" }),
+                                  "size-6 px-0",
+                                )}
+                              >
+                                <Icon aria-hidden="true" className="size-3.5" />
+                              </Link>
+                            ),
+                          )}
+                        </span>
+                      )}
                     </nav>
                     <div className="flex items-center gap-1">
                       {params.thread !== undefined && (

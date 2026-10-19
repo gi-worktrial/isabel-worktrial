@@ -44,12 +44,24 @@ export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/$tra
       queryClient.ensureQueryData(sessionQuery({ ...params, after: undefined })),
       queryClient.ensureQueryData(traceQuery(params)),
     ]);
+    const index = page.turns.findIndex(({ trace_id }) => trace_id === params.trace);
+    const up = page.turns[index + 1];
+    const down = page.turns[index - 1];
+    const turnNeighbor = (turn: (typeof page.turns)[number]) => ({
+      label: `Go to Turn ${turn.position}`,
+      to: "/$orgId/agents/$agent/traces/$session/$trace" as const,
+      params: { trace: turn.trace_id },
+    });
     return crumbs(
       { label: "Traces", to: "/$orgId/agents/$agent/traces" },
       { label: crumbTitle(sessionTitle(page.session)), to: "/$orgId/agents/$agent/traces/$session" },
       {
         label: turnCrumb(page.turns, params.trace),
         to: "/$orgId/agents/$agent/traces/$session/$trace",
+        neighbors: {
+          ...(up === undefined ? {} : { up: turnNeighbor(up) }),
+          ...(down === undefined ? {} : { down: turnNeighbor(down) }),
+        },
       },
     );
   },
