@@ -126,7 +126,7 @@ function IssuePage() {
                 <IconButton
                   label="View full issue history"
                   size="small"
-                  className="-my-1 -ml-1"
+                  className="-my-0.5 ml-0.5 size-6"
                   onClick={() => openActivity(params)}
                 >
                   <History aria-hidden="true" className="size-3.5 text-muted" />
