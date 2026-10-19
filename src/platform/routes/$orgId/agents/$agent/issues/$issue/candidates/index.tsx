@@ -1,11 +1,12 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { candidatesQuery, useAgentRepo } from "#/queries";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { useIssue } from "../../../../../../../issue-view";
 import { CandidateStatusTag } from "#/candidate-results";
-import { Button, buttonVariants } from "#/ui/button";
+import { Button, IconButton, buttonVariants } from "#/ui/button";
 import { ConfirmDialog } from "#/ui/dialog";
 import { EmptyState } from "#/ui/empty-state";
 import { Input } from "#/ui/input";
@@ -94,6 +95,7 @@ function CandidateCards() {
   const params = Route.useParams();
   const candidates = useSuspenseQuery(candidatesQuery(params)).data;
   const { tones } = useBranchTones();
+  const [index, setIndex] = useState(0);
 
   if (candidates.length === 0) {
     return (
@@ -106,12 +108,38 @@ function CandidateCards() {
     );
   }
 
+  const candidate = candidates[Math.min(index, candidates.length - 1)]!;
+  const { rationale } = splitApplyPrompt(candidate.body);
+
   return (
-    <ul aria-label="Candidates" className="grid gap-3">
-      {candidates.map((candidate) => {
-        const { rationale } = splitApplyPrompt(candidate.body);
-        return (
-          <li key={candidate.id} className="flex min-w-0 flex-col gap-3 card p-4">
+    <div className="flex flex-col gap-2">
+      <div
+        role="group"
+        aria-label="Candidate pagination"
+        className="flex items-center justify-end gap-2"
+      >
+        <IconButton
+          label="Previous candidate"
+          size="small"
+          disabled={index === 0}
+          onClick={() => setIndex((current) => Math.max(0, current - 1))}
+        >
+          <ChevronLeft className="size-4" />
+        </IconButton>
+        <span className="type-meta-12 whitespace-nowrap text-muted tabular-nums">
+          {index + 1} of {candidates.length}
+        </span>
+        <IconButton
+          label="Next candidate"
+          size="small"
+          disabled={index === candidates.length - 1}
+          onClick={() => setIndex((current) => Math.min(candidates.length - 1, current + 1))}
+        >
+          <ChevronRight className="size-4" />
+        </IconButton>
+      </div>
+      <ul aria-label="Candidates">
+        <li key={candidate.id} className="flex min-w-0 flex-col gap-3 card p-4">
             <header className="flex min-w-0 items-start gap-3">
               <BranchSwatch tone={tones.get(candidate.id)} className="mt-1" />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -146,9 +174,8 @@ function CandidateCards() {
             <div className="flex flex-wrap items-center gap-2">
               <CandidateProofs candidate={candidate} />
             </div>
-          </li>
-        );
-      })}
-    </ul>
+        </li>
+      </ul>
+    </div>
   );
 }
