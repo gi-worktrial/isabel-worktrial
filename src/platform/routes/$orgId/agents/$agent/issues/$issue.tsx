@@ -142,20 +142,9 @@ function IssuePage() {
 }
 
 function IssueOverview({ text }: { text: string }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
     <section aria-label="Issue overview">
-      <Markdown text={text} mdx className={expanded ? "" : "max-h-5 overflow-hidden"} />
-      <Button
-        variant="quiet"
-        size="small"
-        className="-ml-2 mt-1"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((open) => !open)}
-      >
-        {expanded ? "View less" : "View more"}
-      </Button>
+      <Markdown text={text} mdx className="" />
     </section>
   );
 }
