@@ -149,45 +149,43 @@ function CandidateCards() {
         </span>
       </div>
       <ul aria-label="Candidates">
-        <li key={candidate.id} className="flex min-w-0 flex-col gap-3 card p-4">
-          <header className="flex min-w-0 items-start gap-3">
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="flex min-w-0 flex-wrap items-center gap-2">
-                <Link
-                  to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-                  params={{ ...params, candidate: candidate.id }}
-                  className="truncate type-label-13 font-semibold text-ink hover:underline"
-                >
+        <li key={candidate.id}>
+          <Link
+            to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+            params={{ ...params, candidate: candidate.id }}
+            className="flex min-w-0 flex-col gap-3 card p-4 no-underline hover:border-divider-strong"
+          >
+            <header className="flex min-w-0 items-start gap-3">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="truncate type-label-13 font-semibold text-ink">
                   {candidate.title}
-                </Link>
-                <CandidateBranch candidate={candidate} />
-                <CandidateResultTags results={candidate.results} />
-                {candidate.recommended !== undefined && (
-                  <Tag tone="accent" title={candidate.recommended}>
-                    Recommended
-                  </Tag>
+                  </span>
+                  <CandidateBranch candidate={candidate} />
+                  <CandidateResultTags results={candidate.results} />
+                  {candidate.recommended !== undefined && (
+                    <Tag tone="accent" title={candidate.recommended}>
+                      Recommended
+                    </Tag>
+                  )}
+                </span>
+                {rationale !== "" && (
+                  <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
                 )}
+              </div>
+              <span className={buttonVariants({ variant: "primary", size: "small" })}>
+                View candidate
               </span>
-              {rationale !== "" && (
-                <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
-              )}
-            </div>
-            <Link
-              to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-              params={{ ...params, candidate: candidate.id }}
-              className={buttonVariants({ variant: "primary", size: "small" })}
-            >
-              View candidate
-            </Link>
-          </header>
-          {detail !== undefined && (
-            <Tag className="self-start gap-2">
-              <span className="font-normal text-muted">
-                {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
-              </span>
-              <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
-            </Tag>
-          )}
+            </header>
+            {detail !== undefined && (
+              <Tag className="self-start gap-2">
+                <span className="font-normal text-muted">
+                  {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
+                </span>
+                <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
+              </Tag>
+            )}
+          </Link>
         </li>
       </ul>
     </div>

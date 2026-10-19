@@ -82,6 +82,7 @@ function issueBlock(
     approved: issue.approved?.candidate,
     approval: issue.approved?.outdated === true ? "out of date" : undefined,
     dismissed_because: issue.dismissal_reason,
+    resolved_because: issue.resolution_reason,
     shipped: issue.fix === undefined ? undefined : "yes",
   });
   const lines = [

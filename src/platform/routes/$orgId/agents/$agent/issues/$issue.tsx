@@ -9,6 +9,7 @@ import {
 import type { Issue } from "@grounded-intelligence/grounded-sdk";
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 import { ChevronDown, History } from "lucide-react";
+import { useState } from "react";
 
 import { usePebbleDock, usePebblePage } from "#/pebble/page";
 import {
@@ -23,6 +24,7 @@ import {
 } from "../../../../../issue-view";
 import { Button, IconButton } from "#/ui/button";
 import { Fact, Facts } from "#/ui/facts";
+import { Textarea } from "#/ui/input";
 import { Markdown } from "#/ui/markdown";
 import { Dropdown, MenuRadioGroup, MenuRadioItem } from "#/ui/menu";
 import { Tab, Tabs } from "#/ui/tabs";
@@ -30,6 +32,8 @@ import { Tag } from "#/ui/tag";
 import { Timestamp } from "#/ui/timestamp";
 import { crumbs } from "#/crumbs";
 import { Count } from "#src/ui/count";
+import { ConfirmDialog } from "#src/ui/confirm-dialog";
+import { Select } from "#src/ui/select";
 import { TabActionsEnd } from "#src/ui/tab-actions";
 
 const ISSUE_PROMPTS = [
@@ -39,6 +43,23 @@ const ISSUE_PROMPTS = [
 ];
 const TAB_COUNT =
   "group-aria-[current=page]/tab:bg-divider group-aria-[current=page]/tab:text-ink";
+const STATE_REASONS = {
+  dismissed: [
+    { value: "", label: "Select a reason" },
+    { value: "not_issue", label: "Not an issue" },
+    { value: "duplicate", label: "Duplicate issue" },
+    { value: "expected", label: "Expected behavior" },
+    { value: "wont_fix", label: "Won't fix" },
+    { value: "other", label: "Other" },
+  ],
+  resolved: [
+    { value: "", label: "Select a reason" },
+    { value: "fixed_elsewhere", label: "Fixed outside Grounded" },
+    { value: "configuration", label: "Configuration or data change" },
+    { value: "not_reproducible", label: "No longer reproducible" },
+    { value: "other", label: "Other" },
+  ],
+} as const;
 
 export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue")({
   staticData: { rail: true },
@@ -134,6 +155,11 @@ function IssuePage() {
             <span className="font-medium">Dismissed because</span> {issue.dismissal_reason}
           </p>
         )}
+        {issue.resolution_reason !== undefined && (
+          <p className="type-meta-12 text-muted">
+            <span className="font-medium">Resolved because</span> {issue.resolution_reason}
+          </p>
+        )}
         {issue.body.trim() !== "" && (
           <IssueOverview key={issue.id} text={issue.body} />
         )}
@@ -202,7 +228,8 @@ function ClosedTabs({ params }: { params: IssueParams }) {
 
 function IssueStateControl({ issue }: { issue: Issue }) {
   const { pending, error, change } = useIssueChange();
-  if (issue.state !== "detected" && issue.state !== "reviewing") {
+  const [terminal, setTerminal] = useState<"dismissed" | "resolved">();
+  if (issue.state === "resolved") {
     return (
       <>
         <StateMark state={issue.state} className="size-3.5" />
@@ -226,25 +253,95 @@ function IssueStateControl({ issue }: { issue: Issue }) {
         <MenuRadioGroup
           value={issue.state}
           onValueChange={(state) => {
-            if (state === "detected" && issue.state === "reviewing") {
+            if (state === "dismissed" || state === "resolved") {
+              setTerminal(state);
+            } else if (
+              state === "detected" &&
+              (issue.state === "reviewing" || issue.state === "dismissed")
+            ) {
               change({ action: "reset" });
             } else if (state === "reviewing" && issue.state === "detected") {
               change({ action: "validate" });
+            } else if (state === "reviewing" && issue.state === "dismissed") {
+              change({ action: "reopen" });
             }
           }}
         >
           <MenuRadioItem value="detected">New</MenuRadioItem>
           <MenuRadioItem value="reviewing">In progress</MenuRadioItem>
-          <MenuRadioItem value="resolved" disabled title="Ship a Candidate to resolve this Issue">
-            Resolved
-          </MenuRadioItem>
+          <MenuRadioItem value="dismissed">Dismissed</MenuRadioItem>
+          <MenuRadioItem value="resolved">Resolved</MenuRadioItem>
         </MenuRadioGroup>
       </Dropdown>
+      {terminal !== undefined && (
+        <StateReasonDialog
+          state={terminal}
+          onClose={() => setTerminal(undefined)}
+          onConfirm={(reason) => {
+            setTerminal(undefined);
+            change({ action: terminal === "dismissed" ? "dismiss" : "resolve", reason });
+          }}
+        />
+      )}
       {error !== undefined && (
         <span role="alert" className="type-meta-12 text-danger">
           {error}
         </span>
       )}
     </>
+  );
+}
+
+function StateReasonDialog({
+  state,
+  onClose,
+  onConfirm,
+}: {
+  state: "dismissed" | "resolved";
+  onClose(): void;
+  onConfirm(reason: string): void;
+}) {
+  const options = STATE_REASONS[state];
+  const [choice, setChoice] = useState<string>("");
+  const [other, setOther] = useState("");
+  const reason =
+    choice === "other"
+      ? other.trim()
+      : (options.find((option) => option.value === choice)?.label ?? "");
+  const word = state === "dismissed" ? "Dismiss" : "Resolve";
+
+  return (
+    <ConfirmDialog
+      open
+      title={`${word} this Issue?`}
+      description={`Choose why this Issue should be ${state}.`}
+      confirmLabel={word}
+      blocked={choice === "" || reason === ""}
+      onConfirm={() => onConfirm(reason)}
+      onClose={onClose}
+    >
+      <label className="flex flex-col gap-1.5">
+        <span className="type-label-13 font-medium text-ink">Reason</span>
+        <Select
+          aria-label={`${word} reason`}
+          options={options}
+          value={choice}
+          onChange={setChoice}
+          className="w-full justify-between"
+        />
+      </label>
+      {choice === "other" && (
+        <label className="flex flex-col gap-1.5">
+          <span className="type-label-13 font-medium text-ink">Other</span>
+          <Textarea
+            autoFocus
+            rows={3}
+            value={other}
+            placeholder="Enter a reason"
+            onChange={(event) => setOther(event.target.value)}
+          />
+        </label>
+      )}
+    </ConfirmDialog>
   );
 }

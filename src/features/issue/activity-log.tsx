@@ -52,6 +52,7 @@ const ACTIONS: ReadonlyArray<{
     to: "reviewing",
   },
   { subject: /^Dismiss issue /u, verb: "dismissed the Issue", mark: Ban, to: "dismissed" },
+  { subject: /^Resolve issue /u, verb: "resolved the Issue", mark: CircleCheck, to: "resolved" },
   { subject: /^Reopen issue /u, verb: "reopened the Issue", mark: RotateCcw, to: "reviewing" },
   {
     subject: /^Move issue \S+ back to detected/u,

@@ -46,6 +46,7 @@ const frontmatterSchema = z.object({
   state: z.enum(ISSUE_STATES),
   created: z.iso.datetime(),
   dismissal_reason: z.string().regex(/\S/).optional(),
+  resolution_reason: z.string().regex(/\S/).optional(),
   /** The commit on the default branch that shipped the Issue's fix, kept if it comes back. */
   fix: shaSchema.optional(),
   /** The Candidate engineers approved and the test merge commit its results came from. */
@@ -88,6 +89,8 @@ export type IssueSummary = {
 export type Issue = IssueSummary & {
   /** Why engineers dismissed the Issue, while it's dismissed. */
   dismissal_reason: string | undefined;
+  /** Why engineers manually resolved the Issue, while it's resolved. */
+  resolution_reason: string | undefined;
   /** The Markdown or MDX after the frontmatter. */
   body: string;
   /** The default branch commit it was read at, which an update must be made from. */
@@ -196,7 +199,7 @@ export type UpdateNotesOptions = {
 
 type IssueAction = { from: readonly IssueState[]; to: IssueState; subject: (id: string) => string };
 
-const ISSUE_ACTION_NAMES = ["validate", "dismiss", "reopen", "reset"] as const;
+const ISSUE_ACTION_NAMES = ["validate", "dismiss", "resolve", "reopen", "reset"] as const;
 export type IssueActionName = (typeof ISSUE_ACTION_NAMES)[number];
 
 /** What each action an engineer takes moves an Issue from and to, and the subject of its commit. */
@@ -206,6 +209,11 @@ const ISSUE_ACTIONS: Record<IssueActionName, IssueAction> = {
     from: ["detected", "reviewing"],
     to: "dismissed",
     subject: (id) => `Dismiss issue ${id}`,
+  },
+  resolve: {
+    from: ["detected", "reviewing", "dismissed"],
+    to: "resolved",
+    subject: (id) => `Resolve issue ${id}`,
   },
   reopen: { from: ["dismissed"], to: "reviewing", subject: (id) => `Reopen issue ${id}` },
   reset: {
@@ -220,8 +228,8 @@ export const getIssueActions = (state: IssueState) =>
   ISSUE_ACTION_NAMES.filter((action) => ISSUE_ACTIONS[action].from.includes(state));
 
 export type IssueChange =
-  | { action: "dismiss"; reason: string }
-  | { action: Exclude<IssueActionName, "dismiss"> }
+  | { action: "dismiss" | "resolve"; reason: string }
+  | { action: Exclude<IssueActionName, "dismiss" | "resolve"> }
   | { action: "include_trace" | "exclude_trace"; trace: string }
   | { action: "approve"; candidate: string }
   | { action: "unapprove" }
@@ -339,6 +347,7 @@ export class Issues {
     return {
       ...summarize(id, frontmatter, counts, work, body),
       dismissal_reason: frontmatter.dismissal_reason,
+      resolution_reason: frontmatter.resolution_reason,
       body,
       head_oid: head!.sha,
       include: frontmatter.include,
@@ -1170,8 +1179,13 @@ function applyChange(
   document.set("state", to);
   if (change.action === "dismiss") {
     document.set("dismissal_reason", change.reason);
+    document.delete("resolution_reason");
+  } else if (change.action === "resolve") {
+    document.set("resolution_reason", change.reason);
+    document.delete("dismissal_reason");
   } else {
     document.delete("dismissal_reason");
+    document.delete("resolution_reason");
   }
 
   return subject(id);

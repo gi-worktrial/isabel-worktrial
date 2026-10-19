@@ -47,6 +47,16 @@ describe("platform's Issues over the memory client", () => {
     expect(head?.commit.message).toMatch(/\nGrounded-Issue: GRD-1\nGrounded-Action: reopen$/u);
   });
 
+  it("records the reason when an engineer manually resolves an Issue", async () => {
+    const { get, update } = tinyClient();
+    await update({ action: "resolve", reason: "Fixed outside Grounded" });
+    expect(await get()).toMatchObject({
+      state: "resolved",
+      dismissal_reason: undefined,
+      resolution_reason: "Fixed outside Grounded",
+    });
+  });
+
   it("refuses an action from a state it can't leave, and a stale head with 409", async () => {
     const { client, at, get, update } = tinyClient();
     await expect(update({ action: "reopen" })).rejects.toThrow();

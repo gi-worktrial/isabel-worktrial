@@ -35,6 +35,7 @@ export const SEVERITY_WORDS = {
 export const ACTION_WORDS = {
   validate: "Start work",
   dismiss: "Dismiss",
+  resolve: "Resolve",
   reopen: "Reopen",
   reset: "Move back to New",
 } as const satisfies Record<IssueActionName, string>;
