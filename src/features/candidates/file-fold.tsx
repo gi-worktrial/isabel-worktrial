@@ -10,6 +10,7 @@ export function FileFold({
   id,
   path,
   meta,
+  action,
   defaultOpen,
   separated = false,
   children,
@@ -17,6 +18,7 @@ export function FileFold({
   id?: string;
   path: string;
   meta?: ReactNode;
+  action?: ReactNode;
   defaultOpen: boolean;
   separated?: boolean;
   children: ReactNode;
@@ -28,10 +30,13 @@ export function FileFold({
         aria-label={path}
         className={separated ? "overflow-clip card" : "border-b border-divider last:border-b-0"}
       >
-        <CollapsibleTrigger className="focus-inset mx-0 h-9 w-full rounded-none px-3 hover:bg-subtle">
-          <FilePath path={path} className="flex-1 type-mono-12 text-ink" />
-          {meta}
-        </CollapsibleTrigger>
+        <div className="flex items-center hover:bg-subtle">
+          <CollapsibleTrigger className="focus-inset mx-0 h-9 min-w-0 flex-1 rounded-none px-3 hover:bg-transparent">
+            <FilePath path={path} className="flex-1 type-mono-12 text-ink" />
+            {meta}
+          </CollapsibleTrigger>
+          {action === undefined ? null : <span className="shrink-0 pr-2">{action}</span>}
+        </div>
         <CollapsibleContent className={FOLD}>
           <div className="border-t border-divider">{children}</div>
         </CollapsibleContent>
