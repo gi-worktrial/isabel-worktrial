@@ -889,7 +889,13 @@ function Shell() {
                             setPebbleHintDismissed(true);
                             togglePebble();
                           }}
-                          className="aria-pressed:bg-inset aria-pressed:text-accent"
+                          className={cn(
+                            "aria-pressed:bg-inset aria-pressed:text-accent",
+                            editingCandidate &&
+                              !pebbleHintDismissed &&
+                              !pebbleOpen &&
+                              "bg-fill text-ink",
+                          )}
                         >
                           <PebbleMark />
                         </IconButton>
