@@ -163,7 +163,7 @@ function SpanDetails({
   const messages = [
     ...spanMessages(span, "gen_ai.input.messages"),
     ...spanMessages(span, "gen_ai.output.messages"),
-  ];
+  ].filter(({ role }) => role !== "system");
   return (
     <section aria-label="Span details" className="@container flex min-w-0 flex-col gap-5">
       <header className="flex flex-col gap-3">
