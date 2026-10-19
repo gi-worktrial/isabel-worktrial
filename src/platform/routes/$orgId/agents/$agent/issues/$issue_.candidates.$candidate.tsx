@@ -25,7 +25,7 @@ export const Route = createFileRoute(
 )({
   staticData: { rail: true },
   loader: async ({ context: { queryClient }, params }) => {
-    const [, issue] = await Promise.all([
+    const [candidate, issue] = await Promise.all([
       queryClient.ensureQueryData(candidateQuery(params)),
       queryClient.ensureQueryData(issueQuery(params)),
       queryClient.ensureQueryData(candidatesQuery(params)),
@@ -33,6 +33,10 @@ export const Route = createFileRoute(
     return crumbs(
       { label: "Inbox", to: "/$orgId/agents/$agent/issues" },
       { label: issue.id, to: "/$orgId/agents/$agent/issues/$issue" },
+      {
+        label: candidate.title,
+        to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
+      },
     );
   },
   component: CandidatePage,
