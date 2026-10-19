@@ -76,25 +76,34 @@ function TracePage() {
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
         <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
-          {rows.slice(1).map(({ span, depth }) => {
+          {rows.map(({ span, depth }) => {
             const Icon = KIND_ICONS[spanKind(span)];
             const failing = failed.has(span.span_id) || spanError(span) !== undefined;
+            const isRoot = span === root;
             return (
-              <li key={span.span_id} className="grid min-w-0 grid-cols-[0.375rem_minmax(0,1fr)] gap-2">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "my-1 w-1.5 rounded-full",
-                    failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
-                  )}
-                />
+              <li
+                key={span.span_id}
+                className={cn(
+                  "min-w-0",
+                  !isRoot && "grid grid-cols-[0.375rem_minmax(0,1fr)] gap-2",
+                )}
+              >
+                {!isRoot && (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "my-1 w-1.5 rounded-full",
+                      failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
+                    )}
+                  />
+                )}
                   <Link
                     from={Route.fullPath}
                     to="."
                     search={{ span: span.span_id }}
                     replace
                     aria-current={span === selected ? "true" : undefined}
-                style={{ paddingLeft: `${Math.max(depth - 1, 0) * 1.25 + 0.5}rem` }}
+                  style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
                     className="flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
                   >
                     <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
