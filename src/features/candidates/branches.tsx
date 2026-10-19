@@ -75,13 +75,14 @@ function BranchTag({
 }
 
 /** A branch's color alone, for a list or a field naming it. */
-export function BranchSwatch({ tone }: { tone: BranchTone }) {
+export function BranchSwatch({ tone, className }: { tone: BranchTone; className?: string }) {
   return (
     <span
       aria-hidden="true"
       className={cn(
         "size-2 shrink-0 rounded-full",
         tone === undefined ? "bg-ring" : SWATCHES[tone % SWATCHES.length],
+        className,
       )}
     />
   );

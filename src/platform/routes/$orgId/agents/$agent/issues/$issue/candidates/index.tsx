@@ -1,33 +1,25 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { candidatesQuery, useAgentRepo } from "#/queries";
-import { Link, createFileRoute, redirect } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState, useTransition } from "react";
 
 import { useIssue } from "../../../../../../../issue-view";
 import { CandidateStatusTag } from "#/candidate-results";
-import { Button } from "#/ui/button";
+import { Button, buttonVariants } from "#/ui/button";
 import { ConfirmDialog } from "#/ui/dialog";
 import { EmptyState } from "#/ui/empty-state";
 import { Input } from "#/ui/input";
+import { Markdown } from "#/ui/markdown";
 import { Tag } from "#/ui/tag";
 import { BranchSwatch, useBranchTones } from "#src/features/candidates/branches";
+import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
 import { CompareLink } from "#src/features/candidates/candidate-compare";
 import { CandidateProofs } from "#src/features/candidates/proofs-view";
 import { TabActions } from "#src/ui/tab-actions";
 
 export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/candidates/")({
-  loader: async ({ context: { queryClient }, params }) => {
-    const candidates = await queryClient.ensureQueryData(candidatesQuery(params));
-    const first = candidates[0];
-    if (first !== undefined) {
-      throw redirect({
-        to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
-        params: { ...params, candidate: first.id },
-        replace: true,
-      });
-    }
-    return candidates;
-  },
+  loader: ({ context: { queryClient }, params }) =>
+    queryClient.ensureQueryData(candidatesQuery(params)),
   component: IssueCandidates,
 });
 
@@ -40,7 +32,7 @@ function IssueCandidates() {
         <CompareLink />
         {state === "reviewing" && <NewCandidateDialog />}
       </TabActions>
-      <CandidateTable />
+      <CandidateCards />
     </div>
   );
 }
@@ -98,7 +90,7 @@ function NewCandidateDialog() {
   );
 }
 
-function CandidateTable() {
+function CandidateCards() {
   const params = Route.useParams();
   const candidates = useSuspenseQuery(candidatesQuery(params)).data;
   const { tones } = useBranchTones();
@@ -115,43 +107,48 @@ function CandidateTable() {
   }
 
   return (
-    <div className="card overflow-clip">
-      <table aria-label="Candidates" className="record-table">
-        <thead>
-          <tr>
-            <th className="w-full">Candidate</th>
-            <th>Status</th>
-            <th className="@max-lg:hidden">Evals</th>
-          </tr>
-        </thead>
-        <tbody>
-          {candidates.map((candidate) => (
-            <tr key={candidate.id}>
-              <td className="max-w-0 text-ink">
+    <ul aria-label="Candidates" className="grid gap-3">
+      {candidates.map((candidate) => {
+        const { rationale } = splitApplyPrompt(candidate.body);
+        return (
+          <li key={candidate.id} className="flex min-w-0 flex-col gap-3 card p-4">
+            <header className="flex min-w-0 items-start gap-3">
+              <BranchSwatch tone={tones.get(candidate.id)} className="mt-1" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <Link
                   to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
                   params={{ ...params, candidate: candidate.id }}
-                  className="row-action flex items-center gap-2"
+                  className="truncate type-label-13 font-semibold text-ink hover:underline"
                 >
-                  <BranchSwatch tone={tones.get(candidate.id)} />
-                  <span className="truncate">{candidate.title}</span>
+                  {candidate.title}
+                </Link>
+                <span className="flex flex-wrap items-center gap-2">
+                  <Tag title={candidate.head_sha}>{candidate.head_sha.slice(0, 7)}</Tag>
                   {candidate.recommended !== undefined && (
-                    <Tag tone="accent" title={candidate.recommended} className="relative z-2">
+                    <Tag tone="accent" title={candidate.recommended}>
                       Recommended
                     </Tag>
                   )}
-                </Link>
-              </td>
-              <td>
-                <CandidateStatusTag candidate={candidate} />
-              </td>
-              <td className="@max-lg:hidden">
-                <CandidateProofs candidate={candidate} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                  <CandidateStatusTag candidate={candidate} />
+                </span>
+              </div>
+              <Link
+                to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+                params={{ ...params, candidate: candidate.id }}
+                className={buttonVariants({ variant: "secondary", size: "small" })}
+              >
+                View details
+              </Link>
+            </header>
+            {rationale !== "" && (
+              <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <CandidateProofs candidate={candidate} />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
