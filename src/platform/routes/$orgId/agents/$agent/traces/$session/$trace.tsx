@@ -236,21 +236,24 @@ const ROLES = new Map([
 
 function Conversation({ messages }: { messages: Message[] }) {
   return (
-    <ol className="flex flex-col gap-3">
+    <ol className="flex flex-col gap-3 rounded-md bg-subtle p-3">
       {messages.map((message, index) => (
         <li
           key={index}
-          className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}
+          className={cn(
+            "flex flex-col gap-1",
+            message.role === "user" ? "items-end" : "items-start",
+          )}
         >
+          <p className="type-meta-12 font-medium text-muted">
+            {ROLES.get(message.role) ?? message.role}
+          </p>
           <div
             className={cn(
               "flex min-w-0 max-w-reading flex-col gap-1 rounded-md px-3 py-2",
               message.role === "user" ? "bg-accent-tint" : "bg-fill",
             )}
           >
-            <p className="type-meta-12 font-medium text-muted">
-              {ROLES.get(message.role) ?? message.role}
-            </p>
             {message.parts.map((part, at) => {
               switch (part.type) {
                 case "text":
