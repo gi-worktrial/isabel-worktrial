@@ -142,15 +142,20 @@ export function SpanTimeline({
     <div
       role="group"
       aria-label="Timeline"
-      className={cn("flex gap-1", vertical ? "w-2 flex-col self-stretch" : "h-2")}
+      className={cn(
+        "flex",
+        vertical
+          ? "w-1.5 flex-col self-stretch overflow-hidden rounded-full bg-fill"
+          : "h-2 gap-1",
+      )}
     >
       {traces.map((spans, index) => (
         <div
           key={index}
           style={{ flexGrow: Math.max(spanTiming(spans).total, 1) }}
           className={cn(
-            "flex basis-0 gap-px overflow-hidden",
-            vertical ? "min-h-0 flex-col" : "min-w-0",
+            "flex basis-0 overflow-hidden",
+            vertical ? "min-h-0 flex-col gap-px" : "min-w-0 gap-px",
           )}
         >
           {blocks(spans).map(({ span, kind }) => {
@@ -172,7 +177,10 @@ export function SpanTimeline({
                   onClick={() => onPick(span)}
                   style={{ flexGrow: kind === "user" ? 0 : span.duration_ns }}
                   className={cn(
-                    "basis-0 rounded-xs hover:brightness-90 focus-visible:outline-2 focus-visible:outline-ring aria-current:outline-2 aria-current:outline-offset-1 aria-current:outline-ring",
+                    "basis-0 hover:brightness-90 focus-visible:outline-2 focus-visible:outline-ring",
+                    vertical
+                      ? "w-full aria-current:ring-1 aria-current:ring-ring aria-current:ring-inset"
+                      : "rounded-xs aria-current:outline-2 aria-current:outline-offset-1 aria-current:outline-ring",
                     kind === "user"
                       ? vertical
                         ? "min-h-1.5"

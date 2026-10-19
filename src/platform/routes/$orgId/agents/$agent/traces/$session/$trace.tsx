@@ -77,7 +77,7 @@ function TracePage() {
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
-        <div className="flex min-w-0 gap-3">
+        <div className="flex min-w-0 gap-2">
           <SpanTimeline
             traces={[spans]}
             failed={failed}
