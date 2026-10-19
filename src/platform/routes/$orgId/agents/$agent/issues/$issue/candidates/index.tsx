@@ -116,27 +116,32 @@ function CandidateCards() {
       <div
         role="group"
         aria-label="Candidate pagination"
-        className="flex items-center justify-end gap-2"
+        className="flex items-center justify-between gap-3"
       >
-        <IconButton
-          label="Previous candidate"
-          size="small"
-          disabled={index === 0}
-          onClick={() => setIndex((current) => Math.max(0, current - 1))}
-        >
-          <ChevronLeft className="size-4" />
-        </IconButton>
-        <span className="type-meta-12 whitespace-nowrap text-muted tabular-nums">
-          {index + 1} of {candidates.length}
+        <h3 className="type-label-13 font-semibold text-ink">
+          {candidates.length === 1 ? "Proposed fix" : "Proposed fixes"}
+        </h3>
+        <span className="flex items-center gap-2">
+          <IconButton
+            label="Previous candidate"
+            size="small"
+            disabled={index === 0}
+            onClick={() => setIndex((current) => Math.max(0, current - 1))}
+          >
+            <ChevronLeft className="size-4" />
+          </IconButton>
+          <span className="type-meta-12 whitespace-nowrap text-muted tabular-nums">
+            {index + 1} of {candidates.length}
+          </span>
+          <IconButton
+            label="Next candidate"
+            size="small"
+            disabled={index === candidates.length - 1}
+            onClick={() => setIndex((current) => Math.min(candidates.length - 1, current + 1))}
+          >
+            <ChevronRight className="size-4" />
+          </IconButton>
         </span>
-        <IconButton
-          label="Next candidate"
-          size="small"
-          disabled={index === candidates.length - 1}
-          onClick={() => setIndex((current) => Math.min(candidates.length - 1, current + 1))}
-        >
-          <ChevronRight className="size-4" />
-        </IconButton>
       </div>
       <ul aria-label="Candidates">
         <li key={candidate.id} className="flex min-w-0 flex-col gap-3 card p-4">
