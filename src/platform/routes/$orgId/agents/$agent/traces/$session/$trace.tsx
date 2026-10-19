@@ -173,12 +173,20 @@ function SpanDetails({
           {error !== undefined && <Tag tone="danger">Error</Tag>}
         </h1>
         <Facts label="Span facts">
-          {span.name !== spanLabel(span) && <Fact label="Name">{span.name}</Fact>}
-          <Fact label="Service">{span.service_name}</Fact>
-          <Fact label="Time">
+          {span.name !== spanLabel(span) && (
+            <Fact label="Name" orientation="vertical">
+              {span.name}
+            </Fact>
+          )}
+          <Fact label="Service" orientation="vertical">
+            {span.service_name}
+          </Fact>
+          <Fact label="Time" orientation="vertical">
             <Timestamp at={span.started_at} />
           </Fact>
-          <Fact label="Duration">{formatDuration(span.duration_ns)}</Fact>
+          <Fact label="Duration" orientation="vertical">
+            {formatDuration(span.duration_ns)}
+          </Fact>
         </Facts>
         {error !== undefined && (
           <p className="max-w-reading rounded-xs bg-danger-tint px-3 py-2 type-label-13 text-danger">
