@@ -3,8 +3,15 @@ import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk"
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { CandidateActions, CandidateNotFound } from "#/candidate-results";
+import { debugSearchSchema } from "#/debug-search";
+import { DebugViews } from "#/debug-views";
 import { useIssue, useIssueChange, useStartIssueWork } from "#/issue-view";
-import { candidateQuery, issueQuery } from "#/queries";
+import {
+  SESSION_PAGE_SIZE,
+  candidateQuery,
+  issueQuery,
+  issueTracesQuery,
+} from "#/queries";
 import { buttonVariants } from "#/ui/button";
 import { Tag } from "#/ui/tag";
 import { crumbs } from "#/crumbs";
@@ -16,16 +23,22 @@ import {
   FixCard,
   debugVariant,
 } from "#src/features/candidates/candidate-page";
-import { EvalResults } from "#src/features/candidates/proofs-view";
+import { CandidateGrades } from "#src/features/debug/eval-grades";
 
 export const Route = createFileRoute(
   "/$orgId/agents/$agent/issues/$issue_/candidates/$candidate",
 )({
   staticData: { rail: true },
-  loader: async ({ context: { queryClient }, params }) => {
+  validateSearch: debugSearchSchema,
+  loaderDeps: ({ search }) => search,
+  loader: async ({ context: { queryClient }, params, deps }) => {
     const [candidate, issue] = await Promise.all([
       queryClient.ensureQueryData(candidateQuery(params)),
       queryClient.ensureQueryData(issueQuery(params)),
+      deps.view === "traces" &&
+        queryClient.ensureQueryData(
+          issueTracesQuery({ ...params, after: deps.afters?.at(-1), limit: SESSION_PAGE_SIZE }),
+        ),
     ]);
     return crumbs(
       { label: "Inbox", to: "/$orgId/agents/$agent/issues" },
@@ -42,40 +55,48 @@ export const Route = createFileRoute(
 
 function CandidatePage() {
   const params = Route.useParams();
+  const search = Route.useSearch();
   const { orgId, agent } = params;
   const candidate = useSuspenseQuery(candidateQuery(params)).data;
   const issue = useIssue();
   const startWork = useStartIssueWork();
 
   return (
-    <section aria-label={candidate.title} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4">
-        <h1 className="flex min-w-0 items-center gap-2 type-title-18 text-ink">
-          <span className="min-w-0 truncate">{candidate.title}</span>
-          <CandidateBranch candidate={candidate} />
-          {candidate.recommended !== undefined && (
-            <Tag tone="accent" title={candidate.recommended}>
-              Recommended
-            </Tag>
-          )}
-          <CandidateActionsEnd>
-            <CandidateActions agent={agent} candidate={candidate} />
-            <Link
-              to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
-              params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
-              className={buttonVariants({ variant: debugVariant(issue.state, candidate.results) })}
-              onClick={startWork}
-            >
-              Debug
-            </Link>
-            {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
-          </CandidateActionsEnd>
-        </h1>
-        <CandidateBody body={candidate.body}>
-          <EvalResults candidate={candidate} />
-        </CandidateBody>
-      </div>
-      <FixCard files={candidate.files} />
+    <section
+      aria-label={candidate.title}
+      className="flex min-h-[calc(100dvh-6rem)] flex-col gap-4"
+    >
+      <h1 className="flex min-w-0 items-center gap-2 type-title-18 text-ink">
+        <span className="min-w-0 truncate">{candidate.title}</span>
+        <CandidateBranch candidate={candidate} />
+        {candidate.recommended !== undefined && (
+          <Tag tone="accent" title={candidate.recommended}>
+            Recommended
+          </Tag>
+        )}
+        <CandidateActionsEnd>
+          <CandidateActions agent={agent} candidate={candidate} />
+          <Link
+            to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
+            params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
+            className={buttonVariants({ variant: debugVariant(issue.state, candidate.results) })}
+            onClick={startWork}
+          >
+            Debug
+          </Link>
+          {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
+        </CandidateActionsEnd>
+      </h1>
+      <DebugViews
+        search={search}
+        files={
+          <div className="flex w-full flex-col gap-6">
+            <CandidateBody body={candidate.body} />
+            <FixCard files={candidate.files} />
+          </div>
+        }
+        grades={<CandidateGrades candidate={candidate} />}
+      />
     </section>
   );
 }
