@@ -56,19 +56,24 @@ export function SpanTurnHeader({
   const question = root ? flat(messageText(spanMessages(root, "gen_ai.input.messages"))) : "";
   const step = selected === undefined || selected === root ? params.trace : selected.span_id;
   return (
-    <header className="flex h-8 min-w-0 items-center gap-3">
-      <p title={question} className="min-w-0 flex-1 truncate type-title-18 text-ink">
+    <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1">
+      <p title={question} className="min-w-0 truncate type-title-18 text-ink">
         {question}
       </p>
-      {turn !== undefined && (
-        <p className="shrink-0 type-label-13 text-muted tabular-nums">Turn {turn.position}</p>
-      )}
-      {annotations.some(({ label }) => label === FAIL_LABEL) && <Tag tone="danger">Failed</Tag>}
+      <div className="flex h-7 items-center gap-2">
+        {turn !== undefined && (
+          <p className="type-label-13 text-muted tabular-nums">Turn {turn.position}</p>
+        )}
+        {annotations.some(({ label }) => label === FAIL_LABEL) && <Tag tone="danger">Failed</Tag>}
+      </div>
       <Link
         to="/$orgId/agents/$agent/traces/$session"
         params={params}
         search={{ step }}
-        className={cn(buttonVariants({ variant: "quiet", size: "small" }), "shrink-0")}
+        className={cn(
+          buttonVariants({ variant: "quiet", size: "small" }),
+          "col-start-2 row-start-1",
+        )}
       >
         Open in transcript
       </Link>
