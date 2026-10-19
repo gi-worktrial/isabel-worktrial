@@ -31,7 +31,6 @@ function IssueCandidates() {
   return (
     <div className="flex flex-col gap-3">
       <TabActions>
-        <CompareLink />
         {state === "reviewing" && <NewCandidateDialog />}
       </TabActions>
       <CandidateCards />
@@ -146,6 +145,7 @@ function CandidateCards() {
           >
             <ChevronRight className="size-4" />
           </IconButton>
+          <CompareLink />
         </span>
       </div>
       <ul aria-label="Candidates">
