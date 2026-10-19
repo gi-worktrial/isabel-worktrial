@@ -153,7 +153,6 @@ export function FileEditor({
   const [error, setError] = useState<string>();
   const [mode, setMode] = useState<Mode>("edit");
   const [asking, setAsking] = useState(false);
-  const [reverted, setReverted] = useState<ReadonlyMap<string, number>>(new Map());
 
   // a caller's inline list is a new array each render, so the matcher keys on the patterns, not the array
   const patterns = exclude.join("\n");
@@ -262,16 +261,6 @@ export function FileEditor({
     }
   }
 
-  function revert(path: string) {
-    setDrafts((current) => {
-      const next = new Map(current);
-      next.delete(path);
-      return next;
-    });
-    // a new edit key drops the reverted file's editor state and leaves the others' alone
-    setReverted((current) => new Map(current).set(path, (current.get(path) ?? 0) + 1));
-  }
-
   function commit(save: () => Promise<void>) {
     startTransition(async () => {
       try {
@@ -289,7 +278,7 @@ export function FileEditor({
   const diffPaths = [
     ...new Set([...gitStatus.map(({ path }) => path), ...drafts.keys()]),
   ].toSorted();
-  const fileKey = entry && `${session}:${reverted.get(entry.path) ?? 0}:${entry.path}`;
+  const fileKey = entry && `${session}:${entry.path}`;
 
   return (
     <EditProvider createEditor={createEditor}>
@@ -334,12 +323,6 @@ export function FileEditor({
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
           {paneHeader !== undefined && (
             <div className="flex h-8 shrink-0 items-center gap-2">
-              {paneHeader}
-              {saveInPaneHeader && saveControl}
-            </div>
-          )}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden card">
-            <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider bg-subtle px-2">
               {!rail && (
                 <RailToggle
                   shown={false}
@@ -349,6 +332,12 @@ export function FileEditor({
                   }}
                 />
               )}
+              {paneHeader}
+              {saveInPaneHeader && saveControl}
+            </div>
+          )}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden card">
+            <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider bg-subtle px-2">
               {diff !== undefined && (
                 <SegmentedControl<Mode>
                   label="View"
@@ -356,13 +345,6 @@ export function FileEditor({
                   segments={MODES}
                   onChange={setMode}
                 />
-              )}
-              {open !== undefined && drafts.has(open) && (
-                <Tooltip label="Drop this file's unsaved edits">
-                  <Button size="small" disabled={pending} onClick={() => revert(open)}>
-                    Revert
-                  </Button>
-                </Tooltip>
               )}
               <span className="min-w-0 flex-1" />
               {drafts.size > 0 && (
