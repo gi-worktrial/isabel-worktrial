@@ -1,5 +1,11 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { type IssueParams, candidatesQuery, issueEvalsQuery, issueQuery } from "#/queries";
+import {
+  type IssueParams,
+  candidatesQuery,
+  issueEvalsQuery,
+  issueEventsQuery,
+  issueQuery,
+} from "#/queries";
 import { canShip, getIssueActions, type Issue } from "@grounded-intelligence/grounded-sdk";
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
@@ -45,6 +51,7 @@ export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue")({
     await Promise.all([
       queryClient.ensureQueryData(candidatesQuery(params)),
       queryClient.ensureQueryData(issueEvalsQuery(params)),
+      queryClient.ensureQueryData(issueEventsQuery(params)),
     ]);
     return crumbs(
       { label: "Inbox", to: "/$orgId/agents/$agent/issues" },
@@ -58,6 +65,7 @@ function IssuePage() {
   const { orgId, agent } = Route.useParams();
   const issue = useIssue();
   const params = { orgId, agent, issue: issue.id };
+  const lastEdited = useSuspenseQuery(issueEventsQuery(params)).data.events[0]?.at;
   const approved = useQuery({
     ...candidatesQuery(params),
     enabled: issue.approved !== undefined,
@@ -110,6 +118,11 @@ function IssuePage() {
           <Fact label="First seen" orientation="vertical">
             <Timestamp at={issue.first_seen_at} />
           </Fact>
+          {lastEdited !== undefined && (
+            <Fact label="Last edited" orientation="vertical">
+              <Timestamp at={lastEdited} />
+            </Fact>
+          )}
         </Facts>
         {issue.dismissal_reason !== undefined && (
           <p className="type-meta-12 text-muted">

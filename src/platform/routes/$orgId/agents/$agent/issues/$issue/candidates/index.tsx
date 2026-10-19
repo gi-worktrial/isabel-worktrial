@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { useIssue } from "../../../../../../../issue-view";
+import { CandidateResultTags } from "#/candidate-results";
 import { Button, IconButton, buttonVariants } from "#/ui/button";
 import { ConfirmDialog } from "#/ui/dialog";
 import { EmptyState } from "#/ui/empty-state";
@@ -14,7 +15,6 @@ import { Tag } from "#/ui/tag";
 import { CandidateBranch } from "#src/features/candidates/branches";
 import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
 import { CompareLink } from "#src/features/candidates/candidate-compare";
-import { CandidateProofs } from "#src/features/candidates/proofs-view";
 import { TabActions } from "#src/ui/tab-actions";
 
 export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/candidates/")({
@@ -116,7 +116,7 @@ function CandidateCards() {
         aria-label="Candidate pagination"
         className="flex items-center justify-between gap-3"
       >
-        <h3 className="type-label-13 font-semibold text-ink">
+        <h3 className="type-heading-15 text-ink">
           {candidates.length === 1 ? "Proposed fix" : "Proposed fixes"}
         </h3>
         <span className="flex items-center gap-2">
@@ -173,7 +173,7 @@ function CandidateCards() {
             </Link>
           </header>
           <div className="flex flex-wrap items-center gap-2">
-            <CandidateProofs candidate={candidate} />
+            <CandidateResultTags results={candidate.results} />
           </div>
         </li>
       </ul>
