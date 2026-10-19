@@ -73,7 +73,7 @@ export function IssueTable({ rows }: { rows: IssueSummary[] }) {
                     <ListTree className="size-3.5" />
                     {issue.trace_count}
                   </Link>
-                  <span className="w-20 shrink-0 px-3 text-right type-meta-12 text-muted">
+                  <span className="w-32 shrink-0 px-3 text-right type-meta-12 text-muted">
                     <ShortTimestamp at={issue.last_seen_at} relative />
                   </span>
                 </li>
