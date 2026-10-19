@@ -1,17 +1,14 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { candidateQuery, candidatesQuery } from "#/queries";
 import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import {
-  useIssue,
-  useIssueChange,
-  useStartIssueWork,
-} from "../../../../../../../issue-view";
 import { CandidateActions, CandidateNotFound } from "#/candidate-results";
+import { useIssue, useIssueChange, useStartIssueWork } from "#/issue-view";
+import { candidateQuery, candidatesQuery, issueQuery } from "#/queries";
 import { IconButton, buttonVariants } from "#/ui/button";
 import { Tag } from "#/ui/tag";
+import { crumbs } from "#/crumbs";
 import { ShipDialog } from "#src/features/candidates/approval";
 import { CandidateBranch } from "#src/features/candidates/branches";
 import {
@@ -23,9 +20,21 @@ import {
 import { EvalResults } from "#src/features/candidates/proofs-view";
 import type { CandidateSummary } from "#src/sdk/index";
 
-export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/candidates/$candidate")({
-  loader: ({ context: { queryClient }, params }) =>
-    queryClient.ensureQueryData(candidateQuery(params)),
+export const Route = createFileRoute(
+  "/$orgId/agents/$agent/issues/$issue_/candidates/$candidate",
+)({
+  staticData: { rail: true },
+  loader: async ({ context: { queryClient }, params }) => {
+    const [, issue] = await Promise.all([
+      queryClient.ensureQueryData(candidateQuery(params)),
+      queryClient.ensureQueryData(issueQuery(params)),
+      queryClient.ensureQueryData(candidatesQuery(params)),
+    ]);
+    return crumbs(
+      { label: "Inbox", to: "/$orgId/agents/$agent/issues" },
+      { label: issue.id, to: "/$orgId/agents/$agent/issues/$issue" },
+    );
+  },
   component: CandidatePage,
   notFoundComponent: () => <CandidateNotFound />,
 });
@@ -41,7 +50,7 @@ function CandidatePage() {
   return (
     <section aria-label={candidate.title} className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
-        <h2 className="flex min-w-0 items-center gap-2 type-heading-15 text-ink">
+        <h1 className="flex min-w-0 items-center gap-2 type-title-18 text-ink">
           <span className="min-w-0 truncate">{candidate.title}</span>
           <CandidateBranch candidate={candidate} />
           {candidate.recommended !== undefined && (
@@ -59,12 +68,10 @@ function CandidatePage() {
             >
               Debug
             </Link>
-            {canApprove(issue.state, candidate.results) && (
-              <ShipButton candidate={candidate} />
-            )}
+            {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
             <CandidateNavigation candidates={candidates} current={candidate.id} />
           </CandidateActionsEnd>
-        </h2>
+        </h1>
         <CandidateBody body={candidate.body}>
           <EvalResults candidate={candidate} />
         </CandidateBody>

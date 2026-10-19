@@ -51,7 +51,7 @@ const SKELETONS: Partial<Record<RouteId, RouteComponent>> = {
   "/$orgId/agents/$agent/issues/$issue/traces": IssueTracesSkeleton,
   "/$orgId/agents/$agent/issues/$issue/evals": IssueEvalsSkeleton,
   "/$orgId/agents/$agent/issues/$issue/candidates/": CandidatesSkeleton,
-  "/$orgId/agents/$agent/issues/$issue/candidates/$candidate": CandidateSkeleton,
+  "/$orgId/agents/$agent/issues/$issue_/candidates/$candidate": CandidateSkeleton,
   "/$orgId/agents/$agent/issues/$issue/candidates/compare": CompareSkeleton,
   "/$orgId/agents/$agent/issues/$issue/activity": ActivitySkeleton,
   "/$orgId/agents/$agent/issues/$issue_/debug/evals": DebugEvalsSkeleton,

@@ -43,8 +43,8 @@ import { Route as OrgIdAgentsAgentIssuesIssueTracesRouteImport } from './routes/
 import { Route as OrgIdAgentsAgentTracesSessionIndexRouteImport } from './routes/$orgId/agents/$agent/traces/$session/index'
 import { Route as OrgIdAgentsAgentTracesSessionTraceRouteImport } from './routes/$orgId/agents/$agent/traces/$session/$trace'
 import { Route as OrgIdAgentsAgentIssuesIssueCandidatesIndexRouteImport } from './routes/$orgId/agents/$agent/issues/$issue/candidates/index'
-import { Route as OrgIdAgentsAgentIssuesIssueCandidatesCandidateRouteImport } from './routes/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
 import { Route as OrgIdAgentsAgentIssuesIssueCandidatesCompareRouteImport } from './routes/$orgId/agents/$agent/issues/$issue/candidates/compare'
+import { Route as OrgIdAgentsAgentIssuesIssueCandidatesCandidateRouteImport } from './routes/$orgId/agents/$agent/issues/$issue_.candidates.$candidate'
 import { Route as OrgIdAgentsAgentIssuesIssueDebugEvalsRouteImport } from './routes/$orgId/agents/$agent/issues/$issue_.debug.evals'
 import { Route as OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRouteImport } from './routes/$orgId/agents/$agent/issues/$issue_.debug.candidates.$candidate'
 
@@ -237,17 +237,17 @@ const OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute =
     path: '/candidates/',
     getParentRoute: () => OrgIdAgentsAgentIssuesIssueRoute,
   } as any)
-const OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute =
-  OrgIdAgentsAgentIssuesIssueCandidatesCandidateRouteImport.update({
-    id: '/candidates/$candidate',
-    path: '/candidates/$candidate',
-    getParentRoute: () => OrgIdAgentsAgentIssuesIssueRoute,
-  } as any)
 const OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute =
   OrgIdAgentsAgentIssuesIssueCandidatesCompareRouteImport.update({
     id: '/candidates/compare',
     path: '/candidates/compare',
     getParentRoute: () => OrgIdAgentsAgentIssuesIssueRoute,
+  } as any)
+const OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute =
+  OrgIdAgentsAgentIssuesIssueCandidatesCandidateRouteImport.update({
+    id: '/agents/$agent/issues/$issue_/candidates/$candidate',
+    path: '/agents/$agent/issues/$issue/candidates/$candidate',
+    getParentRoute: () => OrgIdRoute,
   } as any)
 const OrgIdAgentsAgentIssuesIssueDebugEvalsRoute =
   OrgIdAgentsAgentIssuesIssueDebugEvalsRouteImport.update({
@@ -296,8 +296,8 @@ export interface FileRoutesByFullPath {
   '/$orgId/agents/$agent/evals/$eval/': typeof OrgIdAgentsAgentEvalsEvalIndexRoute
   '/$orgId/agents/$agent/issues/$issue/': typeof OrgIdAgentsAgentIssuesIssueIndexRoute
   '/$orgId/agents/$agent/traces/$session/': typeof OrgIdAgentsAgentTracesSessionIndexRoute
-  '/$orgId/agents/$agent/issues/$issue/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   '/$orgId/agents/$agent/issues/$issue/candidates/compare': typeof OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute
+  '/$orgId/agents/$agent/issues/$issue/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   '/$orgId/agents/$agent/issues/$issue/debug/evals': typeof OrgIdAgentsAgentIssuesIssueDebugEvalsRoute
   '/$orgId/agents/$agent/issues/$issue/candidates/': typeof OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute
   '/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRoute
@@ -332,8 +332,8 @@ export interface FileRoutesByTo {
   '/$orgId/agents/$agent/evals/$eval': typeof OrgIdAgentsAgentEvalsEvalIndexRoute
   '/$orgId/agents/$agent/issues/$issue': typeof OrgIdAgentsAgentIssuesIssueIndexRoute
   '/$orgId/agents/$agent/traces/$session': typeof OrgIdAgentsAgentTracesSessionIndexRoute
-  '/$orgId/agents/$agent/issues/$issue/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   '/$orgId/agents/$agent/issues/$issue/candidates/compare': typeof OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute
+  '/$orgId/agents/$agent/issues/$issue/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   '/$orgId/agents/$agent/issues/$issue/debug/evals': typeof OrgIdAgentsAgentIssuesIssueDebugEvalsRoute
   '/$orgId/agents/$agent/issues/$issue/candidates': typeof OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute
   '/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRoute
@@ -373,8 +373,8 @@ export interface FileRoutesById {
   '/$orgId/agents/$agent/evals/$eval/': typeof OrgIdAgentsAgentEvalsEvalIndexRoute
   '/$orgId/agents/$agent/issues/$issue/': typeof OrgIdAgentsAgentIssuesIssueIndexRoute
   '/$orgId/agents/$agent/traces/$session/': typeof OrgIdAgentsAgentTracesSessionIndexRoute
-  '/$orgId/agents/$agent/issues/$issue/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   '/$orgId/agents/$agent/issues/$issue/candidates/compare': typeof OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute
+  '/$orgId/agents/$agent/issues/$issue_/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   '/$orgId/agents/$agent/issues/$issue_/debug/evals': typeof OrgIdAgentsAgentIssuesIssueDebugEvalsRoute
   '/$orgId/agents/$agent/issues/$issue/candidates/': typeof OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute
   '/$orgId/agents/$agent/issues/$issue_/debug/candidates/$candidate': typeof OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRoute
@@ -415,8 +415,8 @@ export interface FileRouteTypes {
     | '/$orgId/agents/$agent/evals/$eval/'
     | '/$orgId/agents/$agent/issues/$issue/'
     | '/$orgId/agents/$agent/traces/$session/'
-    | '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
     | '/$orgId/agents/$agent/issues/$issue/candidates/compare'
+    | '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
     | '/$orgId/agents/$agent/issues/$issue/debug/evals'
     | '/$orgId/agents/$agent/issues/$issue/candidates/'
     | '/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate'
@@ -451,8 +451,8 @@ export interface FileRouteTypes {
     | '/$orgId/agents/$agent/evals/$eval'
     | '/$orgId/agents/$agent/issues/$issue'
     | '/$orgId/agents/$agent/traces/$session'
-    | '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
     | '/$orgId/agents/$agent/issues/$issue/candidates/compare'
+    | '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
     | '/$orgId/agents/$agent/issues/$issue/debug/evals'
     | '/$orgId/agents/$agent/issues/$issue/candidates'
     | '/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate'
@@ -491,8 +491,8 @@ export interface FileRouteTypes {
     | '/$orgId/agents/$agent/evals/$eval/'
     | '/$orgId/agents/$agent/issues/$issue/'
     | '/$orgId/agents/$agent/traces/$session/'
-    | '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
     | '/$orgId/agents/$agent/issues/$issue/candidates/compare'
+    | '/$orgId/agents/$agent/issues/$issue_/candidates/$candidate'
     | '/$orgId/agents/$agent/issues/$issue_/debug/evals'
     | '/$orgId/agents/$agent/issues/$issue/candidates/'
     | '/$orgId/agents/$agent/issues/$issue_/debug/candidates/$candidate'
@@ -744,19 +744,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesIndexRouteImport
       parentRoute: typeof OrgIdAgentsAgentIssuesIssueRoute
     }
-    '/$orgId/agents/$agent/issues/$issue/candidates/$candidate': {
-      id: '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
-      path: '/candidates/$candidate'
-      fullPath: '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
-      preLoaderRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRouteImport
-      parentRoute: typeof OrgIdAgentsAgentIssuesIssueRoute
-    }
     '/$orgId/agents/$agent/issues/$issue/candidates/compare': {
       id: '/$orgId/agents/$agent/issues/$issue/candidates/compare'
       path: '/candidates/compare'
       fullPath: '/$orgId/agents/$agent/issues/$issue/candidates/compare'
       preLoaderRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesCompareRouteImport
       parentRoute: typeof OrgIdAgentsAgentIssuesIssueRoute
+    }
+    '/$orgId/agents/$agent/issues/$issue_/candidates/$candidate': {
+      id: '/$orgId/agents/$agent/issues/$issue_/candidates/$candidate'
+      path: '/agents/$agent/issues/$issue/candidates/$candidate'
+      fullPath: '/$orgId/agents/$agent/issues/$issue/candidates/$candidate'
+      preLoaderRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRouteImport
+      parentRoute: typeof OrgIdRoute
     }
     '/$orgId/agents/$agent/issues/$issue_/debug/evals': {
       id: '/$orgId/agents/$agent/issues/$issue_/debug/evals'
@@ -816,7 +816,6 @@ interface OrgIdAgentsAgentIssuesIssueRouteChildren {
   OrgIdAgentsAgentIssuesIssueEvalsRoute: typeof OrgIdAgentsAgentIssuesIssueEvalsRoute
   OrgIdAgentsAgentIssuesIssueTracesRoute: typeof OrgIdAgentsAgentIssuesIssueTracesRoute
   OrgIdAgentsAgentIssuesIssueIndexRoute: typeof OrgIdAgentsAgentIssuesIssueIndexRoute
-  OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute
   OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute
 }
@@ -831,8 +830,6 @@ const OrgIdAgentsAgentIssuesIssueRouteChildren: OrgIdAgentsAgentIssuesIssueRoute
       OrgIdAgentsAgentIssuesIssueTracesRoute,
     OrgIdAgentsAgentIssuesIssueIndexRoute:
       OrgIdAgentsAgentIssuesIssueIndexRoute,
-    OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute:
-      OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute,
     OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute:
       OrgIdAgentsAgentIssuesIssueCandidatesCompareRoute,
     OrgIdAgentsAgentIssuesIssueCandidatesIndexRoute:
@@ -866,6 +863,7 @@ interface OrgIdRouteChildren {
   OrgIdAgentsAgentTracesIndexRoute: typeof OrgIdAgentsAgentTracesIndexRoute
   OrgIdAgentsAgentTracesSessionTraceRoute: typeof OrgIdAgentsAgentTracesSessionTraceRoute
   OrgIdAgentsAgentTracesSessionIndexRoute: typeof OrgIdAgentsAgentTracesSessionIndexRoute
+  OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute: typeof OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute
   OrgIdAgentsAgentIssuesIssueDebugEvalsRoute: typeof OrgIdAgentsAgentIssuesIssueDebugEvalsRoute
   OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRoute: typeof OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRoute
 }
@@ -896,6 +894,8 @@ const OrgIdRouteChildren: OrgIdRouteChildren = {
     OrgIdAgentsAgentTracesSessionTraceRoute,
   OrgIdAgentsAgentTracesSessionIndexRoute:
     OrgIdAgentsAgentTracesSessionIndexRoute,
+  OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute:
+    OrgIdAgentsAgentIssuesIssueCandidatesCandidateRoute,
   OrgIdAgentsAgentIssuesIssueDebugEvalsRoute:
     OrgIdAgentsAgentIssuesIssueDebugEvalsRoute,
   OrgIdAgentsAgentIssuesIssueDebugCandidatesCandidateRoute:
