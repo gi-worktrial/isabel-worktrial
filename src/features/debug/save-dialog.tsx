@@ -1,19 +1,12 @@
 import { FileText } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
-import { SegmentedControl } from "#/ui/segmented-control";
 import type { SaveDialogProps } from "#src/features/debug/file-editor";
 import type { EditedFile } from "#src/features/debug/files";
 import { ConfirmDialog } from "#src/ui/confirm-dialog";
 import { FilePath } from "#src/ui/file-name";
 
-type Target = "new" | "current";
-const TARGETS = [
-  { value: "new", label: "New Candidate" },
-  { value: "current", label: "Update this Candidate" },
-] as const;
-
-/** Save names a new Candidate branched from this one by default, or commits onto this Candidate. Either push runs the branch's Evals, so the button says so. With no edits it only branches a new Candidate. */
+/** Edited files commit onto this Candidate. With no edits, this dialog only branches a new Candidate. */
 export function SaveCandidateDialog({
   branch,
   swatch,
@@ -30,7 +23,6 @@ export function SaveCandidateDialog({
   saveAsNew(title: string, files: EditedFile[]): Promise<void>;
 }) {
   const branching = files.length === 0;
-  const [target, setTarget] = useState<Target>("new");
   const [title, setTitle] = useState("");
   const name = title.trim();
   const count = files.length === 1 ? "1 file" : `${files.length} files`;
@@ -41,20 +33,11 @@ export function SaveCandidateDialog({
       open
       title={branching ? "New Candidate" : `Save ${count}`}
       confirmLabel={confirm}
-      blocked={target === "new" && name === ""}
-      onConfirm={() => onSave(() => (target === "new" ? saveAsNew(name, files) : saveHere(files)))}
+      blocked={branching && name === ""}
+      onConfirm={() => onSave(() => (branching ? saveAsNew(name, files) : saveHere(files)))}
       onClose={onClose}
     >
-      {!branching && (
-        <SegmentedControl<Target>
-          label="Save to"
-          value={target}
-          segments={TARGETS}
-          onChange={setTarget}
-          className="grid grid-cols-2 *:justify-center"
-        />
-      )}
-      {target === "new" && (
+      {branching && (
         <span className="field-control flex items-center gap-2 has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-ring">
           {swatch}
           <input
@@ -78,7 +61,7 @@ export function SaveCandidateDialog({
         </ul>
       )}
       <p className="flex min-w-0 items-center gap-2 type-label-13 text-muted">
-        <span className="shrink-0">{target === "new" ? "Branches from" : "Commits onto"}</span>
+        <span className="shrink-0">{branching ? "Branches from" : "Commits onto"}</span>
         <span className="min-w-0">{branch}</span>
       </p>
     </ConfirmDialog>
