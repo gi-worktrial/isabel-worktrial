@@ -30,11 +30,7 @@ import { Markdown } from "#/ui/markdown";
 import { Tag } from "#/ui/tag";
 import { Timestamp } from "#/ui/timestamp";
 import { crumbTitle, turnCrumb } from "#src/features/traces/crumbs";
-import {
-  SpanTurnHeader,
-  spanFailures,
-  spanNotes,
-} from "#src/features/traces/span-page";
+import { SpanTurnHeader, spanNotes } from "#src/features/traces/span-page";
 import { StepNotes } from "#src/features/traces/transcript";
 
 const ICON_TONES = {
@@ -81,32 +77,25 @@ function TracePage() {
   const { spans, annotations } = useSuspenseQuery(traceQuery({ orgId, agent, trace })).data;
   const rows = spanRows(spans);
   const root = rows[0]?.span;
-  const longestProcess = Math.max(...rows.slice(1).map(({ span }) => span.duration_ns), 1);
   const selected = spans.find(({ span_id }) => span_id === search.span) ?? root;
   const grades = annotations.flatMap((annotation) => {
     const criterion = getGradeCriterion(annotation);
     const span_id = annotation.span_id || (root?.span_id ?? "");
     return criterion === undefined ? [] : [{ ...annotation, span_id, criterion, step: undefined }];
   });
-  const failed = spanFailures(annotations, spans);
-
   return (
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
         <section aria-label="Trace tree" className="flex min-w-0 flex-col gap-2">
           <h2 className="type-heading-15 text-ink">Trace tree</h2>
-          <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
+          <ol aria-label="Span tree" className="flex min-w-0 flex-col gap-px">
             {rows.map(({ span, depth }) => {
               const kind = spanKind(span);
               const Icon = KIND_ICONS[kind];
-            const failing = failed.has(span.span_id) || spanError(span) !== undefined;
             const isRoot = span === root;
-            const rowStyle = isRoot
-              ? undefined
-              : { minHeight: `${Math.max((span.duration_ns / longestProcess) * 72, 28)}px` };
             return (
-              <li key={span.span_id} style={rowStyle} className="min-w-0">
+                <li key={span.span_id} className="min-w-0">
                 <Link
                   from={Route.fullPath}
                   to="."
@@ -115,27 +104,20 @@ function TracePage() {
                   aria-current={span === selected ? "true" : undefined}
                   className={cn(
                     "min-w-0 rounded-sm bg-subtle text-ink hover:bg-fill aria-current:row-selected",
-                    isRoot ? "block" : "grid h-full grid-cols-[0.375rem_minmax(0,1fr)] gap-1",
+                      isRoot ? "block" : "grid h-10 grid-cols-[1rem_minmax(0,1fr)]",
                   )}
                 >
                   {!isRoot && (
                     <span
                       aria-hidden="true"
-                      className={cn(
-                        "relative w-1.5 self-stretch rounded-xs after:absolute after:top-1/2 after:left-full after:h-px after:w-1 after:bg-divider-strong",
-                        failing
-                          ? "bg-danger"
-                          : span === selected
-                            ? "bg-ring"
-                            : "bg-divider-strong",
-                      )}
+                        className="relative self-stretch before:absolute before:inset-y-[-1px] before:left-1/2 before:w-px before:bg-divider-strong after:absolute after:top-1/2 after:left-1/2 after:h-px after:w-1/2 after:bg-divider-strong"
                     />
                   )}
                   <span
                     style={{
                       paddingLeft: `${Math.max(depth - 1, 0) * 0.75 + (isRoot ? 0.25 : 0.5)}rem`,
                     }}
-                    className="flex h-7 min-w-0 self-center items-center gap-2 pr-2 type-label-13"
+                    className="flex h-10 min-w-0 items-center gap-2 pr-2 type-label-13"
                   >
                     {!isRoot && (
                       <span
