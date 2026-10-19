@@ -320,109 +320,111 @@ export function FileEditor({
             <FileTree model={model} aria-label="Files" className="min-h-0 flex-1 py-2 pr-2" />
           </FileRail>
         )}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden card">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
           {paneHeader !== undefined && (
-            <div className="flex h-10 shrink-0 items-center gap-2 border-b border-divider px-2">
-              {paneHeader}
-            </div>
+            <div className="flex h-8 shrink-0 items-center gap-2">{paneHeader}</div>
           )}
-          <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider px-2">
-            {!rail && (
-              <RailToggle
-                shown={false}
-                onToggle={() => {
-                  folded.current = false;
-                  setRail(true);
-                }}
-              />
-            )}
-            <nav aria-label="Tabs" className="flex min-w-0 flex-1 items-end gap-1 self-stretch">
-              <TabButton aria-current={open === undefined} onClick={showFix}>
-                {overview.label}
-              </TabButton>
-              {open !== undefined && (
-                <TabButton aria-current title={open}>
-                  <span className="min-w-0 truncate">{open}</span>
-                  {drafts.has(open) && (
-                    <span
-                      role="img"
-                      aria-label="Unsaved"
-                      className="size-2 shrink-0 rounded-full bg-accent"
-                    />
-                  )}
-                </TabButton>
-              )}
-              {open !== undefined && drafts.has(open) && (
-                <Tooltip label="Drop this file's unsaved edits">
-                  <Button
-                    size="small"
-                    className="self-center"
-                    disabled={pending}
-                    onClick={() => revert(open)}
-                  >
-                    Revert
-                  </Button>
-                </Tooltip>
-              )}
-            </nav>
-            {diff !== undefined && (
-              <SegmentedControl<Mode>
-                label="View"
-                value={mode}
-                segments={MODES}
-                onChange={setMode}
-              />
-            )}
-            {drafts.size > 0 && (
-              <span className="shrink-0 type-label-13 text-muted">{drafts.size} unsaved</span>
-            )}
-            {actions}
-            {drafts.size === 0 ? (
-              <Tooltip label="No unsaved edits">
-                <span className="inline-flex">{saveButton}</span>
-              </Tooltip>
-            ) : (
-              saveButton
-            )}
-          </header>
-          {error !== undefined && (
-            <p
-              role="alert"
-              className="shrink-0 border-b border-divider px-3 py-2 type-label-13 text-danger"
-            >
-              {error}
-            </p>
-          )}
-          {diffing && (
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-auto">
-              <DiffPane diff={diff} open={open} paths={diffPaths} files={files} drafts={drafts} />
-            </div>
-          )}
-          <div
-            className={cn(
-              "flex min-h-0 min-w-0 flex-1 flex-col overflow-auto",
-              diffing && "hidden",
-            )}
-          >
-            {entry === undefined ? (
-              overview.content
-            ) : entry.content === undefined ? (
-              <EmptyState title="This file is too large to edit here" />
-            ) : text === undefined ? (
-              <EmptyState title="This file isn't text, so it can't be edited here" />
-            ) : (
-              <Suspense fallback={<LinesSkeleton lines={8} label="Loading file" className="p-3" />}>
-                <EditableFile
-                  key={fileKey}
-                  path={entry.path}
-                  original={text}
-                  // edits made while saving would miss the commit, so the editor is read-only until it lands
-                  edit={!pending}
-                  editStateKey={`${id}:${fileKey}`}
-                  onEdit={(contents) => edit(entry.path, text, contents)}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden card">
+            <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider px-2">
+              {!rail && (
+                <RailToggle
+                  shown={false}
+                  onToggle={() => {
+                    folded.current = false;
+                    setRail(true);
+                  }}
                 />
-              </Suspense>
+              )}
+              <nav aria-label="Tabs" className="flex min-w-0 flex-1 items-end gap-1 self-stretch">
+                <TabButton aria-current={open === undefined} onClick={showFix}>
+                  {overview.label}
+                </TabButton>
+                {open !== undefined && (
+                  <TabButton aria-current title={open}>
+                    <span className="min-w-0 truncate">{open}</span>
+                    {drafts.has(open) && (
+                      <span
+                        role="img"
+                        aria-label="Unsaved"
+                        className="size-2 shrink-0 rounded-full bg-accent"
+                      />
+                    )}
+                  </TabButton>
+                )}
+                {open !== undefined && drafts.has(open) && (
+                  <Tooltip label="Drop this file's unsaved edits">
+                    <Button
+                      size="small"
+                      className="self-center"
+                      disabled={pending}
+                      onClick={() => revert(open)}
+                    >
+                      Revert
+                    </Button>
+                  </Tooltip>
+                )}
+              </nav>
+              {diff !== undefined && (
+                <SegmentedControl<Mode>
+                  label="View"
+                  value={mode}
+                  segments={MODES}
+                  onChange={setMode}
+                />
+              )}
+              {drafts.size > 0 && (
+                <span className="shrink-0 type-label-13 text-muted">{drafts.size} unsaved</span>
+              )}
+              {actions}
+              {drafts.size === 0 ? (
+                <Tooltip label="No unsaved edits">
+                  <span className="inline-flex">{saveButton}</span>
+                </Tooltip>
+              ) : (
+                saveButton
+              )}
+            </header>
+            {error !== undefined && (
+              <p
+                role="alert"
+                className="shrink-0 border-b border-divider px-3 py-2 type-label-13 text-danger"
+              >
+                {error}
+              </p>
             )}
+            {diffing && (
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-auto">
+                <DiffPane diff={diff} open={open} paths={diffPaths} files={files} drafts={drafts} />
+              </div>
+            )}
+            <div
+              className={cn(
+                "flex min-h-0 min-w-0 flex-1 flex-col overflow-auto",
+                diffing && "hidden",
+              )}
+            >
+              {entry === undefined ? (
+                overview.content
+              ) : entry.content === undefined ? (
+                <EmptyState title="This file is too large to edit here" />
+              ) : text === undefined ? (
+                <EmptyState title="This file isn't text, so it can't be edited here" />
+              ) : (
+                <Suspense
+                  fallback={<LinesSkeleton lines={8} label="Loading file" className="p-3" />}
+                >
+                  <EditableFile
+                    key={fileKey}
+                    path={entry.path}
+                    original={text}
+                    // edits made while saving would miss the commit, so the editor is read-only until it lands
+                    edit={!pending}
+                    editStateKey={`${id}:${fileKey}`}
+                    onEdit={(contents) => edit(entry.path, text, contents)}
+                  />
+                </Suspense>
+              )}
+            </div>
           </div>
         </div>
       </section>
