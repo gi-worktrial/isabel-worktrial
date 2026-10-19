@@ -1,5 +1,5 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { candidatesQuery, useAgentRepo } from "#/queries";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { candidateQuery, candidatesQuery, useAgentRepo } from "#/queries";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useTransition } from "react";
@@ -15,6 +15,8 @@ import { Tag } from "#/ui/tag";
 import { CandidateBranch } from "#src/features/candidates/branches";
 import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
 import { CompareLink } from "#src/features/candidates/candidate-compare";
+import { totalLines } from "#src/features/candidates/file-fold";
+import { LineCounts } from "#src/ui/file-name";
 import { TabActions } from "#src/ui/tab-actions";
 
 export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/candidates/")({
@@ -94,6 +96,11 @@ function CandidateCards() {
   const params = Route.useParams();
   const candidates = useSuspenseQuery(candidatesQuery(params)).data;
   const [index, setIndex] = useState(0);
+  const selected = candidates[Math.min(index, candidates.length - 1)];
+  const detail = useQuery({
+    ...candidateQuery({ ...params, candidate: selected?.id ?? "" }),
+    enabled: selected !== undefined,
+  }).data;
 
   if (candidates.length === 0) {
     return (
@@ -106,7 +113,7 @@ function CandidateCards() {
     );
   }
 
-  const candidate = candidates[Math.min(index, candidates.length - 1)]!;
+  const candidate = selected!;
   const { rationale } = splitApplyPrompt(candidate.body);
 
   return (
@@ -175,6 +182,15 @@ function CandidateCards() {
           <div className="flex flex-wrap items-center gap-2">
             <CandidateResultTags results={candidate.results} />
           </div>
+          {detail !== undefined && (
+            <div className="flex items-center gap-2 border-t border-divider pt-3">
+              <span className="type-label-13 font-semibold text-ink">Fix</span>
+              <span className="type-label-13 text-muted tabular-nums">
+                {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
+              </span>
+              <LineCounts {...totalLines(detail.files)} className="ml-auto type-mono-12" />
+            </div>
+          )}
         </li>
       </ul>
     </div>

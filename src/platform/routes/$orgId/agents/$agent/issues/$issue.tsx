@@ -8,7 +8,7 @@ import {
 } from "#/queries";
 import { canShip, getIssueActions, type Issue } from "@grounded-intelligence/grounded-sdk";
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, History } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { usePebbleDock, usePebblePage } from "#/pebble/page";
@@ -124,10 +124,11 @@ function IssuePage() {
               <button
                 type="button"
                 aria-label="View full issue history"
-                className="cursor-pointer rounded-xs text-left underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="flex cursor-pointer items-center gap-1.5 rounded-xs text-left underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 onClick={() => openActivity(params)}
               >
                 <Timestamp at={lastEdited} />
+                <History aria-hidden="true" className="size-3.5 text-muted" />
               </button>
             </Fact>
           )}
