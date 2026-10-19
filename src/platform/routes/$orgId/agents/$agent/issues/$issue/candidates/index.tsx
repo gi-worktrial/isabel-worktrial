@@ -5,14 +5,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { useIssue } from "../../../../../../../issue-view";
-import { CandidateStatusTag } from "#/candidate-results";
 import { Button, IconButton, buttonVariants } from "#/ui/button";
 import { ConfirmDialog } from "#/ui/dialog";
 import { EmptyState } from "#/ui/empty-state";
 import { Input } from "#/ui/input";
 import { Markdown } from "#/ui/markdown";
 import { Tag } from "#/ui/tag";
-import { BranchSwatch, useBranchTones } from "#src/features/candidates/branches";
+import { CandidateBranch } from "#src/features/candidates/branches";
 import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
 import { CompareLink } from "#src/features/candidates/candidate-compare";
 import { CandidateProofs } from "#src/features/candidates/proofs-view";
@@ -94,7 +93,6 @@ function NewCandidateDialog() {
 function CandidateCards() {
   const params = Route.useParams();
   const candidates = useSuspenseQuery(candidatesQuery(params)).data;
-  const { tones } = useBranchTones();
   const [index, setIndex] = useState(0);
 
   if (candidates.length === 0) {
@@ -145,9 +143,9 @@ function CandidateCards() {
       </div>
       <ul aria-label="Candidates">
         <li key={candidate.id} className="flex min-w-0 flex-col gap-3 card p-4">
-            <header className="flex min-w-0 items-start gap-3">
-              <BranchSwatch tone={tones.get(candidate.id)} className="mt-1" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <header className="flex min-w-0 items-start gap-3">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="flex min-w-0 flex-wrap items-center gap-2">
                 <Link
                   to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
                   params={{ ...params, candidate: candidate.id }}
@@ -155,30 +153,28 @@ function CandidateCards() {
                 >
                   {candidate.title}
                 </Link>
-                <span className="flex flex-wrap items-center gap-2">
-                  <Tag title={candidate.head_sha}>{candidate.head_sha.slice(0, 7)}</Tag>
-                  {candidate.recommended !== undefined && (
-                    <Tag tone="accent" title={candidate.recommended}>
-                      Recommended
-                    </Tag>
-                  )}
-                  <CandidateStatusTag candidate={candidate} />
-                </span>
-              </div>
-              <Link
-                to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-                params={{ ...params, candidate: candidate.id }}
-                className={buttonVariants({ variant: "secondary", size: "small" })}
-              >
-                View details
-              </Link>
-            </header>
-            {rationale !== "" && (
-              <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
-            )}
-            <div className="flex flex-wrap items-center gap-2">
-              <CandidateProofs candidate={candidate} />
+                <CandidateBranch candidate={candidate} />
+                {candidate.recommended !== undefined && (
+                  <Tag tone="accent" title={candidate.recommended}>
+                    Recommended
+                  </Tag>
+                )}
+              </span>
             </div>
+            <Link
+              to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+              params={{ ...params, candidate: candidate.id }}
+              className={buttonVariants({ variant: "secondary", size: "small" })}
+            >
+              View candidate
+            </Link>
+          </header>
+          {rationale !== "" && (
+            <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <CandidateProofs candidate={candidate} />
+          </div>
         </li>
       </ul>
     </div>
