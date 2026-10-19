@@ -1,12 +1,11 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { candidateQuery, candidatesQuery, useAgentRepo } from "#/queries";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { useIssue } from "../../../../../../../issue-view";
 import { CandidateResultTags } from "#/candidate-results";
-import { Button, IconButton, buttonVariants } from "#/ui/button";
+import { Button, buttonVariants } from "#/ui/button";
 import { ConfirmDialog } from "#/ui/dialog";
 import { EmptyState } from "#/ui/empty-state";
 import { Input } from "#/ui/input";
@@ -16,6 +15,7 @@ import { CandidateBranch } from "#src/features/candidates/branches";
 import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
 import { CompareLink } from "#src/features/candidates/candidate-compare";
 import { totalLines } from "#src/features/candidates/file-fold";
+import type { CandidateSummary } from "#src/sdk/index";
 import { LineCounts } from "#src/ui/file-name";
 import { TabActions } from "#src/ui/tab-actions";
 
@@ -92,14 +92,8 @@ function NewCandidateDialog() {
 }
 
 function CandidateCards() {
-  const params = Route.useParams();
-  const candidates = useSuspenseQuery(candidatesQuery(params)).data;
-  const [index, setIndex] = useState(0);
-  const selected = candidates[Math.min(index, candidates.length - 1)];
-  const detail = useQuery({
-    ...candidateQuery({ ...params, candidate: selected?.id ?? "" }),
-    enabled: selected !== undefined,
-  }).data;
+  const candidates = useSuspenseQuery(candidatesQuery(Route.useParams())).data;
+  const [expanded, setExpanded] = useState(false);
 
   if (candidates.length === 0) {
     return (
@@ -112,88 +106,81 @@ function CandidateCards() {
     );
   }
 
-  const candidate = selected!;
-  const { rationale } = splitApplyPrompt(candidate.body);
+  const remaining = candidates.length - 1;
+  const shown = expanded ? candidates : candidates.slice(0, 1);
 
   return (
     <div className="flex flex-col gap-2">
-      <div
-        role="group"
-        aria-label="Candidate pagination"
-        className="flex items-center justify-between gap-3"
-      >
-        <h3 className="type-heading-15 text-ink">
-          {candidates.length === 1 ? "Proposed fix" : "Proposed fixes"}
-        </h3>
-        <span className="flex items-center gap-2">
-          <IconButton
-            label="Previous candidate"
-            size="small"
-            disabled={index === 0}
-            onClick={() => setIndex((current) => Math.max(0, current - 1))}
-          >
-            <ChevronLeft className="size-4" />
-          </IconButton>
-          <span className="type-meta-12 whitespace-nowrap text-muted tabular-nums">
-            {index + 1} of {candidates.length}
-          </span>
-          <IconButton
-            label="Next candidate"
-            size="small"
-            disabled={index === candidates.length - 1}
-            onClick={() => setIndex((current) => Math.min(candidates.length - 1, current + 1))}
-          >
-            <ChevronRight className="size-4" />
-          </IconButton>
-          <CompareLink />
-        </span>
-      </div>
-      <ul aria-label="Candidates">
-        <li key={candidate.id}>
-          <Link
-            to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-            params={{ ...params, candidate: candidate.id }}
-            className="flex min-w-0 flex-col gap-3 card p-4 no-underline hover:border-divider-strong"
-          >
-            <header className="flex min-w-0 items-start gap-3">
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="flex min-w-0 flex-wrap items-center gap-2">
-                  <span className="truncate type-label-13 font-semibold text-ink">
-                  {candidate.title}
-                  </span>
-                  {candidate.recommended !== undefined && (
-                    <Tag tone="accent" title={candidate.recommended}>
-                      Recommended
-                    </Tag>
-                  )}
-                </span>
-                {rationale !== "" && (
-                  <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
-                )}
-              </div>
-              <span className={buttonVariants({ variant: "primary", size: "small" })}>
-                View candidate
-              </span>
-            </header>
-            <footer className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-              <span className="flex min-w-0 flex-wrap items-center gap-2">
-                <CandidateBranch candidate={candidate} />
-                {detail !== undefined && (
-                  <Tag className="gap-2">
-                    <span className="font-normal text-muted">
-                      {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
-                    </span>
-                    <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
-                  </Tag>
-                )}
-              </span>
-              <span className="flex items-center">
-                <CandidateResultTags results={candidate.results} />
-              </span>
-            </footer>
-          </Link>
-        </li>
+      <ul aria-label="Candidates" className="flex flex-col gap-2">
+        {shown.map((candidate) => (
+          <CandidateCard key={candidate.id} candidate={candidate} />
+        ))}
       </ul>
+      {remaining > 0 && (
+        <div className="flex items-center justify-between gap-3">
+          <Button variant="quiet" size="small" onClick={() => setExpanded((current) => !current)}>
+            {expanded
+              ? "Show fewer candidates"
+              : `View ${remaining} more candidate${remaining === 1 ? "" : "s"}`}
+          </Button>
+          <CompareLink />
+        </div>
+      )}
     </div>
+  );
+}
+
+function CandidateCard({
+  candidate,
+}: {
+  candidate: CandidateSummary;
+}) {
+  const params = Route.useParams();
+  const detail = useQuery(candidateQuery({ ...params, candidate: candidate.id })).data;
+  const { rationale } = splitApplyPrompt(candidate.body);
+
+  return (
+    <li>
+      <Link
+        to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+        params={{ ...params, candidate: candidate.id }}
+        className="flex min-w-0 flex-col gap-3 card p-4 no-underline hover:border-divider-strong"
+      >
+        <header className="flex min-w-0 items-start gap-3">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="truncate type-label-13 font-semibold text-ink">{candidate.title}</span>
+              {candidate.recommended !== undefined && (
+                <Tag tone="accent" title={candidate.recommended}>
+                  Recommended
+                </Tag>
+              )}
+            </span>
+            {rationale !== "" && (
+              <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
+            )}
+          </div>
+          <span className={buttonVariants({ variant: "primary", size: "small" })}>
+            View candidate
+          </span>
+        </header>
+        <footer className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+          <span className="flex min-w-0 flex-wrap items-center gap-2">
+            <CandidateBranch candidate={candidate} />
+            {detail !== undefined && (
+              <Tag className="gap-2">
+                <span className="font-normal text-muted">
+                  {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
+                </span>
+                <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
+              </Tag>
+            )}
+          </span>
+          <span className="flex items-center">
+            <CandidateResultTags results={candidate.results} />
+          </span>
+        </footer>
+      </Link>
+    </li>
   );
 }
