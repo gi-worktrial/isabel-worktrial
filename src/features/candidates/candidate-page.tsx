@@ -125,9 +125,9 @@ function ChangedFilesNav({
   }, [gitStatus, model, visiblePaths]);
 
   return (
-    <div className="sticky top-3 hidden h-[calc(100dvh-7.5rem)] w-56 shrink-0 lg:flex">
-      <FileRail label="Changed files" className="w-56">
-        <div className="shrink-0 p-2">
+    <div className="sticky top-3 -mt-3 hidden h-[calc(100dvh-6.75rem)] w-56 shrink-0 border-r border-divider pt-3 lg:flex">
+      <FileRail label="Changed files" className="w-56 border-r-0">
+        <div className="shrink-0 py-2 pr-2">
           <SearchField
             label="Search changed files"
             placeholder="Search files"
@@ -137,7 +137,7 @@ function ChangedFilesNav({
             className="w-full"
           />
         </div>
-        <FileTree model={model} aria-label="Changed files" className="min-h-0 flex-1 p-2" />
+        <FileTree model={model} aria-label="Changed files" className="min-h-0 flex-1 py-2 pr-2" />
       </FileRail>
     </div>
   );
