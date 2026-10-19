@@ -7,7 +7,6 @@ import { CandidateNotFound } from "#/candidate-results";
 import { FileDiffs } from "#/file-diffs";
 import { debugSearchSchema } from "#/debug-search";
 import { FileEditor } from "#/file-editor";
-import { useIssue } from "#/issue-view";
 import { usePebblePage } from "#/pebble/page";
 import {
   RUN_POLL_INTERVAL,
@@ -22,7 +21,6 @@ import { buttonVariants } from "#/ui/button";
 import { crumbs } from "#/crumbs";
 import { ShipButton } from "#src/features/candidates/approval";
 import { useBranching } from "#src/features/debug/branching";
-import { DebugBand } from "#src/features/debug/debug-band";
 import { candidateBasehead, useDebugDiff } from "#src/features/debug/debug-diff";
 
 const BRANCH_MOVED_STATUS = 409;
@@ -68,7 +66,6 @@ function DebugPage() {
   const search = Route.useSearch();
   const params = Route.useParams();
   const { orgId, agent, issue } = params;
-  const issueRecord = useIssue();
   const repo = useAgentRepo(params);
   const { client } = Route.useRouteContext();
   const queryClient = useQueryClient();
@@ -86,6 +83,8 @@ function DebugPage() {
     head: candidate.head_sha,
     changes: candidate.files,
   });
+  const initialFile = search.file ?? changes[0]?.filename;
+  const [openFile, setOpenFile] = useState(initialFile);
   const { data: tree } = useSuspenseQuery(treeQuery({ orgId, agent, ref: head }));
   const branch = getCandidateBranchById(issue, candidate.id);
   usePebblePage(
@@ -118,11 +117,24 @@ function DebugPage() {
     }
   }
   const branching = useBranching({ candidate, tree, changes, saveHere: save });
+  const location = [repo, ...(openFile === undefined ? ["Fix"] : openFile.split("/"))];
 
   return (
     <div className="flex h-[calc(100dvh-6rem)] flex-col gap-3">
-      <DebugBand issue={issueRecord} candidate={candidate.id} />
       <div className="flex min-w-0 items-center justify-end gap-2">
+        <nav
+          aria-label="Current file"
+          className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden type-label-13 text-muted"
+        >
+          {location.map((part, index) => (
+            <span key={`${index}:${part}`} className="contents">
+              {index > 0 && <span aria-hidden="true">/</span>}
+              <span className="min-w-0 truncate" title={part}>
+                {part}
+              </span>
+            </span>
+          ))}
+        </nav>
         {branching.error}
         <Link
           to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
@@ -139,7 +151,8 @@ function DebugPage() {
           key={candidate.id}
           entries={tree}
           changes={changes}
-          initialPath={search.file}
+          initialPath={initialFile}
+          onFileChange={setOpenFile}
           overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
           primary
           diff={diff}

@@ -71,6 +71,8 @@ type FileEditorProps = {
   initialPath?: string | undefined;
   /** Controls shown beside Save. */
   actions?: ReactNode;
+  /** Reports the file in view so a surrounding workspace can identify it. */
+  onFileChange?: ((path: string | undefined) => void) | undefined;
   /** Whether Save is the view's one primary action. */
   primary?: boolean;
   /** The tree the changes are measured from, which turns on diff mode. */
@@ -108,6 +110,7 @@ export function FileEditor({
   overview,
   initialPath,
   actions,
+  onFileChange,
   primary = false,
   diff,
   onSave,
@@ -131,6 +134,7 @@ export function FileEditor({
       setRail(true);
     }
   });
+  useEffect(() => onFileChange?.(open), [onFileChange, open]);
   const [drafts, setDrafts] = useState<ReadonlyMap<string, string>>(new Map());
   // saving starts new edit sessions, so the next edits begin at the saved files
   const [session, setSession] = useState(0);
@@ -289,7 +293,7 @@ export function FileEditor({
             }
           }
         }}
-        className="flex min-w-0 flex-1 overflow-hidden card"
+        className="flex min-w-0 flex-1 gap-3 overflow-hidden"
       >
         {rail && (
           <FileRail label="Files">
@@ -313,7 +317,7 @@ export function FileEditor({
             <FileTree model={model} aria-label="Files" className="min-h-0 flex-1 py-2 pr-2" />
           </FileRail>
         )}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden card">
           <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider px-2">
             {!rail && (
               <RailToggle
