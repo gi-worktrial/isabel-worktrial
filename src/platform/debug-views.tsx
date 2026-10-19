@@ -16,11 +16,15 @@ export function DebugViews({
   files,
   grades,
   fileSummary,
+  gradeBadges,
+  traceCount,
 }: {
   search: DebugSearch;
   files: ReactNode;
   grades: ReactNode;
   fileSummary?: { count: number; added: number; removed: number };
+  gradeBadges?: ReactNode;
+  traceCount?: number;
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -46,6 +50,7 @@ export function DebugViews({
           aria-current={view === "grades" ? "page" : undefined}
         >
           Grades
+          {gradeBadges}
         </Tab>
         <Tab
           to="."
@@ -53,6 +58,7 @@ export function DebugViews({
           aria-current={view === "traces" ? "page" : undefined}
         >
           Traces
+          {traceCount === undefined ? null : <Count className={TAB_COUNT}>{traceCount}</Count>}
         </Tab>
         <TabActionsEnd />
         {view === undefined && fileSummary !== undefined && (

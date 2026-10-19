@@ -4,7 +4,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { createTwoFilesPatch } from "diff";
 import { Pencil } from "lucide-react";
 
-import { CandidateActions, CandidateNotFound } from "#/candidate-results";
+import {
+  CandidateActions,
+  CandidateNotFound,
+  CandidateResultTags,
+} from "#/candidate-results";
 import { debugSearchSchema } from "#/debug-search";
 import { DebugViews } from "#/debug-views";
 import { useIssue, useIssueChange, useStartIssueWork } from "#/issue-view";
@@ -147,6 +151,8 @@ function CandidatePage() {
       <DebugViews
         search={search}
         fileSummary={{ count: candidate.files.length, ...totalLines(candidate.files) }}
+        gradeBadges={<CandidateResultTags results={candidate.results} />}
+        traceCount={issue.trace_count}
         files={
           <div className="w-full">
             <FixCard
