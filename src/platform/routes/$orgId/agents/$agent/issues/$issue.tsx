@@ -105,7 +105,7 @@ function IssuePage() {
           </h1>
           <StatusPill status={issue.status} />
         </div>
-        <Facts label="Issue details" className="items-start">
+        <Facts label="Issue details" className="items-start gap-x-10">
           <Fact label="State" orientation="vertical">
             <IssueStateControl issue={issue} />
           </Fact>
