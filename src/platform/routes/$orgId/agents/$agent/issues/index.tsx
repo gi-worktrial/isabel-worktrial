@@ -2,7 +2,7 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { issueQuery, issuesQuery, useAgentRepo } from "#/queries";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LayoutGrid, List as ListIcon, SlidersHorizontal } from "lucide-react";
-import { type DragEvent, type ReactNode, useState, useTransition } from "react";
+import { type DragEvent, type ReactNode, useRef, useState, useTransition } from "react";
 import { z } from "zod";
 
 import {
@@ -56,6 +56,42 @@ const ORDER_LABELS = {
   oldest: "Oldest activity",
   title: "Title A–Z",
 } as const;
+
+function setIssueDragImage(event: DragEvent<HTMLLIElement>) {
+  const source = event.currentTarget;
+  const bounds = source.getBoundingClientRect();
+  const preview = source.cloneNode(true) as HTMLElement;
+  const badge = document.createElement("span");
+  badge.textContent = "Moving";
+  Object.assign(preview.style, {
+    position: "fixed",
+    top: "-10000px",
+    left: "-10000px",
+    width: `${bounds.width}px`,
+    opacity: "1",
+    transform: "rotate(1deg)",
+    boxShadow: "var(--shadow-float)",
+  });
+  Object.assign(badge.style, {
+    position: "absolute",
+    top: "-8px",
+    right: "-8px",
+    padding: "4px 8px",
+    borderRadius: "999px",
+    background: "var(--color-accent)",
+    color: "var(--color-surface)",
+    fontSize: "12px",
+    fontWeight: "600",
+  });
+  preview.append(badge);
+  document.body.append(preview);
+  event.dataTransfer.setDragImage(
+    preview,
+    Math.max(event.clientX - bounds.left, 0),
+    Math.max(event.clientY - bounds.top, 0),
+  );
+  window.setTimeout(() => preview.remove());
+}
 
 const searchSchema = z.object({
   view: z.enum(["board", "list"]).optional(),
@@ -217,9 +253,11 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
   const repo = useAgentRepo(params);
   const queryClient = useQueryClient();
   const [dragged, setDragged] = useState<IssueSummary>();
+  const [dragHeight, setDragHeight] = useState(0);
   const [over, setOver] = useState<IssueState>();
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
+  const dropped = useRef(false);
   const canMove = (to: IssueState) =>
     dragged !== undefined &&
     ((dragged.state === "detected" && to === "reviewing") ||
@@ -227,8 +265,6 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
 
   function drop(to: IssueState) {
     const issue = dragged;
-    setDragged(undefined);
-    setOver(undefined);
     if (
       issue === undefined ||
       !(
@@ -236,8 +272,12 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
         (issue.state === "reviewing" && to === "detected")
       )
     ) {
+      setDragged(undefined);
+      setDragHeight(0);
+      setOver(undefined);
       return;
     }
+    dropped.current = true;
     startTransition(async () => {
       try {
         const current = await queryClient.fetchQuery(
@@ -255,6 +295,9 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
         setError(caught instanceof Error ? caught.message : String(caught));
       }
       await queryClient.invalidateQueries();
+      setDragged(undefined);
+      setDragHeight(0);
+      setOver(undefined);
     });
   }
 
@@ -307,30 +350,63 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
               }}
             >
               <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pt-0.5">
+                {canMove(state) && (
+                  <li
+                    aria-hidden="true"
+                    className={cn(
+                      "grid motion-safe:transition-[grid-template-rows,margin,opacity] motion-safe:duration-200",
+                      over === state
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "-mb-2 grid-rows-[0fr] opacity-0",
+                    )}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div
+                        style={{ height: dragHeight }}
+                        className="flex items-center justify-center rounded-sm border border-dashed border-accent bg-accent-tint type-label-13 text-accent-ink"
+                      >
+                        Drop to move
+                      </div>
+                    </div>
+                  </li>
+                )}
                 {lane.map((issue) => (
                   <li
                     key={issue.id}
-                    draggable={issue.state === "detected" || issue.state === "reviewing"}
+                    draggable={
+                      !pending && (issue.state === "detected" || issue.state === "reviewing")
+                    }
                     className={cn(
-                      "origin-center motion-safe:transition-[opacity,transform] motion-safe:duration-150",
-                      dragged?.id === issue.id && "scale-[0.98] opacity-25",
+                      "grid origin-center motion-safe:transition-[grid-template-rows,margin,opacity,transform] motion-safe:duration-200",
+                      dragged?.id === issue.id
+                        ? "-mb-2 grid-rows-[0fr] scale-[0.98] opacity-0"
+                        : "grid-rows-[1fr]",
                     )}
                     onDragStart={(event: DragEvent<HTMLLIElement>) => {
+                      setIssueDragImage(event);
+                      setDragHeight(event.currentTarget.getBoundingClientRect().height);
                       setDragged(issue);
                       event.dataTransfer.effectAllowed = "move";
                       event.dataTransfer.setData("text/plain", issue.id);
                     }}
                     onDragEnd={() => {
+                      if (dropped.current) {
+                        dropped.current = false;
+                        return;
+                      }
                       setDragged(undefined);
+                      setDragHeight(0);
                       setOver(undefined);
                     }}
                   >
-                    <IssueLink
-                      issue={issue}
-                      className="flex cursor-grab flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong active:cursor-grabbing motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
-                    >
-                      <IssueCard issue={issue} />
-                    </IssueLink>
+                    <div className="min-h-0 overflow-hidden">
+                      <IssueLink
+                        issue={issue}
+                        className="flex cursor-grab flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong active:cursor-grabbing motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
+                      >
+                        <IssueCard issue={issue} />
+                      </IssueLink>
+                    </div>
                   </li>
                 ))}
               </ul>
