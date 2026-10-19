@@ -90,7 +90,7 @@ function TracePage() {
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
         <section aria-label="Trace tree" className="flex min-w-0 flex-col gap-2">
           <h2 className="type-heading-15 text-ink">Trace tree</h2>
-          <ol aria-label="Span tree" className="flex min-w-0 flex-col gap-px">
+          <ol aria-label="Span tree" className="flex min-w-0 flex-col">
             {rows.map(({ span, depth }, index) => {
               const kind = spanKind(span);
               const Icon = KIND_ICONS[kind];
@@ -105,8 +105,11 @@ function TracePage() {
                   replace
                   aria-current={span === selected ? "true" : undefined}
                   className={cn(
-                      "min-w-0 rounded-sm bg-surface text-ink hover:bg-fill aria-current:row-selected",
-                      isRoot ? "block" : "grid h-10 grid-cols-[1rem_minmax(0,1fr)]",
+                      "min-w-0 rounded-sm text-ink hover:bg-fill",
+                      span === selected ? "bg-fill" : "bg-surface",
+                      isRoot
+                        ? "relative block after:absolute after:top-8 after:bottom-[-1px] after:left-4 after:border-l after:border-divider-strong"
+                        : "grid h-10 grid-cols-[2rem_minmax(0,1fr)]",
                   )}
                 >
                   {!isRoot && (
@@ -121,7 +124,7 @@ function TracePage() {
                   )}
                   <span
                     style={{
-                      paddingLeft: `${Math.max(depth - 1, 0) * 0.75 + (isRoot ? 0.25 : 0.5)}rem`,
+                      paddingLeft: `${Math.max(depth - 1, 0) * 0.75 + (isRoot ? 0.25 : 0)}rem`,
                     }}
                     className="flex h-10 min-w-0 items-center gap-2 pr-2 type-label-13"
                   >
