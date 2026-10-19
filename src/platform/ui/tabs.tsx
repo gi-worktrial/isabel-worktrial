@@ -17,7 +17,7 @@ export function Tabs({
 }) {
   return (
     <nav aria-label={label} className={cn("flex border-b border-divider pb-2", className)}>
-      <div className="flex min-w-0 flex-1 gap-1">{children}</div>
+      <div className="flex min-w-0 flex-1 items-center gap-1">{children}</div>
     </nav>
   );
 }
