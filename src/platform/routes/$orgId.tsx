@@ -231,9 +231,12 @@ function Shell() {
     select: (matches) => matches.some(({ staticData }) => staticData.fullscreen),
   });
   const routeId = useMatches({ select: (matches) => matches.at(-1)?.routeId });
+  const editingCandidate =
+    routeId === "/$orgId/agents/$agent/issues/$issue_/debug/candidates/$candidate";
   const list = useLocation({ select: ({ state }) => state.list });
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [pebbleHintDismissed, setPebbleHintDismissed] = useState(false);
   // Where the engineer is going, which leads the shown page while its data loads, so a Back before it loads still returns to it.
   const going = useRouterState({ select: ({ location }) => location });
   const lastPage = useRef<Origin>(undefined);
@@ -877,15 +880,40 @@ function Shell() {
                           <Kbd>{chord("K")}</Kbd>
                         </button>
                       )}
-                      <IconButton
-                        label="Ask Pebble"
-                        shortcut={chord("J")}
-                        aria-pressed={(pebbleOpen && dockContent.kind === "pebble") || fullscreen}
-                        onClick={togglePebble}
-                        className="aria-pressed:bg-inset aria-pressed:text-accent"
-                      >
-                        <PebbleMark />
-                      </IconButton>
+                      <div className="relative">
+                        <IconButton
+                          label="Ask Pebble"
+                          shortcut={chord("J")}
+                          aria-pressed={(pebbleOpen && dockContent.kind === "pebble") || fullscreen}
+                          onClick={() => {
+                            setPebbleHintDismissed(true);
+                            togglePebble();
+                          }}
+                          className="aria-pressed:bg-inset aria-pressed:text-accent"
+                        >
+                          <PebbleMark />
+                        </IconButton>
+                        {editingCandidate && !pebbleHintDismissed && !pebbleOpen && (
+                          <aside
+                            aria-label="Pebble editing help"
+                            className="float-layer absolute top-10 right-0 z-30 flex w-64 gap-2 rounded-sm p-3 text-ink"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="type-label-13 font-medium">Pebble can help while you edit</p>
+                              <p className="mt-1 type-meta-12 text-muted">
+                                Ask about failed Evals, understand the code, or get help making changes.
+                              </p>
+                            </div>
+                            <IconButton
+                              label="Dismiss Pebble help"
+                              size="small"
+                              onClick={() => setPebbleHintDismissed(true)}
+                            >
+                              <X className="size-3.5" />
+                            </IconButton>
+                          </aside>
+                        )}
+                      </div>
                     </div>
                   </header>
                   <div className="min-h-0 flex-1 overflow-y-auto">
