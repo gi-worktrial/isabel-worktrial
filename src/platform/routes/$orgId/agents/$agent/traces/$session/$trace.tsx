@@ -30,7 +30,7 @@ import { Markdown } from "#/ui/markdown";
 import { Tag } from "#/ui/tag";
 import { Timestamp } from "#/ui/timestamp";
 import { crumbTitle, turnCrumb } from "#src/features/traces/crumbs";
-import { SpanTurnHeader, spanNotes } from "#src/features/traces/span-page";
+import { SpanTurnHeader, spanFailures, spanNotes } from "#src/features/traces/span-page";
 import { StepNotes } from "#src/features/traces/transcript";
 
 const ICON_TONES = {
@@ -83,6 +83,7 @@ function TracePage() {
     const span_id = annotation.span_id || (root?.span_id ?? "");
     return criterion === undefined ? [] : [{ ...annotation, span_id, criterion, step: undefined }];
   });
+  const failed = spanFailures(annotations, spans);
   return (
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
@@ -123,17 +124,22 @@ function TracePage() {
                     }}
                     className="flex h-10 min-w-0 items-center gap-2 pr-2 type-label-13"
                   >
-                    {!isRoot && (
-                      <span
-                        className={cn(
-                          "flex size-6 shrink-0 items-center justify-center rounded-xs",
-                          ICON_TONES[kind],
-                        )}
-                      >
-                        <Icon aria-hidden="true" className="size-3.5" />
-                      </span>
-                    )}
+                    <span
+                      className={cn(
+                        "flex size-6 shrink-0 items-center justify-center rounded-xs",
+                        ICON_TONES[kind],
+                      )}
+                    >
+                      <Icon aria-hidden="true" className="size-3.5" />
+                    </span>
                     <span className="min-w-0 truncate">{spanLabel(span)}</span>
+                    {failed.has(span.span_id) && (
+                      <span
+                        aria-label="Failed"
+                        title="Failed"
+                        className="size-2 shrink-0 rounded-full bg-danger"
+                      />
+                    )}
                     {spanError(span) !== undefined && <Tag tone="danger">Error</Tag>}
                     <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
                       {formatDuration(span.duration_ns)}
