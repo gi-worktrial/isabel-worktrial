@@ -1,0 +1,24 @@
+--- a/pebble/threads.ts
++++ b/pebble/threads.ts
+@@ -20,7 +20,6 @@
+ import { modelsQuery, shellQuery, threadQuery, threadsKey, threadsQuery } from "#/queries";
+ 
+ const orgRoute = getRouteApi("/$orgId");
+-const NO_MODEL = "Pebble needs a model. Add one in Settings.";
+ const INTERNAL_SERVER_ERROR = 500;
+ 
+ const byLastUsed = (a: Thread, b: Thread) => b.updated_at.localeCompare(a.updated_at);
+@@ -150,11 +149,8 @@
+       }
+ 
+       const [model] = pebbleModels(await queryClient.fetchQuery(modelsQuery({ orgId })));
+-      if (model === undefined) {
+-        throw new Error(NO_MODEL);
+-      }
+-
+-      const thread = await client.pebble.threads.create({ model: model.name, repos });
++      // the demo has no models, so its chats start without one
++      const thread = await client.pebble.threads.create({ model: model?.name, repos });
+       queryClient.setQueryData<InfiniteData<ThreadPage>>(threadsKey({ orgId }), (data) =>
+         data === undefined
+           ? data

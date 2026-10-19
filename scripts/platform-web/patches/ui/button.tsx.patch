@@ -1,0 +1,71 @@
+--- a/ui/button.tsx
++++ b/ui/button.tsx
+@@ -1,8 +1,10 @@
+ import { cva, type VariantProps } from "class-variance-authority";
++import { Slot } from "radix-ui";
+ import type { ComponentPropsWithRef } from "react";
+ 
+ import { cn } from "#/ui/cn";
+ import { Tooltip } from "#/ui/tooltip";
++import { KeyHint } from "#src/ui/kbd";
+ 
+ export const buttonVariants = cva(
+   "relative inline-flex shrink-0 items-center justify-center rounded-control whitespace-nowrap focus-visible:-outline-offset-2 not-disabled:active:scale-[0.98] disabled:cursor-default disabled:text-faint motion-safe:transition-[color,background-color,scale]",
+@@ -20,15 +22,26 @@
+         default: "h-8 gap-2 px-3 type-label-13 font-medium",
+       },
+     },
++    // A text button that ends an actions row bleeds its padding, so its words end on the column's right edge.
++    compoundVariants: [
++      { variant: "quiet", size: "small", class: "in-data-[edge=end]:last:-mr-2" },
++      { variant: "quiet", size: "default", class: "in-data-[edge=end]:last:-mr-3" },
++    ],
+     defaultVariants: { variant: "secondary", size: "default" },
+   },
+ );
+ 
+-type ButtonProps = ComponentPropsWithRef<"button"> & VariantProps<typeof buttonVariants>;
++type ButtonProps = ComponentPropsWithRef<"button"> &
++  VariantProps<typeof buttonVariants> & { asChild?: boolean };
+ 
+-export function Button({ variant, size, className, ...rest }: ButtonProps) {
++export function Button({ variant, size, asChild = false, className, ...rest }: ButtonProps) {
++  const Root = asChild ? Slot.Root : "button";
+   return (
+-    <button type="button" className={cn(buttonVariants({ variant, size }), className)} {...rest} />
++    <Root
++      {...(asChild ? {} : { type: "button" })}
++      className={cn(buttonVariants({ variant, size }), className)}
++      {...rest}
++    />
+   );
+ }
+ 
+@@ -37,17 +50,24 @@
+ /** A square icon button, named by its tooltip. */
+ export function IconButton({
+   label,
++  shortcut,
++  variant = "quiet",
+   size = "default",
+   className,
+   ...rest
+-}: ComponentPropsWithRef<"button"> & { label: string; size?: keyof typeof ICON_SIZES }) {
++}: ComponentPropsWithRef<"button"> & {
++  label: string;
++  shortcut?: string;
++  variant?: "quiet" | "secondary";
++  size?: keyof typeof ICON_SIZES;
++}) {
+   return (
+-    <Tooltip label={label}>
++    <Tooltip label={shortcut === undefined ? label : <KeyHint label={label} keys={shortcut} />}>
+       <button
+         type="button"
+         aria-label={label}
+         className={cn(
+-          buttonVariants({ variant: "quiet", size: null }),
++          buttonVariants({ variant, size: null }),
+           ICON_SIZES[size],
+           className,
+         )}

@@ -1,0 +1,105 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue_.debug.candidates.$candidate.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue_.debug.candidates.$candidate.tsx
+@@ -8,21 +8,27 @@
+ import { debugSearchSchema } from "#/debug-search";
+ import { DebugViews } from "#/debug-views";
+ import { FileEditor } from "#/file-editor";
+-import { IssueSteps, useIssue } from "#/issue-view";
++import { useIssue } from "#/issue-view";
+ import { usePebblePage } from "#/pebble/page";
+ import {
+   RUN_POLL_INTERVAL,
+   SESSION_PAGE_SIZE,
+-  canvasQuery,
+   candidateQuery,
++  candidatesQuery,
+   isCandidatePending,
+   issueQuery,
+   issueTracesQuery,
+   treeQuery,
+   useAgentRepo,
+ } from "#/queries";
+-import { Tag } from "#/ui/tag";
+ import { crumbs } from "#/crumbs";
++import { ApproveButton } from "#src/features/candidates/approval";
++import { BranchSwitcher } from "#src/features/candidates/branches";
++import { EvalResults } from "#src/features/candidates/proofs-view";
++import { useBranching } from "#src/features/debug/branching";
++import { DebugBand } from "#src/features/debug/debug-band";
++import { candidateBasehead, useDebugDiff } from "#src/features/debug/debug-diff";
++import { CandidateGrades } from "#src/features/debug/eval-grades";
+ 
+ const BRANCH_MOVED_STATUS = 409;
+ // Jobs checks for pushes every 15 seconds, so a save's run can take this long to appear.
+@@ -42,7 +48,7 @@
+     const [candidate, issue] = await Promise.all([
+       queryClient.ensureQueryData(candidateQuery(params)),
+       queryClient.ensureQueryData(issueQuery(params)),
+-      queryClient.ensureQueryData(canvasQuery(params)),
++      queryClient.ensureQueryData(candidatesQuery(params)),
+       deps.view === "traces" &&
+         queryClient.ensureQueryData(
+           issueTracesQuery({ ...params, after: deps.afters?.at(-1), limit: SESSION_PAGE_SIZE }),
+@@ -62,7 +68,8 @@
+       },
+     );
+   },
+-  component: DebugPage,
++  // a save as a new Candidate moves to its own Debug, which starts from that Candidate's head
++  component: () => <DebugPage key={Route.useParams().candidate} />,
+   notFoundComponent: () => <CandidateNotFound />,
+ });
+ 
+@@ -94,6 +101,7 @@
+     `The engineer is debugging Candidate ${candidate.id}, "${candidate.title}", of Issue ${issue}. Its branch is ${branch}, at commit ${head}. Commit and push your edits to that branch, which reruns its Evals.`,
+     DEBUG_PROMPTS,
+   );
++  const diff = useDebugDiff({ orgId, agent, basehead: candidateBasehead(issue, head) });
+ 
+   async function save(files: { path: string; contents: string }[]) {
+     try {
+@@ -118,18 +126,27 @@
+       }
+     }
+   }
++  const branching = useBranching({ candidate, tree, changes, saveHere: save });
+ 
+   return (
+     <div className="flex h-[calc(100dvh-6rem)] flex-col gap-3">
+-      <IssueSteps issue={issueRecord} debugging />
++      <DebugBand issue={issueRecord} candidate={candidate.id} />
+       <header aria-label="Debug" className="flex min-w-0 flex-wrap items-center gap-3">
+         <h1 className="flex min-w-0 flex-1 basis-64 items-center gap-2 type-heading-15 text-ink">
+-          <span className="min-w-0 truncate">Debugging {candidate.title}</span>
+-          <Tag title={branch}>{head.slice(0, 7)}</Tag>
++          <span className="min-w-0 truncate">{candidate.title}</span>
++          <BranchSwitcher
++            current={candidate.id}
++            sha={head}
++            onNewCandidate={branching.newCandidate}
++          />
+         </h1>
++        {branching.error}
+         <CandidateStatusTag candidate={candidate} />
++        <EvalResults candidate={candidate} />
+         <CandidateActions agent={agent} candidate={candidate} />
++        <ApproveButton candidate={candidate} />
+       </header>
++      {branching.dialog}
+       <div className="flex min-h-0 flex-1 gap-3">
+         <DebugViews
+           search={search}
+@@ -139,9 +156,12 @@
+               entries={tree}
+               changes={changes}
+               overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
+-              onSave={save}
++              primary
++              diff={diff}
++              renderSaveDialog={branching.renderSaveDialog}
+             />
+           }
++          grades={<CandidateGrades candidate={candidate} />}
+         />
+       </div>
+     </div>

@@ -1,0 +1,17 @@
+--- a/job-outputs.ts
++++ b/job-outputs.ts
+@@ -1,12 +1,12 @@
+ import {
+   RUN_EVALS_JOB,
+   type EvalResult,
+-  type GroundedClient,
+   type RunTarget,
+ } from "@grounded-intelligence/grounded-sdk";
++import type { ProductClient } from "#src/queries/client";
+ 
+ export type JobOutput = EvalResult[];
+ export const JOB_OUTPUTS = new Map<
+   string,
+-  (client: GroundedClient, target: RunTarget) => Promise<JobOutput>
++  (client: ProductClient, target: RunTarget) => Promise<JobOutput>
+ >([[RUN_EVALS_JOB, async (client, target) => (await client.evals.getRun(target)).results]]);

@@ -1,0 +1,147 @@
+--- a/routes/$orgId/agents/$agent/traces/$session/index.tsx
++++ b/routes/$orgId/agents/$agent/traces/$session/index.tsx
+@@ -8,22 +8,37 @@
+ import {
+   OutcomeTag,
+   TraceTurns,
+-  failedCriteria,
+   issuesOf,
+   scoreText,
+   sessionGrades,
+-  sessionTitle,
+ } from "../../../../../../trace-view";
++import { sessionTitle } from "#/titles";
++import { IssueLinks } from "../../../../../../evals";
++import { usePebblePage } from "#/pebble/page";
++import { SESSION_VIEW_SEARCH } from "#src/features/traces/search";
++import { FailureSummary, StepPlacesOf } from "#src/features/traces/failure";
++import {
++  TraceViewBar,
++  otherFailures,
++  sessionPebblePage,
++  useSessionView,
++} from "#src/features/traces/session-page";
++import { TraceFlow } from "#src/features/traces/trace-flow";
++import { crumbTitle } from "#src/features/traces/crumbs";
++import { Chip } from "#src/ui/chip";
+ import { CopyButton } from "#/ui/copy-button";
+ import { Fact, Facts } from "#/ui/facts";
+-import { formatDuration } from "#/ui/format";
+-import { Timestamp } from "#/ui/timestamp";
++import { formatDuration } from "#src/features/traces/duration";
+ import { Tag } from "#/ui/tag";
+ import { Tooltip } from "#/ui/tooltip";
+ import { crumbs } from "#/crumbs";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/")({
+-  validateSearch: z.object({ after: z.string().optional() }),
++  validateSearch: z.object({
++    after: z.string().optional(),
++    ...SESSION_VIEW_SEARCH,
++  }),
+   loaderDeps: ({ search }) => search,
+   loader: async ({ context: { queryClient }, params, deps }) => {
+     const { page } = await queryClient.ensureQueryData(
+@@ -32,7 +47,7 @@
+     return crumbs(
+       { label: "Traces", to: "/$orgId/agents/$agent/traces" },
+       {
+-        label: sessionTitle(page.session),
++        label: crumbTitle(sessionTitle(page.session)),
+         to: "/$orgId/agents/$agent/traces/$session",
+       },
+     );
+@@ -53,10 +68,12 @@
+   const last = page.turns.at(-1);
+   const { criteria, dimensions } = sessionGrades(annotations, page.turns);
+   const graded = new Set([...criteria, ...dimensions].map(({ name }) => name));
+-  const ungraded = failedCriteria(labels.filter(({ name }) => !graded.has(name)));
++  const ungraded = otherFailures(labels, graded);
+   const trial = page.turns[0]?.spans.find((span) => span.parent_span_id === "")?.attributes;
+   const task = trial?.["grounded.task.name"];
+   const cost = trial?.["grounded.cost_usd"];
++  usePebblePage(...sessionPebblePage({ session, task, title: sessionTitle(summary), criteria }));
++  const { step, view, onView } = useSessionView();
+ 
+   return (
+     <article aria-label="Trace" className="flex flex-col gap-4">
+@@ -64,13 +81,18 @@
+         <h1 className="line-clamp-2 type-title-18 text-ink">{sessionTitle(summary)}</h1>
+         <Facts label="Trace details">
+           <Fact label="Session">
+-            <span className="max-w-48 truncate type-mono-12" title={session}>
++            <Chip code title={session} className="max-w-28">
+               {session}
+-            </span>
++            </Chip>
+             <CopyButton label="Copy session ID" text={session} />
+           </Fact>
+           <Fact label="Outcome">
+             <OutcomeTag annotations={labels} />
++            {ungraded.map((name) => (
++              <Tag key={name} tone="danger">
++                {name}
++              </Tag>
++            ))}
+           </Fact>
+           {task && (
+             <Fact label="Eval">
+@@ -84,20 +106,9 @@
+               {scoreText(grade) ?? <OutcomeTag annotations={[grade]} />}
+             </Fact>
+           ))}
+-          {ungraded.length > 0 && (
+-            <Fact label="Failing">
+-              {ungraded.map((name) => (
+-                <Tag key={name} tone="danger">
+-                  {name}
+-                </Tag>
+-              ))}
+-            </Fact>
+-          )}
+           {issues.length > 0 && (
+             <Fact label="Issues">
+-              {issues.map((issue) => (
+-                <Tag key={issue}>{issue}</Tag>
+-              ))}
++              <IssueLinks orgId={orgId} agent={agent} issues={issues} />
+             </Fact>
+           )}
+           {summary.errors > 0 && (
+@@ -108,9 +119,11 @@
+             </Fact>
+           )}
+           <Fact label="Time">
+-            <Timestamp at={summary.started_at} />
++            <TimeTag at={summary.started_at} />
+           </Fact>
+-          <Fact label="Duration">{formatDuration(summary.duration_ns)}</Fact>
++          <Fact label="Duration">
++            <Tag>{formatDuration(summary.duration_ns)}</Tag>
++          </Fact>
+           {tokens && (
+             <Fact label="Usage">
+               <Tooltip label={tokens.breakdown}>
+@@ -121,7 +134,20 @@
+           {cost && <Fact label="Cost">{formatCost(Number(cost))}</Fact>}
+         </Facts>
+       </header>
+-      <TraceTurns key={after} annotations={annotations} turns={page.turns} />
++      <FailureSummary annotations={annotations} turns={page.turns} />
++      <TraceViewBar view={view} onView={onView} />
++      <StepPlacesOf turns={page.turns}>
++        {view === "flow" ? (
++          <TraceFlow annotations={annotations} turns={page.turns} />
++        ) : (
++          <TraceTurns
++            key={[after, step].join()}
++            step={step}
++            annotations={annotations}
++            turns={page.turns}
++          />
++        )}
++      </StepPlacesOf>
+       <p className="flex gap-4 type-label-13">
+         {after && (
+           <Link to="/$orgId/agents/$agent/traces/$session" params={{ orgId, agent, session }} state>

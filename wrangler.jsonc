@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "grounded-demo",
+  "compatibility_date": "2026-09-07",
+  "compatibility_flags": ["nodejs_compat"],
+  // the Worker answers only /api/pebble; every other path is the built app, with the SPA fallback for its routes
+  "main": "src/demo/worker/index.ts",
+  "assets": { "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  // OPENAI_API_KEY is the one secret (`wrangler secret put`, or .env locally), and OPENAI_DEFAULT_MODEL an optional var
+  "routes": [{ "pattern": "demo.grounded.ai", "custom_domain": true }],
+}

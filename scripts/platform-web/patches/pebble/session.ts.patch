@@ -1,0 +1,103 @@
+--- a/pebble/session.ts
++++ b/pebble/session.ts
+@@ -28,6 +28,7 @@
+   mergeEntries,
+   messageText,
+ } from "#/lib/pebble/view";
++import { DONE_ENTRY, READ_ENTRY, type DoneNote, type Question, type ReadNote } from "#src/pebble/wire";
+ 
+ type Request = { status: "idle" } | { status: "pending" } | { status: "failed"; error: string };
+ 
+@@ -67,7 +68,7 @@
+           [event.session]: applyImmutable(state.views[event.session], event.ops),
+         };
+         const view = views[event.session];
+-        if (view.entries === state.views[event.session]?.entries) {
++        if (view?.entries === state.views[event.session]?.entries) {
+           return { ...state, views };
+         }
+ 
+@@ -76,7 +77,7 @@
+           views,
+           entries: {
+             ...state.entries,
+-            [event.session]: mergeEntries(state.entries[event.session] ?? [], view.entries),
++            [event.session]: mergeEntries(state.entries[event.session] ?? [], view?.entries ?? []),
+           },
+         };
+       }
+@@ -242,25 +243,37 @@
+     dispatch({ type: "opened", session: next });
+   }
+ 
+-  async function submit(target: string, text: string) {
++  async function submit(target: string, text: string, question?: Question) {
+     dispatch({ type: "asked", session: target });
+-    if (contextChanged(chatView(state.views[target]), context)) {
++    const written = question?.context ?? context;
++    if (contextChanged(chatView(state.views[target]), written)) {
+       await agent.call("submit", [
+         {
+           type: "write",
+           visible: true,
+           operationId: crypto.randomUUID(),
+-          entry: { kind: CONTEXT_ENTRY, data: context },
++          entry: { kind: CONTEXT_ENTRY, data: written },
+         },
+         { session: target },
+       ]);
+     }
++    if (question !== undefined) {
++      await write(target, READ_ENTRY, question.note);
++    }
+     await agent.call("submit", [
+       { type: "input", operationId: crypto.randomUUID(), content: text },
+       { session: target },
+     ]);
+   }
+ 
++  // Grounded's own entries, which Pebble's model never reads
++  async function write(target: string, kind: string, data: ReadNote | DoneNote) {
++    await agent.call("submit", [
++      { type: "write", operationId: crypto.randomUUID(), entry: { kind, data } },
++      { session: target },
++    ]);
++  }
++
+   return {
+     session,
+     view,
+@@ -304,11 +317,11 @@
+       });
+     },
+ 
+-    ask: (text: string) =>
+-      session === undefined ? Promise.resolve(false) : run(() => submit(session, text)),
++    ask: (text: string, question?: Question) =>
++      session === undefined ? Promise.resolve(false) : run(() => submit(session, text, question)),
+ 
+     /** Forks before a question and asks it again in the fork. */
+-    retry(entry: EntryId) {
++    retry(entry: EntryId, again?: Question) {
+       const question = entries.find(({ id }) => id === entry);
+       if (session === undefined || question === undefined) {
+         return;
+@@ -324,7 +337,7 @@
+           before === undefined
+             ? await agent.call("createSession")
+             : await agent.call("fork", [{ session, at: before.id }]);
+-        await submit(fork, (question.model ?? []).map(messageText).join("\n"));
++        await submit(fork, (question.model ?? []).map(messageText).join("\n"), again);
+         await open(fork);
+       });
+     },
+@@ -333,5 +346,9 @@
+ 
+     setModel: (model: string, thinkingLevel?: ThinkingLevel) =>
+       void run(() => agent.call("setModel", [model, { session, thinkingLevel }])),
++
++    /** Notes that the engineer ran one of an answer's chips, so the chat shows it done. */
++    markDone: (note: DoneNote) =>
++      void (session === undefined ? undefined : run(() => write(session, DONE_ENTRY, note))),
+   };
+ }

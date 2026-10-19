@@ -1,0 +1,138 @@
+--- a/issue-traces.tsx
++++ b/issue-traces.tsx
+@@ -1,18 +1,23 @@
+ import { type Issue, type TracePage, canChangeTraces } from "@grounded-intelligence/grounded-sdk";
+ import { useSuspenseQuery } from "@tanstack/react-query";
+ import { Link, useRouteContext } from "@tanstack/react-router";
++import { CircleMinus, Plus } from "lucide-react";
+ import { useEffect, useState } from "react";
+ 
+ import { useIssue, useIssueChange, useIssueParams } from "#/issue-view";
+ import { SESSION_PAGE_SIZE, issueTracesQuery } from "#/queries";
+ import { PageButtons } from "#/session-table";
+ import { OutcomeTag, issuesOf, traceTitle } from "#/trace-view";
+-import { Button } from "#/ui/button";
++import { Button, IconButton } from "#/ui/button";
+ import { Modal } from "#/ui/dialog";
+ import { EmptyState } from "#/ui/empty-state";
+ import { SearchField } from "#/ui/search-field";
+ import { Tag } from "#/ui/tag";
+-import { Timestamp } from "#/ui/timestamp";
++import { newestFirst } from "#src/features/traces/list";
++import { Chip } from "#src/ui/chip";
++import { LinesSkeleton } from "#src/ui/skeleton";
++import { TabActions } from "#src/ui/tab-actions";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ const SEARCH_LIMIT = 20;
+ 
+@@ -22,9 +27,10 @@
+ export function IssueTraceTable({ afters }: { afters: string[] }) {
+   const params = useIssueParams();
+   const { orgId, agent } = params;
+-  const { traces, next } = useSuspenseQuery(
++  const { traces: listed, next } = useSuspenseQuery(
+     issueTracesQuery({ ...params, after: afters.at(-1), limit: SESSION_PAGE_SIZE }),
+   ).data;
++  const traces = newestFirst(listed);
+   const issue = useIssue();
+   const { pending, error, change } = useIssueChange();
+   const editable = canChangeTraces(issue.state);
+@@ -32,7 +38,7 @@
+   return (
+     <div className="flex min-w-0 flex-1 flex-col gap-3">
+       {(editable || error !== undefined) && (
+-        <div className="flex items-center justify-end gap-2">
++        <TabActions>
+           {error !== undefined && (
+             <p role="alert" className="type-label-13 text-danger">
+               {error}
+@@ -46,15 +52,15 @@
+               onAdd={(trace) => change({ action: "include_trace", trace })}
+             />
+           )}
+-        </div>
++        </TabActions>
+       )}
+       <div className="card overflow-clip">
+-        <table className="record-table">
++        <table aria-label="Traces" className="record-table">
+           <thead>
+             <tr>
+               <th className="w-full">Message</th>
+               <th>Outcome</th>
+-              <th className="text-right">Time</th>
++              <th className="@max-lg:hidden">Time</th>
+               {editable && (
+                 <th>
+                   <span className="sr-only">Actions</span>
+@@ -81,20 +87,20 @@
+                 <td>
+                   <OutcomeTag annotations={trace.annotations} />
+                 </td>
+-                <td className="text-right text-muted">
+-                  <Timestamp at={trace.started_at} />
++                <td className="whitespace-nowrap @max-lg:hidden">
++                  <TimeTag at={trace.started_at} />
+                 </td>
+                 {editable && (
+                   <td className="row-actions">
+-                    <Button
+-                      variant="quiet"
++                    <IconButton
++                      label="Remove from Issue"
+                       size="small"
+                       disabled={pending}
+-                      className="relative z-10 whitespace-nowrap"
++                      className="relative z-10"
+                       onClick={() => change({ action: "exclude_trace", trace: trace.trace_id })}
+                     >
+-                      Remove from Issue
+-                    </Button>
++                      <CircleMinus aria-hidden="true" className="size-4" />
++                    </IconButton>
+                   </td>
+                 )}
+               </tr>
+@@ -167,7 +173,12 @@
+ 
+   return (
+     <Modal
+-      trigger={<Button>Add Traces</Button>}
++      trigger={
++        <Button size="small">
++          <Plus aria-hidden="true" className="size-3.5" />
++          Add Traces
++        </Button>
++      }
+       title={`Add Traces to ${issue.id}`}
+       open={open}
+       onOpenChange={setOpen}
+@@ -180,7 +191,7 @@
+         onChange={setQ}
+       />
+       {found === undefined ? (
+-        <p className="type-label-13 text-muted">Loading…</p>
++        <LinesSkeleton lines={4} label="Loading Traces" className="py-2" />
+       ) : "error" in found ? (
+         <p role="alert" className="type-label-13 text-danger">
+           {found.error}
+@@ -226,15 +237,15 @@
+     issue.include.includes(trace.trace_id) || (!removed && matched.includes(issue.id));
+ 
+   return (
+-    <li className="flex items-center gap-2 border-b border-divider py-2 last:border-b-0">
++    <li className="flex h-9 items-center gap-2">
+       <span className="min-w-0 flex-1 truncate type-label-13 text-ink">{traceTitle(trace)}</span>
+       {matched
+         .filter((other) => other !== issue.id)
+         .map((other) => (
+-          <Tag key={other}>{other}</Tag>
++          <Chip key={other}>{other}</Chip>
+         ))}
+       <span className="type-meta-12 text-muted">
+-        <Timestamp at={trace.started_at} />
++        <TimeTag at={trace.started_at} />
+       </span>
+       {inIssue ? (
+         <Tag>In this Issue</Tag>

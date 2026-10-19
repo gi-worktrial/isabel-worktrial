@@ -1,0 +1,14 @@
+--- a/ui/markdown/citations.tsx
++++ b/ui/markdown/citations.tsx
+@@ -21,7 +21,10 @@
+         return {
+           type: "text",
+           value: String(number),
+-          data: { hName: "citation", hProperties: { ariaLabel: `Citation ${number}` } },
++          data: {
++            hName: "citation",
++            hProperties: { ariaLabel: `Citation ${number}`, dataCitation: part },
++          },
+         };
+       });
+       parent.children.splice(index, 1, ...parts);

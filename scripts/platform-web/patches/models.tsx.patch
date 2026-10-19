@@ -1,0 +1,58 @@
+--- a/models.tsx
++++ b/models.tsx
+@@ -5,6 +5,8 @@
+ import { Tag } from "#/ui/tag";
+ import { z } from "zod";
+ 
++const compact = new Intl.NumberFormat("en", { notation: "compact" });
++
+ type Metrics = {
+   api_requests: number;
+   prompt_tokens: number;
+@@ -66,8 +68,8 @@
+           <tr>
+             <th />
+             <th>Requests</th>
+-            <th>Prompt tokens</th>
+-            <th>Completion tokens</th>
++            <th className="@max-lg:hidden">Prompt tokens</th>
++            <th className="@max-lg:hidden">Completion tokens</th>
+             <th>Spend</th>
+           </tr>
+         </thead>
+@@ -75,10 +77,12 @@
+           {rows.map((row) => (
+             <tr key={row.label}>
+               <td>{row.label}</td>
+-              <td>{row.api_requests}</td>
+-              <td>{row.prompt_tokens}</td>
+-              <td>{row.completion_tokens}</td>
+-              <td>${row.spend.toFixed(2)}</td>
++              <td className="tabular-nums">{compact.format(row.api_requests)}</td>
++              <td className="tabular-nums @max-lg:hidden">{compact.format(row.prompt_tokens)}</td>
++              <td className="tabular-nums @max-lg:hidden">
++                {compact.format(row.completion_tokens)}
++              </td>
++              <td className="tabular-nums">${row.spend.toFixed(2)}</td>
+             </tr>
+           ))}
+         </tbody>
+@@ -89,13 +93,12 @@
+ 
+ export function ModelReasoning({ model }: { model: Model }) {
+   const efforts = model.supported_reasoning_efforts;
+-  if (efforts === null || efforts.length === 0) {
+-    return (
+-      <div className="type-meta-12 text-muted">
+-        {efforts === null ? "Reasoning unknown" : "No reasoning"}
+-      </div>
+-    );
++  if (efforts === null) {
++    return null;
+   }
++  if (efforts.length === 0) {
++    return <div className="type-meta-12 text-muted">No reasoning</div>;
++  }
+ 
+   return (
+     <div className="flex flex-wrap items-center gap-1 type-meta-12 text-muted">

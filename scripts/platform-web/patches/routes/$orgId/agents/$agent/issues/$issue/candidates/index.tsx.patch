@@ -1,0 +1,88 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue/candidates/index.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue/candidates/index.tsx
+@@ -4,12 +4,16 @@
+ import { useState, useTransition } from "react";
+ 
+ import { useIssue } from "../../../../../../../issue-view";
+-import { CandidateResultTags, CandidateStatusTag } from "#/candidate-results";
++import { CandidateStatusTag } from "#/candidate-results";
+ import { Button } from "#/ui/button";
+ import { ConfirmDialog } from "#/ui/dialog";
+ import { EmptyState } from "#/ui/empty-state";
+ import { Input } from "#/ui/input";
+ import { Tag } from "#/ui/tag";
++import { BranchSwatch, useBranchTones } from "#src/features/candidates/branches";
++import { CompareLink } from "#src/features/candidates/candidate-compare";
++import { CandidateProofs } from "#src/features/candidates/proofs-view";
++import { TabActions } from "#src/ui/tab-actions";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/candidates/")({
+   loader: ({ context: { queryClient }, params }) =>
+@@ -22,7 +26,10 @@
+ 
+   return (
+     <div className="flex flex-col gap-3">
+-      {state === "reviewing" && <NewCandidateDialog />}
++      <TabActions>
++        <CompareLink />
++        {state === "reviewing" && <NewCandidateDialog />}
++      </TabActions>
+       <CandidateTable />
+     </div>
+   );
+@@ -84,6 +91,7 @@
+ function CandidateTable() {
+   const params = Route.useParams();
+   const candidates = useSuspenseQuery(candidatesQuery(params)).data;
++  const { tones } = useBranchTones();
+ 
+   if (candidates.length === 0) {
+     return (
+@@ -98,12 +106,12 @@
+ 
+   return (
+     <div className="card overflow-clip">
+-      <table className="record-table">
++      <table aria-label="Candidates" className="record-table">
+         <thead>
+           <tr>
+             <th className="w-full">Candidate</th>
+             <th>Status</th>
+-            <th>Evals</th>
++            <th className="@max-lg:hidden">Evals</th>
+           </tr>
+         </thead>
+         <tbody>
+@@ -115,7 +123,8 @@
+                   params={{ ...params, candidate: candidate.id }}
+                   className="row-action flex items-center gap-2"
+                 >
+-                  {candidate.title}
++                  <BranchSwatch tone={tones.get(candidate.id)} />
++                  <span className="truncate">{candidate.title}</span>
+                   {candidate.recommended !== undefined && (
+                     <Tag tone="accent" title={candidate.recommended} className="relative z-2">
+                       Recommended
+@@ -126,20 +135,8 @@
+               <td>
+                 <CandidateStatusTag candidate={candidate} />
+               </td>
+-              <td>
+-                {candidate.results !== undefined && (
+-                  <Link
+-                    to="/$orgId/agents/$agent/runs/$run"
+-                    params={{
+-                      orgId: params.orgId,
+-                      agent: params.agent,
+-                      run: candidate.results.run.id,
+-                    }}
+-                    className="block w-fit rounded-xs"
+-                  >
+-                    <CandidateResultTags results={candidate.results} />
+-                  </Link>
+-                )}
++              <td className="@max-lg:hidden">
++                <CandidateProofs candidate={candidate} />
+               </td>
+             </tr>
+           ))}

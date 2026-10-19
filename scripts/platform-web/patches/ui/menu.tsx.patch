@@ -1,0 +1,71 @@
+--- a/ui/menu.tsx
++++ b/ui/menu.tsx
+@@ -1,6 +1,6 @@
+ import { Check } from "lucide-react";
+ import { DropdownMenu as Menu } from "radix-ui";
+-import type { ComponentProps, ReactNode } from "react";
++import { useRef, type ComponentProps, type ReactNode } from "react";
+ 
+ import { cn } from "#/ui/cn";
+ import { Tooltip } from "#/ui/tooltip";
+@@ -13,10 +13,29 @@
+   children,
+   ...content
+ }: ComponentProps<typeof Menu.Content> & { trigger: ReactNode; tooltip?: ReactNode }) {
+-  const button = <Menu.Trigger asChild>{trigger}</Menu.Trigger>;
++  // a click leaves no focus ring on the trigger; opened from the keyboard, focus starts on the picked option
++  const pointer = useRef(false);
++  const panel = useRef<HTMLDivElement>(null);
++  const button = (
++    <Menu.Trigger
++      asChild
++      onPointerDown={() => (pointer.current = true)}
++      onKeyDown={() => (pointer.current = false)}
++    >
++      {trigger}
++    </Menu.Trigger>
++  );
+ 
+   return (
+-    <Menu.Root>
++    <Menu.Root
++      onOpenChange={(open) =>
++        open &&
++        !pointer.current &&
++        requestAnimationFrame(() =>
++          panel.current?.querySelector<HTMLElement>('[data-state="checked"]')?.focus(),
++        )
++      }
++    >
+       {tooltip === undefined ? (
+         button
+       ) : (
+@@ -26,6 +45,7 @@
+       )}
+       <Menu.Portal>
+         <Menu.Content
++          ref={panel}
+           loop
+           side={side}
+           sideOffset={4}
+@@ -33,6 +53,7 @@
+             "menu-panel max-h-[min(22rem,var(--radix-dropdown-menu-content-available-height))] max-w-80 min-w-40 overflow-y-auto",
+             className,
+           )}
++          onCloseAutoFocus={(event) => pointer.current && event.preventDefault()}
+           {...content}
+         >
+           {children}
+@@ -86,7 +107,11 @@
+   );
+ }
+ 
++export function MenuLabel({ children }: { children: ReactNode }) {
++  return <Menu.Label className="px-3 py-1 type-meta-12 text-muted">{children}</Menu.Label>;
++}
++
+ /** Reserves checkmark space so row counts stay aligned. */
+-function CheckSlot({ children }: { children: ReactNode }) {
++export function CheckSlot({ children }: { children: ReactNode }) {
+   return <span className="flex size-4 shrink-0 items-center text-muted">{children}</span>;
+ }

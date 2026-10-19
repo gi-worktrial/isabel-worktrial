@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# the app serves demo-data's public/scenarios, so both are checked out side by side; DEMO_DATA_TOKEN is a read-only
+# token for the private demo-data repo
+jobs:
+  # one job, so the journeys serve the bundle pnpm check builds rather than build it again
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: demo-product
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          path: demo-product
+          persist-credentials: false
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          repository: Grounded-Intelligence/demo-data
+          path: demo-data
+          token: ${{ secrets.DEMO_DATA_TOKEN }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
+        with:
+          package_json_file: demo-product/package.json
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: |
+            demo-product/pnpm-lock.yaml
+            demo-data/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
+        working-directory: demo-data
+      - run: pnpm build
+        working-directory: demo-data
+      - run: pnpm exec playwright install --with-deps chrome
+      - run: pnpm check
+      - run: pnpm test:browser
+        env:
+          GROUNDED_BUILT: "1"

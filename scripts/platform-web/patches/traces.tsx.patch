@@ -1,0 +1,76 @@
+--- a/traces.tsx
++++ b/traces.tsx
+@@ -3,8 +3,10 @@
+ import { z } from "zod";
+ 
+ import { cn } from "#/ui/cn";
+-import { flat, formatDuration } from "#/ui/format";
++import { flat } from "#/ui/format";
+ import { Tooltip } from "#/ui/tooltip";
++import { formatDuration } from "#src/features/traces/duration";
++import { modelName } from "#src/features/traces/model-role";
+ 
+ const NANOS_PER_SECOND = 1e9;
+ 
+@@ -107,7 +109,7 @@
+   return { offset, total };
+ }
+ 
+-const BLOCKS = { user: "bg-divider", model: "bg-link-ink/40", tool: "bg-divider-strong" };
++const BLOCKS = { user: "bg-divider", model: "bg-divider-strong", tool: "bg-divider-strong" };
+ 
+ /** A trace's user message, then its model and tool calls in start order. */
+ function blocks(spans: readonly Span[]) {
+@@ -130,7 +132,7 @@
+ }: {
+   traces: readonly Span[][];
+   failed: ReadonlySet<string>;
+-  selected?: string;
++  selected?: string | undefined;
+   onPick(span: Span): void;
+ }) {
+   return (
+@@ -139,13 +141,16 @@
+         <div
+           key={index}
+           style={{ flexGrow: Math.max(spanTiming(spans).total, 1) }}
+-          className="flex min-w-fit basis-0 gap-px"
++          className="flex min-w-0 basis-0 gap-px overflow-hidden"
+         >
+           {blocks(spans).map(({ span, kind }) => {
+-            const failing =
+-              failed.has(span.span_id) ||
+-              (kind === "tool" ? toolResult(span).failed : spanError(span) !== undefined);
+-            const name = kind === "user" ? "User message" : spanLabel(span);
++            const failing = failed.has(span.span_id);
++            const name =
++              kind === "user"
++                ? "User message"
++                : kind === "model"
++                  ? modelName(span, spans)
++                  : spanLabel(span);
+             const label = `${traces.length > 1 ? `Turn ${index + 1}: ` : ""}${name}${kind === "user" ? "" : `, ${formatDuration(span.duration_ns)}`}${failing ? ", failed" : ""}`;
+             return (
+               <Tooltip key={span.span_id} label={label}>
+@@ -158,7 +163,11 @@
+                   style={{ flexGrow: kind === "user" ? 0 : span.duration_ns }}
+                   className={cn(
+                     "basis-0 rounded-xs hover:brightness-90 focus-visible:outline-2 focus-visible:outline-ring aria-current:outline-2 aria-current:outline-offset-1 aria-current:outline-ring",
+-                    kind === "user" ? "min-w-1.5" : "min-w-px",
++                    kind === "user"
++                      ? "min-w-1.5"
++                      : failing || span.span_id === selected
++                        ? "min-w-1"
++                        : "min-w-0",
+                     failing ? "bg-danger" : BLOCKS[kind],
+                   )}
+                 />
+@@ -190,7 +199,7 @@
+         }}
+         className={cn(
+           "absolute inset-y-0 min-w-0.5 rounded-xs",
+-          failed ? "bg-danger" : "bg-accent",
++          failed ? "bg-danger" : "bg-ring",
+         )}
+       />
+     </span>

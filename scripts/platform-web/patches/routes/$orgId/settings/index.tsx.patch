@@ -1,0 +1,94 @@
+--- a/routes/$orgId/settings/index.tsx
++++ b/routes/$orgId/settings/index.tsx
+@@ -1,15 +1,20 @@
+ import { Link, createFileRoute } from "@tanstack/react-router";
+ 
++import { buttonVariants } from "#/ui/button";
++import { cn } from "#/ui/cn";
+ import { Field, FieldGroup } from "#/ui/field";
+ import { SegmentedControl } from "#/ui/segmented-control";
+ import { setTheme, useTheme, type Theme } from "#/ui/theme";
+ import { crumbs } from "#/crumbs";
++import { SettingsPage } from "#src/features/settings/settings-page";
+ 
+ const themes: ReadonlyArray<{ value: Theme; label: string }> = [
+   { value: "light", label: "Light" },
+   { value: "dark", label: "Dark" },
+ ];
+ 
++const LINK = cn(buttonVariants(), "self-start");
++
+ export const Route = createFileRoute("/$orgId/settings/")({
+   loader: () => crumbs({ label: "Settings", to: "/$orgId/settings" }),
+   component: Settings,
+@@ -19,16 +24,15 @@
+   const { orgId } = Route.useParams();
+   const { access } = Route.useRouteContext();
+   const theme = useTheme();
+-  const { email } = access;
+ 
+   return (
+-    <div className="flex flex-col gap-10">
++    <SettingsPage title="Settings">
+       <FieldGroup title="Organization">
+         <Field label="Members">
+           <Link
+             to="/$orgId/settings/members"
+             params={{ orgId }}
+-            className="type-label-13 text-accent-ink hover:underline"
++            className={LINK}
+           >
+             {access.admin ? "Manage members and invitations" : "View members"}
+           </Link>
+@@ -38,7 +42,7 @@
+             <Link
+               to="/$orgId/settings/models"
+               params={{ orgId }}
+-              className="type-label-13 text-accent-ink hover:underline"
++              className={LINK}
+             >
+               Manage this organization's models and usage
+             </Link>
+@@ -49,7 +53,7 @@
+             <Link
+               to="/$orgId/settings/sandboxes"
+               params={{ orgId }}
+-              className="type-label-13 text-accent-ink hover:underline"
++              className={LINK}
+             >
+               View running sandboxes against this organization's limit
+             </Link>
+@@ -60,7 +64,7 @@
+             <Link
+               to="/$orgId/settings/github"
+               params={{ orgId }}
+-              className="type-label-13 text-accent-ink hover:underline"
++              className={LINK}
+             >
+               Connect GitHub repositories
+             </Link>
+@@ -71,7 +75,7 @@
+             <Link
+               to="/$orgId/settings/deployment"
+               params={{ orgId }}
+-              className="type-label-13 text-accent-ink hover:underline"
++              className={LINK}
+             >
+               Manage shared models and usage across organizations
+             </Link>
+@@ -89,14 +93,6 @@
+           />
+         </Field>
+       </FieldGroup>
+-      <FieldGroup title="Account">
+-        <Field label="Signed in as">
+-          <span className="type-label-13">{email}</span>
+-          <a href="/api/auth/sign-out" className="type-label-13 text-accent-ink hover:underline">
+-            Sign out
+-          </a>
+-        </Field>
+-      </FieldGroup>
+-    </div>
++    </SettingsPage>
+   );
+ }

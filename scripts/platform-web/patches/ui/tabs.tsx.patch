@@ -1,0 +1,22 @@
+--- a/ui/tabs.tsx
++++ b/ui/tabs.tsx
+@@ -4,7 +4,7 @@
+ import { cn } from "#/ui/cn";
+ 
+ const TAB =
+-  "relative -mb-px flex h-9 min-w-0 items-center gap-1 rounded-t-xs px-2 type-label-13 font-medium text-muted after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 hover:bg-fill hover:text-ink aria-[current=page]:text-ink aria-[current=page]:after:bg-ink aria-[current=true]:text-ink aria-[current=true]:after:bg-ink";
++  "flex h-8 min-w-0 items-center gap-1 rounded-xs px-3 type-label-13 font-medium text-muted hover:bg-fill hover:text-ink aria-[current=page]:bg-fill aria-[current=page]:text-ink aria-[current=true]:bg-fill aria-[current=true]:text-ink";
+ 
+ export function Tabs({
+   label,
+@@ -16,8 +16,8 @@
+   children: ReactNode;
+ }) {
+   return (
+-    <nav aria-label={label} className={cn("flex border-b border-divider", className)}>
+-      <div className="-ml-2 flex min-w-0 gap-1">{children}</div>
++    <nav aria-label={label} className={cn("flex border-b border-divider pb-2", className)}>
++      <div className="flex min-w-0 flex-1 gap-1">{children}</div>
+     </nav>
+   );
+ }

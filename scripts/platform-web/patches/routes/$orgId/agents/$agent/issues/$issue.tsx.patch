@@ -1,0 +1,265 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue.tsx
+@@ -1,12 +1,7 @@
+-import { useSuspenseQuery } from "@tanstack/react-query";
++import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+ import { type IssueParams, candidatesQuery, issueEvalsQuery, issueQuery } from "#/queries";
+-import {
+-  canApprove,
+-  canShip,
+-  getIssueActions,
+-  type Issue,
+-} from "@grounded-intelligence/grounded-sdk";
+-import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
++import { canShip, getIssueActions, type Issue } from "@grounded-intelligence/grounded-sdk";
++import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
+ import { Undo2 } from "lucide-react";
+ import { useState } from "react";
+ 
+@@ -18,6 +13,7 @@
+   SEVERITY_WORDS,
+   STATE_WORDS,
+   SeverityMark,
++  StateMark,
+   StatusPill,
+   useIssue,
+   useIssueChange,
+@@ -31,6 +27,7 @@
+ import { Timestamp } from "#/ui/timestamp";
+ import { Tooltip } from "#/ui/tooltip";
+ import { crumbs } from "#/crumbs";
++import { TabActionsEnd } from "#src/ui/tab-actions";
+ 
+ const ISSUE_PROMPTS = [
+   "Summarize this Issue",
+@@ -58,6 +55,10 @@
+   const { orgId, agent } = Route.useParams();
+   const issue = useIssue();
+   const params = { orgId, agent, issue: issue.id };
++  const approved = useQuery({
++    ...candidatesQuery(params),
++    enabled: issue.approved !== undefined,
++  }).data?.find(({ id }) => id === issue.approved?.candidate);
+   usePebblePage(
+     `The engineer is viewing Issue ${issue.id}, "${issue.title}" (${issue.state}). Its file is issues/${issue.id}/issue.mdx, at commit ${issue.head_oid} on main.`,
+     ISSUE_PROMPTS,
+@@ -78,15 +79,19 @@
+           <IssueActions issue={issue} />
+         </div>
+         <Facts label="Issue details">
+-          <Fact label="State">{STATE_WORDS[issue.state]}</Fact>
++          <Fact label="State">
++            <StateMark state={issue.state} className="size-3.5" />
++            {STATE_WORDS[issue.state]}
++          </Fact>
+           {issue.approved !== undefined && (
+             <Fact label="Approved">
+               <Link
+                 to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+                 params={{ ...params, candidate: issue.approved.candidate }}
+-                className="rounded-xs text-accent-ink hover:underline"
++                title={issue.approved.candidate}
++                className="min-w-0 truncate rounded-xs text-accent-ink hover:underline"
+               >
+-                {issue.approved.candidate}
++                {approved?.title ?? issue.approved.candidate}
+               </Link>
+               {issue.approved.outdated && <Tag tone="warning">{APPROVAL_OUTDATED}</Tag>}
+             </Fact>
+@@ -96,21 +101,19 @@
+               <Tag title={issue.fix}>{issue.fix.slice(0, 7)}</Tag>
+             </Fact>
+           )}
+-          {issue.dismissal_reason !== undefined && (
+-            <Fact label="Dismissed because">{issue.dismissal_reason}</Fact>
+-          )}
+           <Fact label="Severity">
+             <SeverityMark severity={issue.severity} />
+             {SEVERITY_WORDS[issue.severity]}
+           </Fact>
+-          <Fact label="Traces">{issue.trace_count}</Fact>
+           <Fact label="First seen">
+             <Timestamp at={issue.first_seen_at} />
+           </Fact>
+-          <Fact label="Last seen">
+-            <Timestamp at={issue.last_seen_at} />
+-          </Fact>
+         </Facts>
++        {issue.dismissal_reason !== undefined && (
++          <p className="type-meta-12 text-muted">
++            <span className="font-medium">Dismissed because</span> {issue.dismissal_reason}
++          </p>
++        )}
+       </header>
+       <Tabs label="Issue sections">
+         <Tab
+@@ -120,20 +123,21 @@
+         >
+           Overview
+         </Tab>
+-        <Tab to="/$orgId/agents/$agent/issues/$issue/traces" params={params}>
+-          Traces
+-        </Tab>
+         {issue.state === "reviewing" ? (
+           <>
+-            <EvalsTab params={params} />
+             <CandidatesTab params={params} />
++            <EvalsTab params={params} />
+           </>
+         ) : (
+           issue.state !== "detected" && <ClosedTabs params={params} />
+         )}
++        <Tab to="/$orgId/agents/$agent/issues/$issue/traces" params={params}>
++          Traces
++        </Tab>
+         <Tab to="/$orgId/agents/$agent/issues/$issue/activity" params={params}>
+           Activity
+         </Tab>
++        <TabActionsEnd />
+       </Tabs>
+       <Outlet />
+     </article>
+@@ -163,8 +167,8 @@
+ 
+   return (
+     <>
+-      {evals !== null && evals.length > 0 && <EvalsTab params={params} />}
+       {candidates.length > 0 && <CandidatesTab params={params} />}
++      {evals !== null && evals.length > 0 && <EvalsTab params={params} />}
+     </>
+   );
+ }
+@@ -172,9 +176,18 @@
+ function IssueActions({ issue }: { issue: Issue }) {
+   const { pending, error, change: run } = useIssueChange();
+   const actions = getIssueActions(issue.state);
++  const matchRoute = useMatchRoute();
++  const onCandidates =
++    matchRoute({ to: "/$orgId/agents/$agent/issues/$issue/candidates", fuzzy: true }) !== false;
++  // the undo steps back one phase: Remove approval in Deploy, Move back to Detected before it
++  const unapprove = issue.state === "reviewing" && issue.approved !== undefined;
+ 
+   return (
+-    <div className="flex flex-wrap items-center justify-end gap-2">
++    <div
++      role="group"
++      aria-label="Issue actions"
++      className="flex flex-wrap items-center justify-end gap-2"
++    >
+       {error !== undefined && (
+         <p role="alert" className="w-full text-right type-label-13 text-danger">
+           {error}
+@@ -182,9 +195,10 @@
+       )}
+       {actions.includes("reset") && (
+         <IconButton
+-          label={ACTION_WORDS.reset}
++          label={unapprove ? "Remove approval" : ACTION_WORDS.reset}
++          variant="secondary"
+           disabled={pending}
+-          onClick={() => run({ action: "reset" })}
++          onClick={() => run({ action: unapprove ? "unapprove" : "reset" })}
+         >
+           <Undo2 aria-hidden="true" className="size-4" />
+         </IconButton>
+@@ -192,7 +206,6 @@
+       {actions.includes("dismiss") && (
+         <DismissDialog
+           id={issue.id}
+-          quiet={issue.state !== "detected"}
+           disabled={pending}
+           onDismiss={(reason) => run({ action: "dismiss", reason })}
+         />
+@@ -204,17 +217,11 @@
+             {ACTION_WORDS[action]}
+           </Button>
+         ))}
+-      {issue.state === "reviewing" && issue.approved === undefined && (
+-        <ReviewAction
+-          disabled={pending}
+-          onApprove={(candidate) => run({ action: "approve", candidate })}
+-        />
++      {issue.state === "reviewing" && issue.approved === undefined && !onCandidates && (
++        <ReviewAction />
+       )}
+       {issue.approved !== undefined && (
+         <>
+-          <Button variant="outline" disabled={pending} onClick={() => run({ action: "unapprove" })}>
+-            Remove approval
+-          </Button>
+           {issue.state === "reviewing" &&
+             (canShip(issue) ? (
+               <ShipDialog
+@@ -237,63 +244,18 @@
+   );
+ }
+ 
+-// Approve when the recommended or only Candidate is ready, otherwise Debug; Review Candidates when there are several.
+-function ReviewAction({
+-  disabled,
+-  onApprove,
+-}: {
+-  disabled: boolean;
+-  onApprove(candidate: string): void;
+-}) {
++// Review Candidates opens the Candidates tab, where each Candidate has its own Approve and Debug.
++function ReviewAction() {
+   const params = Route.useParams();
+-  const issue = useIssue();
+-  const candidates = useSuspenseQuery(candidatesQuery(params)).data;
+-  const evals = useSuspenseQuery(issueEvalsQuery(params)).data;
+-  const lead =
+-    candidates.length === 1
+-      ? candidates[0]
+-      : candidates.find(({ recommended }) => recommended !== undefined);
+-  const ready = lead !== undefined && canApprove(issue.state, lead.results);
+ 
+   return (
+-    <>
+-      {candidates.length > 1 && (
+-        <Link
+-          to="/$orgId/agents/$agent/issues/$issue/candidates"
+-          params={params}
+-          className={buttonVariants({ variant: "outline" })}
+-        >
+-          Review Candidates
+-        </Link>
+-      )}
+-      {ready ? (
+-        <Tooltip label={`Approve ${lead.title}`}>
+-          <Button variant="primary" disabled={disabled} onClick={() => onApprove(lead.id)}>
+-            Approve
+-          </Button>
+-        </Tooltip>
+-      ) : (
+-        candidates.length < 2 && (
+-          <Link
+-            {...(lead === undefined
+-              ? {
+-                  to:
+-                    evals === null
+-                      ? "/$orgId/agents/$agent/issues/$issue/evals"
+-                      : "/$orgId/agents/$agent/issues/$issue/debug/evals",
+-                  params,
+-                }
+-              : {
+-                  to: "/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate",
+-                  params: { ...params, candidate: lead.id },
+-                })}
+-            className={buttonVariants({ variant: "outline" })}
+-          >
+-            Debug
+-          </Link>
+-        )
+-      )}
+-    </>
++    <Link
++      to="/$orgId/agents/$agent/issues/$issue/candidates"
++      params={params}
++      className={buttonVariants({ variant: "primary" })}
++    >
++      Review Candidates
++    </Link>
+   );
+ }
+ 

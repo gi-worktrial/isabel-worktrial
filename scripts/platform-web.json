@@ -1,0 +1,627 @@
+{
+  "commit": "8d0d6ddc8782b0ad1f72711cc7f03ac036be5191",
+  "path": "web/src/",
+  "root": "src/platform/",
+  "budget": 40,
+  "ours": ["routes/$orgId/agents/$agent/issues/$issue/candidates/compare.tsx", "titles.ts"],
+  "generated": ["routeTree.gen.ts"],
+  "files": {
+    "access.ts": {
+      "kind": "skip",
+      "sha256": "39699e40fa4a50dc0c77695f852a2c490634b3581962e1d879331c274d707ff5"
+    },
+    "assets/github-mark.svg": {
+      "kind": "copy",
+      "sha256": "0b28b57d6003bde6ff4e6bdc3cb13a62f111400fd69869dad6c10511272ab0c5"
+    },
+    "assets/grounded-mark-04-black.png": {
+      "kind": "copy",
+      "sha256": "7c9bd46f733cd255aa89f1e4060e0ff8af0bede66464633094982c00ccd78a3f"
+    },
+    "assets/pebble.svg": {
+      "kind": "copy",
+      "sha256": "b39983b48e5a0bb181c6e47520e1509f895c3383dcbdeff78b998900ff0794a9"
+    },
+    "automations.tsx": {
+      "kind": "patch",
+      "sha256": "7aba383fb34aa8404e4076b65188095e1de64bcca5ecd573516f384ab9705a05",
+      "reason": "the runs table is named Runs, which Walkthroughs point at, low-priority columns hide in a narrow table (Krish: tables clipped at 1024 with Pebble open), and Started reads as the day or time alone (Krish: shorter Automations table) (platform PR 6); jobTitle moved to titles.ts and re-exported, so the loaders naming crumbs leave Automations lazy (first load, For Connor); counts and times left-aligned, times in a TimeTag and durations in neutral Tags, as on Traces (Krish: tokens and time aligned with a background)"
+    },
+    "candidate-results.tsx": {
+      "kind": "copy",
+      "sha256": "5cfaf17774e74e5244327fb0c8855ba46f9934c9a5d36e8010412373f5eab483"
+    },
+    "canvas.tsx": {
+      "kind": "skip",
+      "sha256": "db376311e801fe13ecfdde77dbd716e95f447c43b310f7e82ffb154790903979",
+      "reason": "Canvas is out of scope for the demo (Krish: remove canvas for now)"
+    },
+    "command-palette.tsx": {
+      "kind": "patch",
+      "sha256": "98fdba43b58f3327ce018cb8342b6ffc42ee1634cbe35f13a856d05046e67760",
+      "reason": "groups our modules add after General: the demo's Walkthroughs and Reset demo, and Debug's files once the viewer types, which Walkthroughs open files by (platform PR 2)"
+    },
+    "cron.ts": {
+      "kind": "patch",
+      "sha256": "fbaaf673fdf3cf5b6b4b66a45d3148e5fd5813d2a6c7939149aa6f14f6cd2e69",
+      "reason": "schedules read on the one 24-hour clock, as the short schedule tag does (Krish's one time format) (platform PR 6)"
+    },
+    "crumbs.ts": {
+      "kind": "copy",
+      "sha256": "0b5d419b5a186eaed87dfe14621d4886724fff779f7c49074561b3b0d0ee942d"
+    },
+    "db/client.ts": {
+      "kind": "skip",
+      "sha256": "bf08542cb7ac2f89294769ca298a99d5793188f46dd2aa159f242d5ade97f4f9"
+    },
+    "db/mirror.ts": {
+      "kind": "skip",
+      "sha256": "0134817c05b3190d5dcc96fb76a1af7926645da7f507da8f26206cb072690df3"
+    },
+    "db/organizations.ts": {
+      "kind": "shim",
+      "sha256": "8f82454f0a9fb91f52f4d33954bc5909185b3ed5ab771c3b998c17cdbee90413",
+      "reason": "the services list the viewer's Orgs; the last one is read from the cookie platform's shell writes"
+    },
+    "db/schema.ts": {
+      "kind": "skip",
+      "sha256": "a9a485c465230a1b576feea0a23253585268aa3f4ad8f6e1235eb005961fd6a8"
+    },
+    "db/services.ts": {
+      "kind": "skip",
+      "sha256": "3737d0a883fd8d418f432a7ca5a822c4bc2670a0e9715565631285102b32f580"
+    },
+    "debug-search.ts": {
+      "kind": "patch",
+      "sha256": "72da139952b872714a7692b7d7f80e3d7bd6357a52fbd28ffc8a34a895f851d6",
+      "reason": "Debug's Grades view, and the file Debug Evals opens on (an Issue's Eval not yet on main); no Canvas view (Krish: remove canvas for now)"
+    },
+    "debug-views.tsx": {
+      "kind": "patch",
+      "sha256": "7d333bca6597615004414fae48bdc2bb225a2b57fc69775fb64feb9c9a169e2c",
+      "reason": "a Grades tab after Files in place of Canvas, so no Canvas renders (keep list, demo-only) (Krish: remove canvas for now); the tab row ends in TabActionsEnd, so the Traces tab's Add Traces sits at its right end as on the Issue page (keep list: page shape)"
+    },
+    "document-editor.tsx": {
+      "kind": "skip",
+      "sha256": "500aa7338006373487770a589a59c51c30ba73f17caa5bfb446ee2d6d313cf96",
+      "reason": "Canvas is out of scope for the demo (Krish: remove canvas for now)"
+    },
+    "evals.tsx": {
+      "kind": "patch",
+      "sha256": "7a34b5528d40322bb4bbca094157176b4387f7251d9aa4d8271c03e8b8ff6f7c",
+      "reason": "Issues as Chips, Not run as muted words (NotRun in platform's ResultTag), and the table named Evals for Walkthroughs (keep list), and low-priority columns hide in a narrow table (Krish: tables clipped at 1024 with Pebble open), and an Issue's Eval not yet on main opens in its Debug Evals, since the Eval page reads main (platform bug, For Connor); the Criteria card's rows separate by spacing, without rules (keep list: no lines within lines); Criteria hides in a narrow table too (Krish: demo-ready polish); counts and times left-aligned, Last passed in a TimeTag, as on Traces (Krish: tokens and time aligned with a background)",
+      "budget": 41
+    },
+    "file-diffs.tsx": {
+      "kind": "patch",
+      "sha256": "fa47aa567b76acde00dbde4736f3599104c8db35cb3fdc1b13c6ebb410a32338",
+      "reason": "a Fix reads as one list of files, the first open and the rest folded, with no card per file (no lines within lines), a skeleton while the highlighter loads (Later), and empty words Debug Evals can set"
+    },
+    "file-editor.tsx": {
+      "kind": "fork",
+      "sha256": "269b8547e2401872e0c083051d35bfc1a8e4df9d4c677c6a7ba46edc32155127",
+      "reason": "ours: Edit and Diff with unsaved edits marked, Revert per file, Save as a new Candidate or onto this one, and a file rail that folds when narrow, with platform's \u2318S and tabs, and its files listed in the palette (platform PR 2) (a patch would pass 150 lines)"
+    },
+    "github.ts": {
+      "kind": "patch",
+      "sha256": "3f0a421650586ca04efe75a4bca453e0dbed90ce751a534c592929c8287ea337",
+      "reason": "pins are written through ProductClient, as job-outputs.ts does (the demo needs it to run) (main's GitHub repositories); encodeText lives here, its only caller, so the GitHub callback route leaves Canvas and Markdown lazy (first load, For Connor)"
+    },
+    "issue-traces.tsx": {
+      "kind": "patch",
+      "sha256": "7db1dd2f47e1d7f73d12b6bbdc8af4b299f2adc043d898bd6cc78206f6276bbc",
+      "reason": "Add Traces as a small second action at the tab row's right end (platform PR 4), the table named Traces, a skeleton while the search loads, and other Issues as Chips in the search (keep list) (platform PR 6), the Time column hides in a narrow table (Krish: tables clipped at 1024 with Pebble open), and the Traces newest first, so a Trace added by hand sits by its time (Krish: data fits the screens); counts and times left-aligned, times in a TimeTag, as on Traces (Krish: tokens and time aligned with a background); Remove from Issue as an icon button on a row's hover and Add Traces with a plus, the add dialog's rows parted by space (Krish: Traces actions)",
+      "budget": 50
+    },
+    "issue-view.tsx": {
+      "kind": "patch",
+      "sha256": "acd87c5992ef07395e39983b99d79e432a05dce31356fbbef5cb0c97e1d30575",
+      "reason": "Debugging kept as the current step, the bars easing as they advance, and ProgressMark and StateMark in the stepper's glyphs, StateMark exported for the lanes, the State fact and the list (Feebs, Oct 16, suggest for platform PR 4); each step a StepLink to where it's decided with its meaning in the tooltip, a small Ask Pebble mark beside the current step and no caption line, and Phase exported for both (Krish: compact stepper, cleaner Issue page)",
+      "budget": 185
+    },
+    "job-outputs.ts": {
+      "kind": "patch",
+      "sha256": "1aa483b7b0a4663f54cc5b51b92b5a8b8fd54622c18277a315e85c5f9c2483fa",
+      "reason": "typed by our ProductClient, which the demo's in-memory resources satisfy and GroundedClient's private fields don't"
+    },
+    "last-visited-agent.ts": {
+      "kind": "copy",
+      "sha256": "7aa6816b210f2034671fbbf818f9739dfdff7e5fe353456bd92d1eb6f7c4e43b"
+    },
+    "lib/pebble/view.ts": {
+      "kind": "copy",
+      "sha256": "e49a05d1dce593d85a7b1fd6f8a5ef1fc4e02e8134bbc55881cf82273b3fd49d"
+    },
+    "members.ts": {
+      "kind": "shim",
+      "sha256": "8133e850b6be45dd692011d6c9551cfa7cf7025d163e628b994a91da09144e2a",
+      "reason": "the control plane's server functions answered by the services: the viewer is a tenant admin, members come from the Agent repos' commits, and membership changes are refused with their reason"
+    },
+    "models.tsx": {
+      "kind": "patch",
+      "sha256": "94124a236401e448d4baeadc50a2ac6c24b5bb7889002572120c596a18c4985c",
+      "reason": "usage numbers compact in tabular figures, the token columns hidden in a narrow table, and no line when a model's reasoning is unknown (Krish: demo-ready polish); counts left-aligned, as on Traces (Krish: tokens and time aligned with a background)"
+    },
+    "novnc.d.ts": {
+      "kind": "skip",
+      "sha256": "a4a64e4bab05c50d18139a65ff55bb451a83ca517fb3604cce22a85cf5be9866",
+      "reason": "types for @novnc/novnc, which only platform's desktop.tsx imports and our shim doesn't"
+    },
+    "pebble/chat-row.tsx": {
+      "kind": "copy",
+      "sha256": "327e2243f4f53c15a51f7f100759b61b9b362a3982152eb0f60b2a41cd0afc76"
+    },
+    "pebble/chat-welcome.tsx": {
+      "kind": "copy",
+      "sha256": "f5e29f413fa2500d6c418a8a2370fd0682b8d7e6b014f61062a00f674b9fc3cb"
+    },
+    "pebble/chat.tsx": {
+      "kind": "fork",
+      "sha256": "e9f70919a972b91fabe3f10debfa2372f2a45fa33de5d50c3c4d0bae7786fdf3",
+      "reason": "Danny's click to expand and pane drag, the prompt-first new chat, mentions and Read notes per question, clear loading and error states (patch would pass 150 lines); took platform's thread picker and answering chat (platform PR 5) and main's desktop pane"
+    },
+    "pebble/composer.tsx": {
+      "kind": "fork",
+      "sha256": "8b874e6177a07e3308d88baddbf595f71f0dc96ad8b2c7b6c001198fe25237cc",
+      "reason": "platform's composer with @mentions (overlay, picker, and an @ control in the model picker's row) and the draft shared per thread; the model picker hides while the Org has no models, as in the demo (patch would pass 150 lines)"
+    },
+    "pebble/conversation.tsx": {
+      "kind": "fork",
+      "sha256": "8f83dbda4a5dfbf05259047c80adc418716433b9e233697e86334827363edc33",
+      "reason": "platform's conversation as it is, plus the records each question read as Read chips, an answer's action chips and the ones run, @mentions in a question, and the names Walkthroughs read (patch would pass 150 lines)"
+    },
+    "pebble/desktop.tsx": {
+      "kind": "shim",
+      "sha256": "e20b70e890a82be4369a0abd82dc3ef992730c46a591992028ad6e64df1f7699",
+      "reason": "the demo's sandboxes have no screen to stream over noVNC, so the desktop pane says so and keeps platform's Start sandbox (main's desktop pane)"
+    },
+    "pebble/page.ts": {
+      "kind": "copy",
+      "sha256": "76b048b3d855f76965428f5b949eeaae78d25c8cf9f1f280e6a569da2a5e9718"
+    },
+    "pebble/pane.tsx": {
+      "kind": "copy",
+      "sha256": "a710624a37fa27f10f1d53a3b7785d9dc5cbd70fa4f68f139412f114b95bda08"
+    },
+    "pebble/session.ts": {
+      "kind": "patch",
+      "sha256": "bd0ef7462e1c25033baeff39349f77efbabfc6626af2d214ad44ec6e9ffb5f78",
+      "reason": "a question's own context and Read note, and markDone, written as Grounded's entries (Krish's Read and action chips)"
+    },
+    "pebble/thread-picker.tsx": {
+      "kind": "copy",
+      "sha256": "6c63d96acb5876edb87b84b8dda6699987a0304c3f0c27d566a0d7e495034e57"
+    },
+    "pebble/threads.ts": {
+      "kind": "patch",
+      "sha256": "d25114205bd9500c6f10e3df0484088c861920cbaf38aa017a951e8817bbb34e",
+      "reason": "chats start without a model, since the demo has none"
+    },
+    "queries.ts": {
+      "kind": "patch",
+      "sha256": "091f3d16ede2d075cab4d937669b54cc0837ea8d3a400266fb8fac87c8278ac0",
+      "reason": "exports agentKey, issueKey and agentRepo, which our reads (queries/extra.ts) and Pebble's rereads key on, and branchHead takes only the git it reads, since the demo's client is platform's resources rather than its class"
+    },
+    "router.tsx": {
+      "kind": "patch",
+      "sha256": "fdbd9cb066f34fdbf7a9549958f61fad7c7d9da2365cf95e6166fe0374d60fcd",
+      "reason": "an SPA's first page has no previous location, so it starts no view transition"
+    },
+    "routes/__root.tsx": {
+      "kind": "shim",
+      "sha256": "994183e72c0c593bad6d8c3cb6a17675cfd7c264ec4c49e6276ae9b8d9ab25f0",
+      "reason": "the SPA's root: index.html is the document and sets the theme, and an unknown path opens the first Agent"
+    },
+    "routes/$orgId.tsx": {
+      "kind": "fork",
+      "sha256": "cdb55f0adbd100916468a9ef3743eef9a5909b0a0632eedfade0726b071ccfd6",
+      "reason": "Pebble as a whole pane beside the page in place of the inset dock, on either side, made primary, with drop zones (Krish); the main view following back to the page it came from, with Open in side panel and Close, Ask Pebble and \u2318J closing it, and its questions naming that page (Danny); Pebble's loading frame, record states, and the data plane's frame for Walkthroughs (a patch would pass 150 lines); took main's rail (#264), platform PR 2's palette, shortcuts and keys, PR 5's answering chat, PR 6's loader crumbs and main's desktop pane with its toggle; \u2318J in the main view still closes it rather than toggling the desktop pane (Danny); breadcrumbs as pills with chevrons between, the current page filled (Krish: nicer breadcrumbs)"
+    },
+    "routes/$orgId/agents/$agent/automations.tsx": {
+      "kind": "copy",
+      "sha256": "f6abc28f15b453f4a23300fb14e5f97dc50a6cc397d54f539cc1c65c89a4b21c"
+    },
+    "routes/$orgId/agents/$agent/automations/index.tsx": {
+      "kind": "patch",
+      "sha256": "1f63e98e21bbc28a69a7a1affb05a7b7baa1a96ee07e8fc1264f9cca4d1b7546",
+      "reason": "the Automations table is named, which Walkthroughs point at, and a row reads only the Automation's name, with no job id (product words only) (platform PR 6), and Last run as the day or time alone (Krish: shorter Automations table) (platform PR 6), and low-priority columns hide in a narrow table (Krish: tables clipped at 1024 with Pebble open); counts and times left-aligned, Last run in a TimeTag, as on Traces (Krish: tokens and time aligned with a background)"
+    },
+    "routes/$orgId/agents/$agent/automations/running.tsx": {
+      "kind": "copy",
+      "sha256": "e731baf194b6717a23f2c8270b5da7077b36d28e3e2de45d9d8ee73f21dd8c7a"
+    },
+    "routes/$orgId/agents/$agent/automations/runs.tsx": {
+      "kind": "copy",
+      "sha256": "0fff2f94e3a52601fddf505c7fc6e80529d6a1a68811014a786164e16a693bb4"
+    },
+    "routes/$orgId/agents/$agent/evals/$eval.tsx": {
+      "kind": "copy",
+      "sha256": "635682908e94a5faf2feec8ef858c622f06fbd5d06e4b6f299b2b3f7335eead1"
+    },
+    "routes/$orgId/agents/$agent/evals/$eval/index.tsx": {
+      "kind": "copy",
+      "sha256": "b53a5b3cb0bc877a1c153d2ea8818a2d0befdfa5f5f714743a05565702c43041"
+    },
+    "routes/$orgId/agents/$agent/evals/$eval/runs.tsx": {
+      "kind": "patch",
+      "sha256": "a59759e255e763c8f0e74b4b21919c87dad124f3fa6c37e26ee445544b57fd53",
+      "reason": "trial Compare above an Eval's runs (keep list: trial Compare)"
+    },
+    "routes/$orgId/agents/$agent/evals/index.tsx": {
+      "kind": "copy",
+      "sha256": "b618fa8118ef6262ab64a5098498e429a44af6a35a446db5ecec5ed7db479f44"
+    },
+    "routes/$orgId/agents/$agent/index.tsx": {
+      "kind": "copy",
+      "sha256": "75637ebebc189ac8f7192eff84a428268a3240b34b0d00cff6e53c0bee4bfae3"
+    },
+    "routes/$orgId/agents/$agent/issues/$issue_.debug.candidates.$candidate.tsx": {
+      "kind": "patch",
+      "sha256": "75ab4ea3f128c7f26dd38d92ff900d3e1a65370e6a8b0cc63b5e061b70d63981",
+      "reason": "the branch switcher in place of the branch tag, the Eval results group the Debug Walkthrough waits on, its counts opening the proofs, Approve's dialog, Edit and Diff with Save as a new Candidate or onto this one, and the Grades tab (keep list), with the Candidates the switcher lists loaded (platform PR 4); no Canvas read (Krish: remove canvas for now); the Debugging band with the Issue and Back to Issue in place of the stepper, the title without Debugging, one status tag and the Eval counts opening the proofs (Krish: validate vs review)"
+    },
+    "routes/$orgId/agents/$agent/issues/$issue_.debug.evals.tsx": {
+      "kind": "patch",
+      "sha256": "a3edd4a24a87c3c2542380ed019256e09a61068298bbefda0ca8883ef951e131",
+      "reason": "the branch switcher in place of the branch tag, Edit and Diff, the file a link opened shows first (an Issue's Eval not yet on main), and the Grades tab (keep list), with the Candidates the switcher lists loaded (platform PR 4); no Canvas read (Krish: remove canvas for now); the Debugging band with the Issue and Back to Issue in place of the stepper, the title Evals, and Eval run as a quiet button (Krish: validate vs review)"
+    },
+    "routes/$orgId/agents/$agent/issues/$issue.tsx": {
+      "kind": "patch",
+      "sha256": "ccb6cfc244990efcdf8cf0dba9b4e36fef432d93e12cecc6dd57559b79bd9b46",
+      "reason": "platform PR 4's Issue page with the actions as one group, and the tab row's right end holding the open tab's actions (keep list) (platform PR 4); the State fact's mark, the Approved fact naming its Candidate by title (Feebs, Oct 16, suggest for platform PR 4); the dismissal reason as a muted line under the facts, one value per fact (Krish: demo-ready polish); one primary per step, so Review's Approve and Debug give way to Review Candidates (hidden on the Candidates tab and a Candidate, whose own Approve and Debug are the choice there), and the undo icon steps back one phase, Remove approval in Deploy (Krish: cleaner Issue page; the budget covers platform's ReviewAction, replaced whole); no Traces or Last seen facts, which the Overview's Traces card shows, so the facts fit one line (Krish: clean up clutter); the tabs in the work's order (Overview, Candidates, Evals, Traces, Activity), and Dismiss and the undo icon on a grey fill, the undo through IconButton's secondary variant (Krish: validate vs review)",
+      "budget": 190
+    },
+    "routes/$orgId/agents/$agent/issues/$issue/activity.tsx": {
+      "kind": "patch",
+      "sha256": "58b6d6c807e9eed8cf5ec25c2a0b3febb36da592f19c65624b118b66bd002a7d",
+      "reason": "the log is ours (features/issue/activity-log): a day heading with one rule over a line per event with its time, mark, actor and verb, and the state change as from and to tags (Krish: Activity log) (Krish: validate vs review); the budget covers platform's body, replaced whole",
+      "budget": 60
+    },
+    "routes/$orgId/agents/$agent/issues/$issue/candidates/$candidate.tsx": {
+      "kind": "patch",
+      "sha256": "c4fc62b2b71bab1dbd30076755bd5548392abba21e0f30d975c2b898e808ffc4",
+      "reason": "the Candidate's branch, its Eval counts opening the proofs and Approve's dialog (keep list), its actions as one group at the tab row's right end and its Eval results as one group (Walkthroughs), and the Apply prompt folded and the Fix in one card (keep list) (platform PR 4); its Approve is the primary while nothing is approved, else secondary, since the header hides its own there (keep list: one primary per view); one status tag, the Eval counts in place of the Eval run link, and Debug the primary when the Candidate needs Debug's work (Krish: Candidates tab) (Krish: validate vs review)",
+      "budget": 60
+    },
+    "routes/$orgId/agents/$agent/issues/$issue/candidates/index.tsx": {
+      "kind": "patch",
+      "sha256": "ce2bc35168b91d11addc7dea9056215fc65d14e5b466b8245bd9aeadc1af3496",
+      "reason": "Compare and New Candidate at the tab row's right end, each Candidate's branch swatch (keep list), the table named Candidates, and the Evals column hiding in a narrow table (Krish: tables clipped at 1024 with Pebble open) (platform PR 4); a long Candidate title truncates before the Status column (Krish: demo-ready polish); the Status cell is the status tag alone and the Evals cell's counts open the proofs in place of the run link, so the results show once (Krish: Candidates tab) (Krish: validate vs review)"
+    },
+    "routes/$orgId/agents/$agent/issues/$issue/evals.tsx": {
+      "kind": "patch",
+      "sha256": "c76bd347bf6b6fd049b973b7dc5bed1e35bf48646946c13df178b62e43f26022",
+      "reason": "Debug Evals at the tab row's right end, disabled with its reason while there are no Evals, and Add Evals as the empty state's one next step (keep list) (platform PR 4), and its Evals not yet on main open in Debug Evals (platform bug, For Connor)"
+    },
+    "routes/$orgId/agents/$agent/issues/$issue/index.tsx": {
+      "kind": "patch",
+      "sha256": "7db1e24bd0008fb049addd5dd18cf787a5c7b2b88b58a07c4ec4331075563a3c",
+      "reason": "the overview reads at the prose width, as the region Walkthroughs show, with the Candidates, Evals and Traces cards under it (Krish: cleaner Issue page)"
+    },
+    "routes/$orgId/agents/$agent/issues/$issue/traces.tsx": {
+      "kind": "copy",
+      "sha256": "82f2d43ba568c328c7f3c53530095155ee0664c6a9e6c19822b0845d642b5262"
+    },
+    "routes/$orgId/agents/$agent/issues/index.tsx": {
+      "kind": "patch",
+      "sha256": "1aaf7a98224cf29517fb5b230f9986b918e85da2156f60fa6d5afeead75169ff",
+      "reason": "the list as our Table (sortable, the State as its mark and word, the count opening Traces, Issue ids as Chips, columns that drop in a narrow pane) (Krish) (platform PR 6); each lane and card body from features/inbox/lanes (Lane, IssueCard), with lane marks, a card's severity before its id, one trace icon with the count, the short time, and tags and counts that wrap whole in a narrow lane (Feebs, Oct 16, suggest for platform PR 6; Krish); a plain click on a card peeks at the Issue beside the board, the peeked card ringed, while \u2318-click and middle-click open the page (Feebs, Oct 16, demo); the peek opens beside the list as beside the board (Krish: board and list both peek); lanes on tinted columns with a state-colored bar and count, cards lifting on hover (Krish: color on the board)",
+      "budget": 95
+    },
+    "routes/$orgId/agents/$agent/jobs/$job.tsx": {
+      "kind": "patch",
+      "sha256": "61e0fd38790a1cd836e9bc6dc679a8b63a279dffe268b524941cad13c09dd9c6",
+      "reason": "the title without the job id beside it (product words only) (platform PR 6); jobTitle from titles.ts, so the loader leaves Automations lazy (first load, For Connor)"
+    },
+    "routes/$orgId/agents/$agent/runs/$run.tsx": {
+      "kind": "patch",
+      "sha256": "fed0a0f007fddce93549c278cd345ddbf39ea5869a7b17c1d474ca2ba474983c",
+      "reason": "trial Compare above the run's Eval results, and what Pebble reads about the run (keep list: trial Compare, Pebble hints), and a step's log loads as a skeleton (keep list: clear states); jobTitle from titles.ts, so the loader leaves Automations lazy (first load, For Connor); counts and times left-aligned, times in a TimeTag and the duration in a neutral Tag, as on Traces (Krish: tokens and time aligned with a background)"
+    },
+    "routes/$orgId/agents/$agent/settings.tsx": {
+      "kind": "patch",
+      "sha256": "452987a38c90f853852b8918785b51e3b97263dd638b2ecdedd4face3dd3fa67",
+      "reason": "our page shape, titled like every settings page (keep list: page shape) (platform PR 6); no repositories says so (keep list: clear states); an API key's Created hides in a narrow table, so Revoke stays in view (Krish: demo-ready polish)"
+    },
+    "routes/$orgId/agents/$agent/traces/$session/$trace.tsx": {
+      "kind": "patch",
+      "sha256": "a460ea847c8675bee48e51c526f47d31eea16be4615ba777b4dcb93e6a7385c3",
+      "reason": "the turn named above the timeline and in the page path with Open in transcript, every failing annotation marked on its span with its notes, no Kind or Status facts (Krish 15), and readable durations (Krish: improve the trace viewer; suggested for PR 3); the crumbs from titles.ts and features/traces/crumbs.ts, so the loader leaves the trace view lazy (first load, For Connor); the span tree stacks over its details in a narrow pane (Krish: demo-ready polish)",
+      "budget": 45
+    },
+    "routes/$orgId/agents/$agent/traces/$session/index.tsx": {
+      "kind": "patch",
+      "sha256": "2066fe98dbe4dbab168acd72a0c529e75048cf83f8f065d720c2f904adb1a252",
+      "reason": "the Steps and Flow switch, the step a link opens at, and what Pebble reads about the Trace (keep list: Flow, Compare's step links, Pebble) (platform PR 3), facts as tags (the Session as a code Chip, failing criteria beside the Outcome tag without the outcome repeated, Duration as a tag, Issues as Chips) (Krish, Oct 15 trace feedback) (platform PR 6); the failure summary with Go to step, each step's place for the Grades and notes, a crumb that fits, and readable durations (Krish: improve the trace viewer; suggested for PR 3); the crumb from titles.ts and features/traces/crumbs.ts, so the loader leaves the trace view lazy (first load, For Connor); a shorter Session chip and Time in a TimeTag beside Duration and Usage, so the facts fit one line (Krish: clean up clutter)",
+      "budget": 76
+    },
+    "routes/$orgId/agents/$agent/traces/index.tsx": {
+      "kind": "patch",
+      "sha256": "f551cb4129aafd6180b885840b895a8fd9b1af162e1914ea06c54a976c931809",
+      "reason": "the Annotations card's filters move into the header row as an Outcome switch and a Tag menu, which Walkthroughs point at (Krish 16, Feebs: one header row; Krish: improve the trace viewer; suggested for PR 3 or 6), and no production Annotations counts on Eval runs, since platform's counts take no trial filter (Krish: data fits the screens) (platform PR 6); the filters wrap under the title in a narrow pane (Krish: demo-ready polish)",
+      "budget": 62
+    },
+    "routes/$orgId/chat/$thread.tsx": {
+      "kind": "patch",
+      "sha256": "fdeca64fc29139c283fce645b98cc0d75f6e59f3b5651bffe4787f87d36b4fc3",
+      "reason": "the main view's chat reads in the reading column, as Markdown prose does (Krish)"
+    },
+    "routes/$orgId/chat/index.tsx": {
+      "kind": "patch",
+      "sha256": "eb0d814a9fe83670170710f2e1568ea3ad5aeaf3307617b31de2eb4fa088141b",
+      "reason": "with no chats the main view is the new chat, so the side panel's prompt and draft move into it (Danny's one chat in both views), rather than No chats yet",
+      "budget": 50
+    },
+    "routes/$orgId/index.tsx": {
+      "kind": "copy",
+      "sha256": "a731f2af126d058222f88e20d285839e3ea73c69128c0328eacf4b84c132574a"
+    },
+    "routes/$orgId/settings/deployment.tsx": {
+      "kind": "patch",
+      "sha256": "e414e186ee74d019722b05ee8b06c55cb4be59650702f12b0397e1c4d8085608",
+      "reason": "a viewer who is not an operator, reaching it by link, sees the refusal as an empty state instead of a failed read and its console error (Krish: demo-ready polish)"
+    },
+    "routes/$orgId/settings/github.tsx": {
+      "kind": "patch",
+      "sha256": "a29423e15f850d1cea0220f34aef65e4cad06f1c0770c1cde07bbaa8724138df",
+      "reason": "Add connection disabled with the reason, since the demo binds no GitHub account (keep list: disabled controls that say why) (main's GitHub repositories); Manage on GitHub is a grey button, since an outline would run beside the card's header rule (keep list: no lines within lines); our page shape, titled like every settings page, and repositories separated by spacing without rules (keep list: no lines within lines) (Krish: demo-ready polish)"
+    },
+    "routes/$orgId/settings/index.tsx": {
+      "kind": "patch",
+      "sha256": "f2fff83e0400fc0463b1c5ef0eab3bd955b89bd1549deaec18d05404100538b2",
+      "reason": "our page shape (a titled Page over bounded field groups), no Account group, since the demo has no sign-in, and its links to the settings pages as secondary buttons rather than blue words (keep list: neutral colors) (platform PR 6)"
+    },
+    "routes/$orgId/settings/members.tsx": {
+      "kind": "patch",
+      "sha256": "3611efb5e1e8eaecd7e0b21aec15e49898ebebc0fb7d3a79b1a2b3ac615ee114",
+      "reason": "our page shape, and membership changes disabled with the reason the services refuse them (keep list: disabled controls that say why), and the email hides in a narrow table (Krish: tables clipped at 1024 with Pebble open) (platform PR 6); the table sits under the page title without a second Members heading (Krish: demo-ready polish)"
+    },
+    "routes/$orgId/settings/models.tsx": {
+      "kind": "patch",
+      "sha256": "ccfff7bec8ad7bd418bd13c8feb456244ecc5ba7bd31df73c8b086e340bf64fb",
+      "reason": "our page shape, Add disabled with the reason the services refuse it, and empty lists and usage that say so (keep list: clear states) (platform PR 6); an empty list takes no gap (Krish: demo-ready polish)"
+    },
+    "routes/$orgId/settings/sandboxes.tsx": {
+      "kind": "patch",
+      "sha256": "b636590ab1046ecdfdbaf9b0d94faf5949d10a8e88d1a8448295f72969be9299",
+      "reason": "our page shape, and the meter without a card (platform PR 6); Started by hides in a narrow table, since For names the Agent (Krish: demo-ready polish); counts and times left-aligned, Started in a TimeTag, as on Traces (Krish: tokens and time aligned with a background)"
+    },
+    "routes/api/auth/callback.ts": {
+      "kind": "skip",
+      "sha256": "31fef2b100c81434e35b1059d4ad01e6427e5d760df991cc6e6dbc67c7ad999f"
+    },
+    "routes/api/auth/sign-in.ts": {
+      "kind": "skip",
+      "sha256": "11f6cc25ccb5f972bb3f862a3c35ff6de86c56d7d8549c25890de925e48e6036"
+    },
+    "routes/api/auth/sign-out.ts": {
+      "kind": "skip",
+      "sha256": "25a215b1b71d67765e70276d770bb1b4427b9950acfc4f88dd8f6086f450e9c2"
+    },
+    "routes/api/services/token.ts": {
+      "kind": "skip",
+      "sha256": "5b779f66b280909a5d8f44a71311bd0f55766e59a8500209d749150c39967d70"
+    },
+    "routes/index.tsx": {
+      "kind": "copy",
+      "sha256": "da4f527d9b8e5ab0600ad4ba88ddbedda76b0950423b0b240b0b0ece3cda31e9"
+    },
+    "routes/settings/github/callback.tsx": {
+      "kind": "copy",
+      "sha256": "c179a39346a7dd8accbac431887cbd4327b85321cbafce2736cc2a2d1055ec41"
+    },
+    "routeTree.gen.ts": {
+      "kind": "skip",
+      "sha256": "e9a0e2d1bee87eebc73719ddd617a848ad853b96da1ef7a765caa8c9c694e099"
+    },
+    "run-status.tsx": {
+      "kind": "patch",
+      "sha256": "2af42dd78442af8062543bd743503beb26107729f23e955601862032377d2af5",
+      "reason": "a running run's Tag is accent, as an Issue's Running pill is (Krish: make things look better throughout)",
+      "budget": 4
+    },
+    "server.ts": {
+      "kind": "skip",
+      "sha256": "157b1b74f679576edd5465d49b5cf5bf4681cfdbc0a3f835351233503286fcf3"
+    },
+    "services.ts": {
+      "kind": "shim",
+      "sha256": "57fade79e368cce559e05a4dbc10bc12c9ad3368456e7a9a0ec44b9d5aaba33e",
+      "reason": "clients come from the services app/services.ts loads (the demo Org or a native Org), not a token endpoint"
+    },
+    "session-table.tsx": {
+      "kind": "patch",
+      "sha256": "6765320e94e3f779c4fedbf80430df382b8aeae1c89f77f5a9b0e96b83937a4a",
+      "reason": "the table is named Traces for Walkthroughs, a session's Issues are Chips that open them (keep list: Chip), and low-priority columns hide in a narrow table (Krish: tables clipped at 1024 with Pebble open) (platform PR 6); a row's peek under it, its first message in full on hover, and Errors only when a row has them (Krish: improve the trace viewer; suggested for PR 3); Tokens in a neutral Tag and Time in a TimeTag, both left-aligned (Krish: tokens and time aligned with a background)",
+      "budget": 64
+    },
+    "shortcuts.tsx": {
+      "kind": "copy",
+      "sha256": "24f8103582d1f5eac5b2192b44617a7515ba8ea787734cbe4bba0c1d61bbd364"
+    },
+    "sidebar.tsx": {
+      "kind": "patch",
+      "sha256": "3d5aa37bd72667dffa9ab1a8b2b54e114205c20fb24af4427ef7b72d2b094589",
+      "reason": "the data plane's slot (the demo's Get started) as its own row above Ask Pebble, and Ask Pebble pressed and enabled in the main view, where it closes the chat (Danny); Automations marked on an Automation's and a run's pages, which sit outside /automations (Krish: demo-ready polish)"
+    },
+    "start.ts": {
+      "kind": "skip",
+      "sha256": "56b8813f40e839d6d4f971e7deee080687a3f45f0aec3da15570a030690fcdf5"
+    },
+    "styles/components.css": {
+      "kind": "copy",
+      "sha256": "ea72a4e67b927bc57a8215c4d49c9d8aeee4d716928b0e38c25f440b328d0dba"
+    },
+    "styles/global.css": {
+      "kind": "copy",
+      "sha256": "bac82ac693706f02c44b1e5b50ebc7b9a2e54eaf9e2745a4efc47905ca1922d3"
+    },
+    "styles/tokens.css": {
+      "kind": "copy",
+      "sha256": "60581fe38032d648af347354dc8724e47d27ad67938e79177c374005e521688f"
+    },
+    "styles/type.css": {
+      "kind": "copy",
+      "sha256": "da5b707368bb3e3d4f538e9b7c24aa8a9e0f5615fbe8546c5e49723f5dd72936"
+    },
+    "trace-view.tsx": {
+      "kind": "patch",
+      "sha256": "9f069cef9c4e70089efcaa4265e2e14c6f31d0aa3c934eb8bd7f56b5b153d9cd",
+      "budget": 192,
+      "reason": "platform PR 3's transcript with our keepers through features/traces/transcript (keep list): Turn 1 open plus the turn a step link names and Expand all (Krish: only Turn 1 open, then expand all), citation chips that open their source, span links that also work off the session page (a debug Eval's trial), a passing check, the tool calls pill and JSON neutral (Krish: red only for failures), a tool row's result tag only on failure (Krish: bare tool calls), a failing Grade that names no step placed at its turn's first failing step with its reasoning there (Krish: Grade reasoning under its step), and the helpers Flow and Compare read exported, StepNote gone with its call site (platform PR 3); the turn timeline, a step's notes on one quiet panel with Ask Pebble, Next failure only with more than one failure, since Go to step reaches the first, Grades by description with their jump named by place, a neutral tally, readable durations, Turn n as a heading with room under an open turn, and a picked reply on the grey fill (Krish: improve the trace viewer; suggested for PR 3); sessionTitle moved to titles.ts and re-exported, so the loaders naming crumbs leave the trace view lazy (first load, For Connor); a turn's part stacks under its label in a narrow pane, as the label column squeezed the text at 1024 with Pebble open (Krish: demo-ready polish); each turn's row is its number as a badge (TurnNumber, red when failing) and the user's message, open turns on a tinted panel with round marks for the steps and reply, and Spans an outlined button on open or hovered turns (Krish: more color, no Turn labels, a clear way into spans); an open turn's row grows with its wrapped message"
+    },
+    "traces.tsx": {
+      "kind": "patch",
+      "sha256": "009b2404670099460c2cffb91513089c7b0f37acad5c1843695f4b8e5a6b258c",
+      "reason": "the timeline's blocks grey and a span's bar grey (Krish: red only for failures), and the selected span may be undefined under our exactOptionalPropertyTypes (platform PR 3); turns sized by time at any width, red exactly where Next failure walks, a model block named by its role, and readable durations (Krish: improve the trace viewer; suggested for PR 3)"
+    },
+    "ui/bubble.tsx": {
+      "kind": "copy",
+      "sha256": "3479d0f1acf0873146932561abec69cd3f4a8d22d437dcd1c17f9a14ee2759c6"
+    },
+    "ui/button.tsx": {
+      "kind": "patch",
+      "sha256": "b1bff020e64c3dfda57bdd6e9c274639a3700b8cf1715b204b3a9b06447f395c",
+      "reason": "asChild for a router Link (keep list: Issue and Candidate actions), IconButton's shortcut hint (keep list: Walkthroughs) and a secondary variant for the Issue header's undo (Krish: validate vs review), and a quiet button that ends an actions row bleeds its padding so TabActions and Section actions end on the column edge (main took our variants, colors and hovers in #263)"
+    },
+    "ui/cn.ts": {
+      "kind": "copy",
+      "sha256": "650b01252abf55f67d44e2d3d637d28cdca91119ed0629dc28f0874b8d0a1142"
+    },
+    "ui/collapsible.tsx": {
+      "kind": "patch",
+      "sha256": "36eaf7e28b7fd805255dd304c58aa916aa7c3467c49d499a2b82a5a944f9a942",
+      "reason": "a fold row's mark, a transcript's bullet in the chevron's place until hovered or open (keep list: StepBullet and FOLD, in ui/fold.tsx)"
+    },
+    "ui/command.tsx": {
+      "kind": "copy",
+      "sha256": "440b7d9089f11dec64bc96918ae220490709b8ecd13aa75169ad19dbdb694196"
+    },
+    "ui/copy-button.tsx": {
+      "kind": "copy",
+      "sha256": "4b7d0eb43ce97d7d3a179917950def960c97f258b42e97eb45c5a5a289879cb6"
+    },
+    "ui/dialog.tsx": {
+      "kind": "copy",
+      "sha256": "251cf64d4c17d44c68ef1877d65744ec7f0cb96268ec06ace841953885f9f682"
+    },
+    "ui/empty-state.tsx": {
+      "kind": "patch",
+      "sha256": "a16c238ed82facf7a692c69410227434b1023a5ff1d791cf4d455dd981c1ce8c",
+      "reason": "one next step as an action, never beside Clear filters (Later), and a failed read as an alert with its own mark (keep list: clear states, ErrorView)"
+    },
+    "ui/facts.tsx": {
+      "kind": "patch",
+      "sha256": "ace9ee9911d0ffde6fa7c3aba68a1ba8e807d695f094ad4b52b8f111650e4ab4",
+      "reason": "a quiet label beside its value on one line (platform PR 4), so the Issue's facts sit in one row under the stepper"
+    },
+    "ui/field.tsx": {
+      "kind": "copy",
+      "sha256": "0e4f826de6fe04ccec26049de494bff5912fa30937133f888a0f658839d37dff"
+    },
+    "ui/format.ts": {
+      "kind": "copy",
+      "sha256": "981637c3e82b930bdda43f277f7fc653f8944d4bdc39afae5f1c78c921caf608"
+    },
+    "ui/input-group.tsx": {
+      "kind": "copy",
+      "sha256": "567d0bc969a80abd411dd7c92bc7398bb3829e2a80b60a4fafb35b97318c1c83"
+    },
+    "ui/input.tsx": {
+      "kind": "copy",
+      "sha256": "991fd97b8b5b400c99b3d884447136523feca4503b037230fadaccb4b0af56af"
+    },
+    "ui/kbd.tsx": {
+      "kind": "copy",
+      "sha256": "d86e71634c808270a433f471ac16de5e92df1cffeae8ae78d6f20556e81c71b1"
+    },
+    "ui/markdown.tsx": {
+      "kind": "patch",
+      "sha256": "36f26f579c20fe15a9031153c24e5e9beb1a54e7da1f9e8df14bc420c8fd54a3",
+      "reason": "in-app links as record chips with their state, platform PR 3's citation markers drawn as our chips that open their source, CodeBlock for fenced code, and a className for smaller text (keep list)"
+    },
+    "ui/markdown/apply-prompt.tsx": {
+      "kind": "patch",
+      "sha256": "bedf6f1c1042b047b8ae418db1293351449a77ce8c6cb9dc22b25a594cf488f9",
+      "reason": "the prompt on a tinted panel without inner lines (keep list: no lines within lines; #263 merged the rest)"
+    },
+    "ui/markdown/citations.tsx": {
+      "kind": "patch",
+      "sha256": "7eec2c4d3dba4090188b18d2959317293e047164662a10b5f426a79ca969b0a4",
+      "reason": "each citation marker carries its id, so our chip finds its quote and source (keep list: citation chips) (suggested for PR 3)"
+    },
+    "ui/marks.tsx": {
+      "kind": "copy",
+      "sha256": "c0424e45a15b8c074f6c375396ae2995659cdd9730692787917ead0150ac4a52"
+    },
+    "ui/menu.tsx": {
+      "kind": "patch",
+      "sha256": "52155c546c5ad599a21baa31101f07a9cbd8bb8302f3d0265a2b273ca02ebc67",
+      "reason": "a menu opened from the keyboard starts on the picked option, a click leaves no focus ring, MenuLabel heads a group, and CheckSlot is shared with our Select (keep list: Walkthrough speed menu)"
+    },
+    "ui/message.tsx": {
+      "kind": "copy",
+      "sha256": "7816a8ad33b69e368c2081c471412788eaae962daa1118238a48dc3554f8f67b"
+    },
+    "ui/page-link.tsx": {
+      "kind": "copy",
+      "sha256": "9fd4862c12e59a79ad1d6e30aa82886bad6aa105e9d52ef7881066655bbbe8b4"
+    },
+    "ui/pane-separator.tsx": {
+      "kind": "fork",
+      "sha256": "cf3d76997520f150bddea2043b6802fb11fc21ef7f2f0e3456377ef27a6cf65d",
+      "reason": "ours: an 8px gutter for Pebble on either side; took #247's visible grip, centered in it"
+    },
+    "ui/popover.tsx": {
+      "kind": "copy",
+      "sha256": "8f693be31aaccd87a21ea196a46aa71cd626c8f1bcd65c0d56629fcd1045d6fc"
+    },
+    "ui/search-field.tsx": {
+      "kind": "patch",
+      "sha256": "18db4d01bb268b11630ccfcbbc2b2f2065f54e489cbe546237ba15c1276dcbc3",
+      "reason": "onKeyDown, controls and debounce so it drives a listbox as a combobox, for Pebble's chat picker (keep list) (main's #263 and platform PR 2 took the rest)"
+    },
+    "ui/segmented-control.tsx": {
+      "kind": "copy",
+      "sha256": "b1e35b3e83620e7dd40f597cc87c2071176d37c10e5146e4d38e6b6834810457"
+    },
+    "ui/skeleton.tsx": {
+      "kind": "copy",
+      "sha256": "ed21b3eeedc89f8f7c984e1fa0f573eb7171f8a9d599d2cef849b97e84d304f1"
+    },
+    "ui/suggestion.tsx": {
+      "kind": "copy",
+      "sha256": "30ccf04611116573c22c08e4267ff33751d419e1e8e342e17a372b367afe4f64"
+    },
+    "ui/tabs.tsx": {
+      "kind": "patch",
+      "sha256": "d83fa465a913d038ce0a3295a12b9f14b7b77451f57f0a39837fc2d68a1473c8",
+      "reason": "the current tab is a filled pill rather than an underline, so the tab you are on reads at a glance, its corners rounded-xs as the breadcrumbs' pills, and the tab list fills the row so TabActionsEnd sits at its right end (Krish: something more meaningful than an underline)",
+      "budget": 6
+    },
+    "ui/tag.tsx": {
+      "kind": "copy",
+      "sha256": "8d39e646b61b6763822644759272c2d02d5c457bd9da9e3ae874347b58f90a5c"
+    },
+    "ui/theme.ts": {
+      "kind": "copy",
+      "sha256": "de486f1c364829d3978e34c099b4981a4ca4d624a45c24e04bf918fe902d5871"
+    },
+    "ui/timestamp.tsx": {
+      "kind": "copy",
+      "sha256": "c1676e82baba8e2f924eba55885a214f2d09aa6909b94b50db5819daab880153"
+    },
+    "ui/tooltip.tsx": {
+      "kind": "copy",
+      "sha256": "f9abac31813561d8617d91f17ebee8e16b1475173442ac5b09da2ebf4e171cb0"
+    },
+    "ui/trace.tsx": {
+      "kind": "copy",
+      "sha256": "eb58d8f563576efb5da99a188a5ced8eca188a633ebe24fa54aaa4341cfb5160"
+    },
+    "workos.ts": {
+      "kind": "skip",
+      "sha256": "1af87b5473d1e183b346d987e28e7c9624b52c3e3df7778a7e5a94071ff10721"
+    }
+  }
+}

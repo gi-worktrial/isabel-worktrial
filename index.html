@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- the canvas color, which the theme script below and setTheme change for dark -->
+    <meta name="theme-color" content="#ffffff" />
+    <!-- platform's favicon and title (its routes/__root.tsx head) -->
+    <link rel="icon" type="image/png" href="/src/platform/assets/grounded-mark-04-black.png" />
+    <title>Grounded Platform</title>
+    <script>
+      // light unless the visitor chose dark; set before first paint so there is no flash
+      // the key is STORAGE_KEY in src/platform/ui/theme.ts, spelled out here because this script runs before any module
+      try {
+        var stored = localStorage.getItem("grounded.theme.v1");
+        document.documentElement.dataset.theme = stored === "dark" ? "dark" : "light";
+        if (stored === "dark")
+          document.querySelector('meta[name="theme-color"]').content = "#000000";
+      } catch (_) {
+        document.documentElement.dataset.theme = "light";
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/app/app.tsx"></script>
+  </body>
+</html>

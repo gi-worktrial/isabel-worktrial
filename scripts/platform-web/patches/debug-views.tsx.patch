@@ -1,0 +1,59 @@
+--- a/debug-views.tsx
++++ b/debug-views.tsx
+@@ -1,20 +1,20 @@
+ import type { ReactNode } from "react";
+ 
+-import { Canvas } from "#/canvas";
+ import type { DebugSearch } from "#/debug-search";
+ import { IssueTraceTable } from "#/issue-traces";
+-import { useIssueParams } from "#/issue-view";
+ import { Tab, Tabs } from "#/ui/tabs";
++import { TabActionsEnd } from "#src/ui/tab-actions";
+ 
+-/** Debug's Files, Canvas, and Traces tabs. Files and Canvas stay mounted while hidden so their unsaved edits survive. */
++/** Debug's Files, Grades, and Traces tabs. Files stays mounted while hidden so its unsaved edits survive. */
+ export function DebugViews({
+   search: { view, afters = [] },
+   files,
++  grades,
+ }: {
+   search: DebugSearch;
+   files: ReactNode;
++  grades: ReactNode;
+ }) {
+-  const { issue } = useIssueParams();
+   return (
+     <div className="flex min-w-0 flex-1 flex-col gap-3">
+       <Tabs label="Views" className="shrink-0">
+@@ -28,10 +28,10 @@
+         </Tab>
+         <Tab
+           to="."
+-          search={{ view: "canvas" }}
+-          aria-current={view === "canvas" ? "page" : undefined}
++          search={{ view: "grades" }}
++          aria-current={view === "grades" ? "page" : undefined}
+         >
+-          Canvas
++          Grades
+         </Tab>
+         <Tab
+           to="."
+@@ -40,11 +40,14 @@
+         >
+           Traces
+         </Tab>
++        <TabActionsEnd />
+       </Tabs>
+       <div className={view === undefined ? "flex min-h-0 flex-1" : "hidden"}>{files}</div>
+-      <div className={view === "canvas" ? "flex min-h-0 flex-1" : "hidden"}>
+-        <Canvas key={issue} />
+-      </div>
++      {view === "grades" && (
++        <section aria-label="Grades" className="min-h-0 flex-1 overflow-auto card">
++          {grades}
++        </section>
++      )}
+       {view === "traces" && (
+         <div className="min-h-0 flex-1 overflow-auto">
+           <IssueTraceTable afters={afters} />

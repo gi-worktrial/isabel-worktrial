@@ -1,0 +1,64 @@
+:host {
+  --trees-accent-override: var(--color-accent);
+  --trees-bg-override: var(--color-surface);
+  --trees-bg-muted-override: var(--color-fill);
+  --trees-fg-override: var(--color-muted);
+  --trees-fg-muted-override: var(--color-muted);
+  --trees-selected-bg-override: var(--color-inset);
+  --trees-selected-fg-override: var(--color-ink);
+  --trees-focus-ring-color-override: var(--color-ring);
+  --trees-selected-focused-border-color-override: transparent;
+  --trees-focus-ring-width-override: 2px;
+  --trees-font-family-override: var(--font-sans);
+  --trees-font-size-override: 12px;
+  --trees-font-weight-regular-override: 500;
+  --trees-border-radius-override: var(--radius-xs);
+  --trees-padding-inline-override: 0px;
+  --trees-item-padding-x-override: 8px;
+  --trees-level-gap-override: 12px;
+  --trees-scrollbar-thumb-override: var(--color-divider-strong);
+}
+
+/* a clicked row shows only its quiet fill; keyboard focus rings it in a neutral 1px */
+[data-item-selected="true"]::before {
+  outline-width: 1px;
+}
+[data-item-selected="true"]:focus-visible::before {
+  outline-color: var(--color-ring);
+}
+
+/* each level indents 12px */
+[data-item-section="spacing"] {
+  padding-left: 0;
+}
+[data-item-section="spacing-item"] + [data-item-section="spacing-item"] {
+  margin-left: 0;
+}
+
+/* names come from the label and cut at the end */
+[data-type="item"]:not(:has([data-item-flattened-subitems])) {
+  & > [data-item-section="content"] {
+    display: none;
+  }
+  &::after {
+    content: attr(aria-label);
+    order: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & > [data-item-section="decoration"],
+  & > [data-item-section="action"] {
+    order: 2;
+  }
+}
+/* a Fix's +N −N sits right after the name and never drops for a long one */
+[data-item-section="decoration"] {
+  flex: 0 0 auto;
+  padding-left: 8px;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-weight: 400;
+}

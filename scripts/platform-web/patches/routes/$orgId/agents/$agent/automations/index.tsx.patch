@@ -1,0 +1,51 @@
+--- a/routes/$orgId/agents/$agent/automations/index.tsx
++++ b/routes/$orgId/agents/$agent/automations/index.tsx
+@@ -5,7 +5,7 @@
+ import { RunNowButton, JobSchedule, jobTitle } from "../../../../../automations";
+ import { RunStatusTag } from "#/run-status";
+ import { EmptyState } from "#/ui/empty-state";
+-import { Timestamp } from "#/ui/timestamp";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/automations/")({
+   loader: ({ context: { queryClient }, params }) =>
+@@ -19,13 +19,13 @@
+ 
+   return (
+     <div className="card overflow-clip">
+-      <table className="record-table">
++      <table aria-label="Automations" className="record-table">
+         <thead>
+           <tr>
+             <th className="w-full">Name</th>
+-            <th>Schedule</th>
++            <th className="@max-lg:hidden">Schedule</th>
+             <th>Last result</th>
+-            <th className="text-right">Last run</th>
++            <th>Last run</th>
+             <th>
+               <span className="sr-only">Actions</span>
+             </th>
+@@ -41,10 +41,9 @@
+                   className="row-action flex min-w-0 items-baseline gap-2"
+                 >
+                   <span className="truncate">{jobTitle(job)}</span>
+-                  <span className="truncate type-meta-12 text-muted">{job.name}</span>
+                 </Link>
+               </td>
+-              <td>
++              <td className="@max-lg:hidden">
+                 <span className="flex items-center gap-1">
+                   <JobSchedule job={job} />
+                 </span>
+@@ -62,8 +61,8 @@
+                   </Link>
+                 )}
+               </td>
+-              <td className="text-right text-muted">
+-                {latest !== undefined && <Timestamp at={latest.created_at} />}
++              <td className="whitespace-nowrap">
++                {latest !== undefined && <TimeTag at={latest.created_at} short />}
+               </td>
+               <td className="relative z-10">
+                 <RunNowButton params={{ orgId, agent }} job={job} />

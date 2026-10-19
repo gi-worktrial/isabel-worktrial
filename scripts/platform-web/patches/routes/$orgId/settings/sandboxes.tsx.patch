@@ -1,0 +1,79 @@
+--- a/routes/$orgId/settings/sandboxes.tsx
++++ b/routes/$orgId/settings/sandboxes.tsx
+@@ -5,9 +5,10 @@
+ 
+ import { EmptyState } from "#/ui/empty-state";
+ import { FieldGroup } from "#/ui/field";
+-import { Timestamp } from "#/ui/timestamp";
+ import { Tooltip } from "#/ui/tooltip";
+ import { crumbs } from "#/crumbs";
++import { SettingsPage } from "#src/features/settings/settings-page";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ const AGENT_CREATOR_PREFIX = "agent:";
+ const PEBBLE_ACTOR = "cobblestone";
+@@ -74,7 +75,7 @@
+   }
+ 
+   return (
+-    <div className="flex flex-col gap-10">
++    <SettingsPage title="Sandboxes">
+       <FieldGroup title="Sandbox limit">
+         <Meter usage={usage} />
+       </FieldGroup>
+@@ -90,21 +91,21 @@
+               <thead>
+                 <tr>
+                   <th className="w-full">For</th>
+-                  <th>Started by</th>
+-                  <th className="text-right">Slots</th>
+-                  <th className="text-right">Started</th>
++                  <th className="@max-lg:hidden">Started by</th>
++                  <th>Slots</th>
++                  <th>Started</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {holders.map((holder) => (
+                   <tr key={holder.key}>
+                     <td className="max-w-0">{purpose(holder)}</td>
+-                    <td>
++                    <td className="@max-lg:hidden">
+                       {holder.creator === undefined
+                         ? "—"
+                         : (agentOf(holder.creator) ?? names[holder.creator] ?? holder.creator)}
+                     </td>
+-                    <td className="text-right tabular-nums">
++                    <td className="tabular-nums">
+                       {holder.running < holder.slots ? (
+                         <Tooltip label={`${holder.running} of ${holder.slots} started`}>
+                           <span tabIndex={0}>{holder.slots}</span>
+@@ -113,8 +114,8 @@
+                         holder.slots
+                       )}
+                     </td>
+-                    <td className="text-right text-muted">
+-                      <Timestamp at={holder.since} />
++                    <td className="whitespace-nowrap">
++                      <TimeTag at={holder.since} />
+                     </td>
+                   </tr>
+                 ))}
+@@ -123,7 +124,7 @@
+           )}
+         </div>
+       </FieldGroup>
+-    </div>
++    </SettingsPage>
+   );
+ }
+ 
+@@ -131,7 +132,7 @@
+   const percent = Math.round((usage.used / usage.limit) * 100);
+ 
+   return (
+-    <div className="card flex flex-col gap-3 p-4">
++    <div className="flex flex-col gap-3">
+       <div className="flex items-baseline justify-between gap-4 tabular-nums">
+         <p className="type-label-13 text-muted">
+           <span className="type-heading-15 text-ink">{usage.used}</span> of {usage.limit} in use

@@ -1,0 +1,11 @@
+--- a/cron.ts
++++ b/cron.ts
+@@ -6,7 +6,7 @@
+ export function describeSchedule(cron: string) {
+   const local = cronInViewerZone(cron);
+   const words = (expression: string) =>
+-    cronstrue.toString(expression, { verbose: /^\d+\s+\d+\s/.test(expression) });
++    cronstrue.toString(expression, { verbose: /^\d+\s+\d+\s/.test(expression), use24HourTimeFormat: true });
+   return local === undefined ? `${words(cron)} UTC` : words(local);
+ }
+ 

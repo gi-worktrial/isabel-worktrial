@@ -1,0 +1,97 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue_.debug.evals.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue_.debug.evals.tsx
+@@ -2,7 +2,7 @@
+ import {
+   SESSION_PAGE_SIZE,
+   baselineRunQuery,
+-  canvasQuery,
++  candidatesQuery,
+   debugEvalsQuery,
+   issueQuery,
+   issueTracesQuery,
+@@ -20,12 +20,16 @@
+ import { debugSearchSchema } from "#/debug-search";
+ import { DebugViews } from "#/debug-views";
+ import { FileEditor } from "#/file-editor";
+-import { IssueSteps, useIssue } from "#/issue-view";
++import { useIssue } from "#/issue-view";
+ import { usePebbleDock, usePebblePage } from "#/pebble/page";
+ import { RunStatusTag } from "#/run-status";
+-import { Button } from "#/ui/button";
++import { Button, buttonVariants } from "#/ui/button";
+ import { Tag } from "#/ui/tag";
+ import { crumbs } from "#/crumbs";
++import { BranchSwitcher } from "#src/features/candidates/branches";
++import { DebugBand } from "#src/features/debug/debug-band";
++import { useDebugDiff } from "#src/features/debug/debug-diff";
++import { BaselineGrades } from "#src/features/debug/eval-grades";
+ 
+ const BRANCH_MOVED_STATUS = 409;
+ const DEBUG_PROMPTS = [
+@@ -43,7 +47,7 @@
+       queryClient.ensureQueryData(debugEvalsQuery(params)),
+       queryClient.ensureQueryData(baselineRunQuery(params)),
+       queryClient.ensureQueryData(issueQuery(params)),
+-      queryClient.ensureQueryData(canvasQuery(params)),
++      queryClient.ensureQueryData(candidatesQuery(params)),
+       deps.view === "traces" &&
+         queryClient.ensureQueryData(
+           issueTracesQuery({ ...params, after: deps.afters?.at(-1), limit: SESSION_PAGE_SIZE }),
+@@ -74,6 +78,7 @@
+     `The engineer is debugging the Evals of Issue ${issue}, in ${EVALS_DIR}/ on its branch ${branch}, at commit ${sha}. Commit and push your edits to that branch, which reruns the Issue's baseline but not its Candidates.`,
+     DEBUG_PROMPTS,
+   );
++  const diff = useDebugDiff({ orgId, agent, basehead: `main...${sha}` });
+ 
+   async function save(files: { path: string; contents: string }[]) {
+     try {
+@@ -90,11 +95,11 @@
+ 
+   return (
+     <div className="flex h-[calc(100dvh-6rem)] flex-col gap-3">
+-      <IssueSteps issue={issueRecord} debugging />
++      <DebugBand issue={issueRecord} />
+       <header aria-label="Debug" className="flex min-w-0 flex-wrap items-center gap-3">
+         <h1 className="flex min-w-0 flex-1 basis-64 items-center gap-2 type-heading-15 text-ink">
+-          <span className="min-w-0 truncate">Debugging Evals</span>
+-          <Tag title={branch}>{sha.slice(0, 7)}</Tag>
++          <span className="min-w-0 truncate">Evals</span>
++          <BranchSwitcher current={undefined} sha={sha} />
+         </h1>
+         {run === null ? (
+           <Tag>Not run</Tag>
+@@ -104,7 +109,7 @@
+             <Link
+               to="/$orgId/agents/$agent/runs/$run"
+               params={{ orgId, agent, run: run.id }}
+-              className="rounded-xs type-label-13 font-medium text-accent-ink hover:underline"
++              className={buttonVariants({ variant: "quiet", size: "small" })}
+             >
+               Eval run
+             </Link>
+@@ -120,12 +125,24 @@
+           files={
+             <FileEditor
+               entries={tree}
++              initialPath={search.file}
+               exclude={[EVAL_REGISTRY_PATH]}
+               changes={changes}
+-              overview={{ label: "Evals", content: <FileDiffs files={changes} /> }}
++              overview={{
++                label: "Evals",
++                content: (
++                  <FileDiffs
++                    files={changes}
++                    empty="These Evals don't change any files on main yet."
++                  />
++                ),
++              }}
++              primary
++              diff={diff}
+               onSave={save}
+             />
+           }
++          grades={<BaselineGrades run={run} />}
+         />
+       </div>
+     </div>

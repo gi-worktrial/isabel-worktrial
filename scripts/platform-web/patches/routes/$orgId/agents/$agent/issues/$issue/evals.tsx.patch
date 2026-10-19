@@ -1,0 +1,42 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue/evals.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue/evals.tsx
+@@ -1,10 +1,10 @@
+ import { useSuspenseQuery } from "@tanstack/react-query";
+ import { issueEvalsQuery } from "#/queries";
+-import { Link, createFileRoute } from "@tanstack/react-router";
++import { createFileRoute } from "@tanstack/react-router";
+ 
+ import { EvalTable } from "../../../../../../evals";
+-import { buttonVariants } from "#/ui/button";
+ import { EmptyState } from "#/ui/empty-state";
++import { AddEvals, DebugEvalsAction } from "#src/features/debug/new-eval";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/evals")({
+   loader: ({ context: { queryClient }, params }) =>
+@@ -18,23 +18,16 @@
+ 
+   return (
+     <div className="flex flex-col gap-3">
+-      {evals !== null && (
+-        <Link
+-          to="/$orgId/agents/$agent/issues/$issue/debug/evals"
+-          params={{ orgId, agent, issue }}
+-          className={buttonVariants({ variant: "outline", className: "self-end" })}
+-        >
+-          Debug Evals
+-        </Link>
+-      )}
++      <DebugEvalsAction exists={evals !== null} />
+       <div className="card overflow-clip">
+         {evals === null || evals.length === 0 ? (
+           <EmptyState
+             title="No Evals reproduce this Issue"
+             description="Evals show here once the Issue's evals branch lists this Issue for them."
++            action={<AddEvals />}
+           />
+         ) : (
+-          <EvalTable orgId={orgId} agent={agent} evals={evals} />
++          <EvalTable orgId={orgId} agent={agent} evals={evals} issue={issue} />
+         )}
+       </div>
+     </div>

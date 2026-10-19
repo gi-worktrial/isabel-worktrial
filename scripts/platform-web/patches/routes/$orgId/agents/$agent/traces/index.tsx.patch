@@ -1,0 +1,101 @@
+--- a/routes/$orgId/agents/$agent/traces/index.tsx
++++ b/routes/$orgId/agents/$agent/traces/index.tsx
+@@ -12,11 +12,12 @@
+ import { z } from "zod";
+ 
+ import { SessionTable } from "../../../../../session-table";
+-import { cn } from "#/ui/cn";
+ import { EmptyState } from "#/ui/empty-state";
+ import { SearchField } from "#/ui/search-field";
+ import { SegmentedControl } from "#/ui/segmented-control";
+ import { crumbs } from "#/crumbs";
++import { AnnotationFilters } from "#src/features/traces/filters";
++import { sourceCounts } from "#src/features/traces/list";
+ 
+ const SOURCES = [
+   { value: "production", label: "Production" },
+@@ -99,7 +100,7 @@
+   const search = Route.useSearch();
+   const page = useSuspenseQuery(tracesPageQuery(orgId, agent, search)).data;
+   const sections = sectionsOf(
+-    useSuspenseQuery(annotationCountsQuery({ orgId, agent })).data.counts,
++    sourceCounts(search, useSuspenseQuery(annotationCountsQuery({ orgId, agent })).data.counts),
+   );
+   const navigate = useNavigate({ from: Route.fullPath });
+   const afters = search.afters ?? [];
+@@ -115,13 +116,18 @@
+     <div className="flex flex-col gap-3">
+       <header className="flex flex-wrap items-center gap-3">
+         <h1 className="type-title-18 text-ink">Traces</h1>
+-        <div role="group" aria-label="Filters" className="flex flex-1 flex-wrap items-center gap-2">
++        <div role="group" aria-label="Filters" className="flex flex-1 basis-96 flex-wrap items-center gap-2">
+           <SegmentedControl
+             label="Source"
+             value={search.source ?? "production"}
+             segments={SOURCES}
+             onChange={(source) => filter({ source: source === "production" ? undefined : source })}
+           />
++          <AnnotationFilters
++            sections={sections}
++            annotation={search.annotation}
++            onFilter={(annotation) => filter({ annotation })}
++          />
+           {search.issue !== undefined && (
+             <button
+               type="button"
+@@ -143,55 +149,6 @@
+         </div>
+       </header>
+       <div className="flex items-start gap-4">
+-        {sections.length > 0 && (
+-          <div className="card flex w-48 shrink-0 flex-col overflow-clip">
+-            {sections.map(({ title, criteria }) => (
+-              <section key={title} aria-label={title} className="flex flex-col pb-1">
+-                <p className="flex h-9 items-center border-b border-divider px-3 type-label-13 font-semibold text-ink">
+-                  {title}
+-                </p>
+-                {criteria.map(({ name, counts }) => (
+-                  <div key={name} role="group" aria-label={name} className="flex flex-col">
+-                    <p className="truncate px-3 pt-2 pb-1 type-meta-12 font-medium text-muted">
+-                      {name}
+-                    </p>
+-                    {counts.map(({ label, traces }) => {
+-                      const value = `${name}:${label}`;
+-                      const pressed = search.annotation === value;
+-                      const words = outcomeWords(label);
+-                      return (
+-                        <button
+-                          key={label}
+-                          type="button"
+-                          aria-pressed={pressed}
+-                          onClick={() => filter({ annotation: pressed ? undefined : value })}
+-                          className={cn(
+-                            "flex h-8 items-center justify-between gap-2 px-3 text-left type-label-13 text-ink",
+-                            pressed ? "selected" : "hover:bg-subtle",
+-                          )}
+-                        >
+-                          <span className="flex min-w-0 items-center gap-2">
+-                            {words !== undefined && (
+-                              <span
+-                                aria-hidden
+-                                className={cn(
+-                                  "size-2 shrink-0 rounded-full",
+-                                  label === PASS_LABEL ? "bg-success" : "bg-danger",
+-                                )}
+-                              />
+-                            )}
+-                            <span className="truncate">{words ?? label}</span>
+-                          </span>
+-                          <span className="type-meta-12 text-muted tabular-nums">{traces}</span>
+-                        </button>
+-                      );
+-                    })}
+-                  </div>
+-                ))}
+-              </section>
+-            ))}
+-          </div>
+-        )}
+         <SessionTable
+           orgId={orgId}
+           agent={agent}

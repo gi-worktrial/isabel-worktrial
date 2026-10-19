@@ -1,0 +1,23 @@
+--- a/routes/$orgId/agents/$agent/jobs/$job.tsx
++++ b/routes/$orgId/agents/$agent/jobs/$job.tsx
+@@ -8,11 +8,10 @@
+   RunPages,
+   RunTable,
+   JobSchedule,
+-  jobTitle,
+   JobTriggers,
+ } from "../../../../../automations";
++import { jobTitle } from "#/titles";
+ import { Fact, Facts } from "#/ui/facts";
+-import { Tag } from "#/ui/tag";
+ import { crumbs } from "#/crumbs";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/jobs/$job")({
+@@ -43,7 +42,6 @@
+         <div className="flex min-w-0 flex-wrap items-center gap-3">
+           <h1 className="flex min-w-0 flex-1 basis-64 items-center gap-3 type-title-18 text-ink">
+             <span className="min-w-0 truncate">{jobTitle(job)}</span>
+-            <Tag>{job.name}</Tag>
+           </h1>
+           <RunNowButton params={{ orgId, agent }} job={job} label />
+         </div>

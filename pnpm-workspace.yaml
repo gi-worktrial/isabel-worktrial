@@ -1,0 +1,10 @@
+allowBuilds:
+  "@google/genai": false
+  core-js-pure: false
+  esbuild: true
+  protobufjs: false
+  workerd: true
+
+# trees uses the patch release that also supports the diff theme
+overrides:
+  "@pierre/trees>@pierre/theming": 1.0.1

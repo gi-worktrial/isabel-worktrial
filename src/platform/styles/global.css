@@ -1,0 +1,185 @@
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+/* Scan only source files, so other edits don't reload the app. */
+@import "tailwindcss" source(none);
+@source "../**/*.{ts,tsx}";
+@import "./tokens.css";
+@import "./type.css";
+@import "./components.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@utility enter-fade {
+  opacity: 1;
+  transition: opacity 120ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    color-scheme: light;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: 13px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button:not(:disabled),
+  select,
+  [role="button"],
+  [role="radio"],
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"] {
+    cursor: pointer;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-ink);
+  }
+
+  button,
+  select,
+  input,
+  textarea,
+  a,
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"],
+  tbody tr {
+    transition:
+      background-color 120ms var(--ease-out),
+      border-color 120ms var(--ease-out),
+      color 120ms var(--ease-out),
+      box-shadow 120ms var(--ease-out),
+      opacity 120ms var(--ease-out);
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  }
+
+  /* Rows a scroller would clip draw it inside with focus-inset. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  *:hover {
+    scrollbar-color: var(--color-divider-strong) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  *:hover::-webkit-scrollbar-thumb {
+    background-color: var(--color-divider-strong);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ring);
+  }
+
+  /* Transitions wait for data-settled, set after the first paint. */
+  html:not([data-settled]) *,
+  html:not([data-settled]) *::before,
+  html:not([data-settled]) *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Pages swap instantly and stay clickable mid-transition; only Pebble's chat is captured and moves. */
+:root {
+  view-transition-name: none;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+/* The chat's frame grows or shrinks around its content instead of stretching it. */
+::view-transition-group(pebble-chat),
+::view-transition-group(pebble-pane) {
+  overflow: clip;
+  background-color: var(--color-surface);
+  animation-duration: 400ms;
+  animation-timing-function: var(--ease-drawer);
+}
+
+::view-transition-old(pebble-chat),
+::view-transition-new(pebble-chat),
+::view-transition-old(pebble-pane),
+::view-transition-new(pebble-pane) {
+  inline-size: auto;
+  block-size: 100%;
+}
+
+/* A fullscreen chat grows out from its center; one returning to the dock keeps the dock's left edge in view. */
+:root:active-view-transition-type(maximize)::view-transition-old(pebble-chat),
+:root:active-view-transition-type(maximize)::view-transition-new(pebble-chat) {
+  inset-inline-start: 50%;
+  translate: -50% 0;
+}
+
+::view-transition-old(pebble-chat) {
+  animation-duration: 150ms;
+}
+
+/* Opening or closing the dock or the side pane slides it in from or out to the right edge, without fading it. */
+:root:active-view-transition-type(dock)::view-transition-old(pebble-chat),
+:root:active-view-transition-type(dock)::view-transition-new(pebble-chat),
+:root:active-view-transition-type(dock)::view-transition-old(pebble-pane),
+:root:active-view-transition-type(dock)::view-transition-new(pebble-pane) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

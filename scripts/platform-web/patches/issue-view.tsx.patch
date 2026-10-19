@@ -1,0 +1,176 @@
+--- a/issue-view.tsx
++++ b/issue-view.tsx
+@@ -10,12 +10,13 @@
+   type Severity,
+ } from "@grounded-intelligence/grounded-sdk";
+ import { useParams, useRouteContext, useRouter } from "@tanstack/react-router";
+-import { Check } from "lucide-react";
+ import { useState, useTransition } from "react";
+ 
+ import { cn } from "#/ui/cn";
+ import { Tag } from "#/ui/tag";
+ import { Tooltip } from "#/ui/tooltip";
++import { AskPebbleStep } from "#src/features/issue/ask-pebble";
++import { StepLink } from "#src/features/issue/step-link";
+ 
+ export const STATE_WORDS = {
+   detected: "Detected",
+@@ -131,7 +132,7 @@
+ }
+ 
+ const PHASES = ["validate", "review", "deploy"] as const;
+-type Phase = (typeof PHASES)[number];
++export type Phase = (typeof PHASES)[number];
+ 
+ const PHASE_STEPS = {
+   validate: { word: "Validate", tip: "Confirm the Issue is real and worth fixing" },
+@@ -152,7 +153,7 @@
+     return null;
+   }
+ 
+-  const current = issue.state === "resolved" ? PHASES.length : PHASES.indexOf(getIssuePhase(issue));
++  const current = currentStep(issue, debugging);
+ 
+   return (
+     <ol aria-label="Progress" className="grid grid-cols-3 gap-2">
+@@ -160,28 +161,34 @@
+         const { word, tip } = PHASE_STEPS[phase];
+         return (
+           <li key={phase} className="flex">
+-            <Tooltip label={tip}>
++            <span
++              aria-current={at === current ? "step" : undefined}
++              className={cn(
++                "flex flex-1 flex-col gap-2 type-copy-14 motion-safe:transition-colors",
++                at === current
++                  ? "font-medium text-ink"
++                  : at < current
++                    ? "text-muted"
++                    : "text-faint",
++              )}
++            >
+               <span
+-                aria-current={at === current ? "step" : undefined}
++                aria-hidden="true"
+                 className={cn(
+-                  "flex flex-1 flex-col gap-2 type-copy-14",
+-                  at === current
+-                    ? "font-medium text-ink"
+-                    : at < current
+-                      ? "text-muted"
+-                      : "text-faint",
++                  "h-1 rounded-full motion-safe:transition-colors motion-safe:duration-300",
++                  at <= current ? "bg-accent" : "bg-divider",
+                 )}
+-              >
+-                <span
+-                  aria-hidden="true"
+-                  className={cn("h-1 rounded-full", at <= current ? "bg-accent" : "bg-divider")}
+-                />
+-                <span className="flex items-center gap-1.5">
+-                  <StepMark done={at < current} current={at === current} />
+-                  {phase === "review" && debugging ? "Debugging" : word}
+-                </span>
++              />
++              <span className="flex h-6 items-center gap-1">
++                <StepLink issue={issue} phase={phase} tip={tip}>
++                  <span className="flex items-center gap-1.5">
++                    <StepMark done={at < current} current={at === current} />
++                    {phase === "review" && debugging ? "Debugging" : word}
++                  </span>
++                </StepLink>
++                {at === current && !debugging && <AskPebbleStep issue={issue} phase={phase} />}
+               </span>
+-            </Tooltip>
++            </span>
+           </li>
+         );
+       })}
+@@ -190,26 +197,73 @@
+ }
+ 
+ function StepMark({ done, current }: { done: boolean; current: boolean }) {
+-  if (done) {
+-    return (
+-      <span className="inline-flex size-4 items-center justify-center rounded-full bg-inset text-muted">
+-        <Check aria-hidden="true" className="size-2.5" strokeWidth={3.5} />
+-      </span>
+-    );
+-  }
++  const progress = done ? "done" : current ? "current" : "todo";
++  return <ProgressMark progress={progress} className={STEP_TONES[progress]} />;
++}
+ 
++const STEP_TONES = { done: "text-muted", current: "text-accent", todo: "text-divider-strong" };
++
++// Debugging is review work, so it stays the current step.
++const currentStep = (issue: Issue, debugging: boolean) =>
++  issue.state === "resolved"
++    ? PHASES.length
++    : PHASES.indexOf(debugging ? "review" : getIssuePhase(issue));
++
++type Progress = "todo" | "current" | "done" | "dismissed";
++
++/** The stepper's glyphs in the text color: a dashed ring to do, a ring with a dot in progress, a check done, a slashed ring dismissed. */
++function ProgressMark({
++  progress,
++  className,
++}: {
++  progress: Progress;
++  className?: string | undefined;
++}) {
+   return (
+-    <span
+-      className={cn(
+-        "inline-flex size-4 items-center justify-center rounded-full",
+-        current ? "border-2 border-accent" : "border border-divider-strong",
+-      )}
++    <svg
++      viewBox="0 0 16 16"
++      aria-hidden="true"
++      fill="none"
++      stroke="currentColor"
++      className={cn("size-4 shrink-0", className)}
+     >
+-      {current && <span className="size-1.5 rounded-full bg-accent" />}
+-    </span>
++      {progress === "done" ? (
++        <>
++          <circle cx="8" cy="8" r="8" fill="currentColor" stroke="none" opacity="0.16" />
++          <path
++            d="M5 8.25 7 10.25 11 6"
++            strokeWidth="1.75"
++            strokeLinecap="round"
++            strokeLinejoin="round"
++          />
++        </>
++      ) : progress === "current" ? (
++        <>
++          <circle cx="8" cy="8" r="7" strokeWidth="2" />
++          <circle cx="8" cy="8" r="3" fill="currentColor" stroke="none" />
++        </>
++      ) : (
++        <circle cx="8" cy="8" r="7.5" strokeDasharray={progress === "todo" ? "2.5 2" : undefined} />
++      )}
++      {progress === "dismissed" && <path d="M5 11 11 5" strokeLinecap="round" />}
++    </svg>
+   );
+ }
+ 
++// each state as the stepper draws its steps, tinted in the mark alone
++const STATE_MARKS = {
++  detected: ["todo", "text-muted"],
++  reviewing: ["current", "text-accent"],
++  resolved: ["done", "text-success-ink"],
++  dismissed: ["dismissed", "text-faint"],
++} as const satisfies Record<IssueState, readonly [Progress, string]>;
++
++/** An Issue state's mark, before its word on the board's lanes, the State fact and the list. */
++export function StateMark({ state, className }: { state: IssueState; className?: string }) {
++  const [progress, tone] = STATE_MARKS[state];
++  return <ProgressMark progress={progress} className={cn(tone, className)} />;
++}
++
+ // Low, Medium and High fill 1, 2 or 3 of these bars, whose heights are in the icon's 14-unit viewBox.
+ const SEVERITY_BARS = [4, 7.5, 11];
+ const FILLED_BARS = { low: 1, medium: 2, high: 3 } as const;

@@ -1,0 +1,14 @@
+--- a/router.tsx
++++ b/router.tsx
+@@ -23,6 +23,11 @@
+         fromLocation?: ParsedLocation;
+         toLocation: ParsedLocation;
+       }): string[] | false => {
++        // An SPA's first page has no previous location, so it starts no view transition.
++        if (fromLocation === undefined) {
++          return false;
++        }
++
+         const fullscreen = (location: ParsedLocation | undefined) =>
+           location !== undefined &&
+           router.matchRoutes(location).some(({ staticData }) => staticData.fullscreen);

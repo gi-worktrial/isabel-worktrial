@@ -1,0 +1,31 @@
+--- a/github.ts
++++ b/github.ts
+@@ -1,13 +1,17 @@
+ import {
+-  type GroundedClient,
+   MANIFEST_PATH,
+   type Pin,
+   manifestSchema,
+ } from "@grounded-intelligence/grounded-sdk";
++import type { ProductClient } from "#src/queries/client";
+ import { parse, stringify } from "smol-toml";
+ import { z } from "zod";
+ 
+-import { encodeText } from "./canvas";
++function encodeText(text: string) {
++  return btoa(
++    Array.from(new TextEncoder().encode(text), (byte) => String.fromCharCode(byte)).join(""),
++  );
++}
+ 
+ export const INSTALL_STATE_KEY = "github-install-state";
+ 
+@@ -26,7 +30,7 @@
+ 
+ /** Commits `repos.toml` with each name pinned to its pin, or unpinned without one. */
+ export async function writePins(
+-  client: GroundedClient,
++  client: ProductClient,
+   manifest: Manifest,
+   changes: Record<string, Pin | undefined>,
+ ) {

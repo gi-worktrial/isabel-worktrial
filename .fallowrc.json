@@ -1,0 +1,4 @@
+{
+  "entry": ["index.html", "test/*.pw.ts", "playwright.config.ts"],
+  "ignoreExports": [{ "file": "src/platform/**", "exports": ["*"] }]
+}

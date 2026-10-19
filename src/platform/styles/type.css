@@ -1,0 +1,23 @@
+@utility type-title-18 {
+  @apply font-sans text-[18px]/[26px] font-semibold tracking-[-0.25px];
+}
+
+@utility type-heading-15 {
+  @apply font-sans text-[15px]/[22px] font-semibold tracking-[-0.15px];
+}
+
+@utility type-copy-14 {
+  @apply font-sans text-[14px]/[20px] font-normal tracking-[-0.1px];
+}
+
+@utility type-label-13 {
+  @apply font-sans text-[13px]/[20px] font-normal tracking-[-0.05px];
+}
+
+@utility type-meta-12 {
+  @apply font-sans text-[12px]/[18px] font-normal;
+}
+
+@utility type-mono-12 {
+  @apply font-mono text-[12px]/[18px] font-normal;
+}

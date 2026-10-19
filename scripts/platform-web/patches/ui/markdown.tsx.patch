@@ -1,0 +1,62 @@
+--- a/ui/markdown.tsx
++++ b/ui/markdown.tsx
+@@ -14,7 +14,11 @@
+ 
+ import { cn } from "#/ui/cn";
+ import { ApplyPrompt, remarkApplyPrompt } from "#/ui/markdown/apply-prompt";
+-import { Citation, remarkCitations } from "#/ui/markdown/citations";
++import { remarkCitations } from "#/ui/markdown/citations";
++import { Citation } from "#src/ui/citation";
++import { CodeBlock } from "#src/ui/code-block";
++import { parseRecordHref } from "#src/ui/record-href";
++import { RecordLink } from "#src/ui/record-link";
+ 
+ // Elements other than `<ApplyPrompt>` render only their children.
+ const MDX_HANDLERS = {
+@@ -54,6 +58,10 @@
+ }
+ 
+ function Link({ href, ...props }: ComponentProps<"a">) {
++  const record = href === undefined ? undefined : parseRecordHref(href, window.location.href);
++  if (record !== undefined) {
++    return <RecordLink href={href} record={record} {...props} />;
++  }
+   const external = href?.startsWith("http") === true;
+   return (
+     <a
+@@ -90,13 +98,7 @@
+       <table className="w-full border-collapse type-label-13">{children}</table>
+     </div>
+   ),
+-  pre: ({ children }: ComponentProps<"pre">) => (
+-    <pre
+-      className={`${BLOCK} overflow-x-auto rounded-xs border border-divider bg-subtle p-3 type-mono-12 text-ink [&>code]:bg-transparent [&>code]:p-0`}
+-    >
+-      {children}
+-    </pre>
+-  ),
++  pre: CodeBlock,
+   code: ({ className, children }: ComponentProps<"code">) => (
+     <code className={cn("rounded-xs bg-fill px-1 py-px type-mono-12", className)}>{children}</code>
+   ),
+@@ -107,10 +109,18 @@
+ };
+ 
+ /** Renders Markdown, or MDX without its expressions, imports, or components other than `<ApplyPrompt>`. */
+-export function Markdown({ text, mdx = false }: { text: string; mdx?: boolean }) {
++export function Markdown({
++  text,
++  mdx = false,
++  className,
++}: {
++  text: string;
++  mdx?: boolean;
++  className?: string;
++}) {
+   const Render = mdx ? RenderMdx : RenderMarkdown;
+   return (
+-    <div className="min-w-0 type-copy-14 wrap-anywhere text-ink">
++    <div className={cn("min-w-0 type-copy-14 wrap-anywhere text-ink", className)}>
+       <Render components={components}>{text}</Render>
+     </div>
+   );

@@ -1,0 +1,65 @@
+/* what the demo paints that platform's tokens.css (kept byte for byte) lacks: status words dark enough for AA on
+   their tints, one color per compared trace, one muted hue per Candidate branch, the failing-step flash, and folds
+   that grow with what opens inside them */
+
+@theme {
+  --color-success-ink: #2b7413;
+  --color-warning-ink: #8f5b00;
+  /* one color per compared trace (blue, orange, aqua), checked apart for color vision in both themes; always beside its name */
+  --color-trace-1: #2a78d6;
+  --color-trace-2: #eb6834;
+  --color-trace-3: #1baf7a;
+  /* one muted hue per Candidate branch (mauve, slate, sage, ochre, clay, rose, so the hues nearest the outcome colors
+     come last): words and icon on its tint, at AA; always with the branch icon and name */
+  --color-branch-1: #784a84;
+  --color-branch-1-tint: #efe6f1;
+  --color-branch-2: #3e5d86;
+  --color-branch-2-tint: #e5ebf3;
+  --color-branch-3: #4f6630;
+  --color-branch-3-tint: #e8eddc;
+  --color-branch-4: #7a5c1c;
+  --color-branch-4-tint: #f2eada;
+  --color-branch-5: #9c4a2b;
+  --color-branch-5-tint: #f6e6dd;
+  --color-branch-6: #9a3f5c;
+  --color-branch-6-tint: #f7e6ea;
+
+  /* backwards, so an open fold lets go of its height and grows with what opens inside it */
+  --animate-expand: expand 150ms var(--ease-out) backwards;
+  --animate-flash: flash 900ms var(--ease-out);
+}
+
+[data-theme="dark"] {
+  --color-success-ink: #4cd263;
+  --color-warning-ink: #ffc53d;
+  --color-trace-1: #3987e5;
+  --color-trace-2: #d95926;
+  --color-trace-3: #199e70;
+  --color-branch-1: #cfa3da;
+  --color-branch-1-tint: rgb(154 99 168 / 0.16);
+  --color-branch-2: #9db7dd;
+  --color-branch-2-tint: rgb(91 130 189 / 0.16);
+  --color-branch-3: #adc58a;
+  --color-branch-3-tint: rgb(122 154 76 / 0.16);
+  --color-branch-4: #d9bb7a;
+  --color-branch-4-tint: rgb(176 138 58 / 0.16);
+  --color-branch-5: #e9a283;
+  --color-branch-5-tint: rgb(198 106 68 / 0.16);
+  --color-branch-6: #e89ab0;
+  --color-branch-6-tint: rgb(208 87 122 / 0.16);
+}
+
+/* a step you jumped to, washed red and fading back */
+@keyframes flash {
+  from {
+    background-color: var(--color-danger-tint);
+  }
+}
+
+/* a list row closes up by its list's gap (--row-gap), so the rows below end where they stay */
+@keyframes row-close {
+  to {
+    height: 0;
+    margin-top: calc(-1 * var(--row-gap, 0.125rem));
+  }
+}

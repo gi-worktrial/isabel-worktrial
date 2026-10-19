@@ -1,0 +1,74 @@
+--- a/sidebar.tsx
++++ b/sidebar.tsx
+@@ -13,7 +13,7 @@
+   Wrench,
+ } from "lucide-react";
+ import { Collapsible } from "radix-ui";
+-import { type ReactElement, useState } from "react";
++import { type ReactElement, use, useState } from "react";
+ 
+ import { threadTitle, threadUsed } from "#/lib/pebble/view";
+ import { ChatRow } from "#/pebble/chat-row";
+@@ -33,6 +33,7 @@
+ import { SearchField } from "#/ui/search-field";
+ import { Skeleton } from "#/ui/skeleton";
+ import { Tooltip } from "#/ui/tooltip";
++import { SidebarExtra } from "#src/app/public";
+ 
+ const ROW =
+   "menu-item h-8 min-w-0 shrink-0 rounded-sm type-label-13 hover:before:bg-fill focus-visible:before:bg-fill focus-visible:before:outline-2 focus-visible:before:-outline-offset-2 focus-visible:before:outline-ring disabled:pointer-events-none";
+@@ -68,6 +69,13 @@
+   return useMatches({ select: (matches) => matches.some(({ staticData }) => staticData.rail) });
+ }
+ 
++// An Automation's and a run's pages sit outside /automations, so its row marks them.
++function useAutomationRecord() {
++  return useMatches({
++    select: (matches) => matches.some(({ routeId }) => /\/agents\/\$agent\/(jobs|runs)\//u.test(routeId)),
++  });
++}
++
+ type SidebarProps = {
+   orgId: string;
+   organizations: ReadonlyArray<{ id: string; name: string }>;
+@@ -97,6 +105,7 @@
+   const navigate = useNavigate();
+   const organization = organizations.find(({ id }) => id === orgId);
+   const railRoute = useRailRoute();
++  const automationRecord = useAutomationRecord();
+   const { issue } = useParams({ strict: false });
+   // A toggle holds for the Issue it was made on, or for every page outside Issues.
+   const scope = issue === undefined ? undefined : `${orgId}/${agent}/${issue}`;
+@@ -186,7 +195,13 @@
+             {PAGES.map(({ to, label, Icon }) =>
+               named(
+                 label,
+-                <Link key={to} to={to} params={{ orgId, agent }} className={PAGE}>
++                <Link
++                  key={to}
++                  to={to}
++                  params={{ orgId, agent }}
++                  aria-current={label === "Automations" && automationRecord ? "page" : undefined}
++                  className={PAGE}
++                >
+                   <Icon className="size-4 shrink-0" />
+                   <span className={labelClass}>{label}</span>
+                 </Link>,
+@@ -205,13 +220,15 @@
+         />
+       )}
+       <div className={FOOTER}>
++        {access.tenant && (
++          <div className="flex basis-full empty:hidden">{use(SidebarExtra)?.(collapsed)}</div>
++        )}
+         {access.tenant &&
+           named(
+             "Ask Pebble",
+             <button
+               type="button"
+-              aria-pressed={pebbleOpen}
+-              disabled={fullscreen}
++              aria-pressed={pebbleOpen || fullscreen}
+               onClick={onPebble}
+               className={cn(
+                 ROW,

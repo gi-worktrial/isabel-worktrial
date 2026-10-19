@@ -1,0 +1,55 @@
+--- a/routes/$orgId/chat/index.tsx
++++ b/routes/$orgId/chat/index.tsx
+@@ -1,11 +1,8 @@
+-import { useSuspenseQuery } from "@tanstack/react-query";
+-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
++import { createFileRoute, redirect } from "@tanstack/react-router";
+ 
+ import { threadUsed } from "#/lib/pebble/view";
+-import { getActiveAgent } from "#/last-visited-agent";
+-import { useAgentRepo, useCreateThread } from "#/pebble/threads";
+-import { shellQuery, threadsQuery } from "#/queries";
+-import { Button } from "#/ui/button";
++import { threadsQuery } from "#/queries";
++import { MainView } from "#src/features/pebble/main-view";
+ 
+ export const Route = createFileRoute("/$orgId/chat/")({
+   staticData: { fullscreen: true },
+@@ -16,36 +13,5 @@
+       throw redirect({ to: "/$orgId/chat/$thread", params: { orgId, thread: thread.id } });
+     }
+   },
+-  component: NoChats,
++  component: MainView,
+ });
+-
+-function NoChats() {
+-  const { orgId } = Route.useParams();
+-  const { access } = Route.useRouteContext();
+-  const { agents } = useSuspenseQuery(shellQuery({ orgId, tenant: access.tenant })).data;
+-  const repo = useAgentRepo(getActiveAgent(orgId, agents));
+-  const create = useCreateThread();
+-  const navigate = useNavigate();
+-
+-  return (
+-    <div className="flex h-full flex-col items-center justify-center gap-3">
+-      <p className="type-copy-14 text-muted">No chats yet.</p>
+-      <Button
+-        disabled={create.isPending}
+-        onClick={() =>
+-          create.mutate(repo, {
+-            onSuccess: ({ id }) =>
+-              void navigate({ to: "/$orgId/chat/$thread", params: { orgId, thread: id } }),
+-          })
+-        }
+-      >
+-        Start a chat
+-      </Button>
+-      {create.error && (
+-        <p role="alert" className="type-label-13 text-danger">
+-          {create.error.message}
+-        </p>
+-      )}
+-    </div>
+-  );
+-}

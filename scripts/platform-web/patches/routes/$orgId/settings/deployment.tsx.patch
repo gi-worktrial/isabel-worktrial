@@ -1,0 +1,49 @@
+--- a/routes/$orgId/settings/deployment.tsx
++++ b/routes/$orgId/settings/deployment.tsx
+@@ -11,22 +11,41 @@
+ import { Button } from "#/ui/button";
+ import { FieldGroup } from "#/ui/field";
+ import { crumbs } from "#/crumbs";
++import { EmptyState } from "#/ui/empty-state";
++import { SettingsPage } from "#src/features/settings/settings-page";
+ 
+ export const Route = createFileRoute("/$orgId/settings/deployment")({
+   validateSearch: usageRangeSchema,
+   loaderDeps: ({ search }) => search,
+-  loader: async ({ context: { queryClient }, params, deps }) => {
+-    await queryClient.ensureQueryData(
+-      deploymentQuery({ ...params, start: deps.start, end: deps.end }),
+-    );
++  loader: async ({ context: { queryClient, access }, params, deps }) => {
++    // a link to it reaches a viewer who isn't an operator, who sees the refusal rather than a failed read
++    if (access.operator) {
++      await queryClient.ensureQueryData(
++        deploymentQuery({ ...params, start: deps.start, end: deps.end }),
++      );
++    }
+     return crumbs(
+       { label: "Settings", to: "/$orgId/settings" },
+       { label: "Deployment", to: "/$orgId/settings/deployment" },
+     );
+   },
+-  component: Deployment,
++  component: DeploymentPage,
+ });
+ 
++function DeploymentPage() {
++  const { access } = Route.useRouteContext();
++  return access.operator ? (
++    <Deployment />
++  ) : (
++    <SettingsPage title="Deployment">
++      <EmptyState
++        title="Only operators see Deployment"
++        description="The data plane's operators manage its shared models and usage here."
++      />
++    </SettingsPage>
++  );
++}
++
+ function Deployment() {
+   const { client } = Route.useRouteContext();
+   const { orgId } = Route.useParams();

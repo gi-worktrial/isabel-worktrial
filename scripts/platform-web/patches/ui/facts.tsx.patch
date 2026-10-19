@@ -1,0 +1,24 @@
+--- a/ui/facts.tsx
++++ b/ui/facts.tsx
+@@ -15,7 +15,7 @@
+     <dl
+       role="group"
+       aria-label={label}
+-      className={cn("flex min-w-0 flex-wrap gap-x-8 gap-y-3", className)}
++      className={cn("flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2", className)}
+     >
+       {children}
+     </dl>
+@@ -24,9 +24,9 @@
+ 
+ export function Fact({ label, children }: { label: string; children: ReactNode }) {
+   return (
+-    <div role="group" aria-label={label} className="flex min-w-0 flex-col gap-1">
+-      <dt className="type-meta-12 font-medium text-muted">{label}</dt>
+-      <dd className="flex h-5 min-w-0 items-center gap-2 type-label-13 whitespace-nowrap text-ink tabular-nums">
++    <div role="group" aria-label={label} className="flex h-6 min-w-0 items-center gap-2">
++      <dt className="type-meta-12 whitespace-nowrap text-muted">{label}</dt>
++      <dd className="flex min-w-0 items-center gap-2 type-label-13 whitespace-nowrap text-ink tabular-nums">
+         {children}
+       </dd>
+     </div>

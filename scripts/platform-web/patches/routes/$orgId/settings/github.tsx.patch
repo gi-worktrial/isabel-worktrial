@@ -1,0 +1,60 @@
+--- a/routes/$orgId/settings/github.tsx
++++ b/routes/$orgId/settings/github.tsx
+@@ -13,6 +13,8 @@
+ import { Skeleton } from "#/ui/skeleton";
+ import { Tag } from "#/ui/tag";
+ import { crumbs } from "#/crumbs";
++import { Locked, SettingsPage } from "#src/features/settings/settings-page";
++import { SETTINGS_LOCKS } from "#src/queries/client";
+ 
+ export const Route = createFileRoute("/$orgId/settings/github")({
+   loader: async ({ context: { queryClient }, params }) => {
+@@ -35,19 +37,19 @@
+   const installations = useSuspenseQuery(installationsQuery({ orgId })).data;
+ 
+   return (
++    <SettingsPage title="GitHub">
+     <section className="flex flex-col gap-3">
+       <div className="flex items-start justify-between gap-4">
+-        <div className="flex flex-col">
+-          <h2 className="type-heading-15 text-[16px]/[24px] text-ink">GitHub</h2>
+           <p className="type-copy-14 text-muted">
+             Agents can check out repositories from these connections. Their code stays on GitHub.
+           </p>
+-        </div>
+         {access.admin && (
++          <Locked reason={SETTINGS_LOCKS.github}>
+           <Button size="small" onClick={() => installApp(app.html_url, orgId)}>
+             <Plus className="size-4" />
+             Add connection
+           </Button>
++          </Locked>
+         )}
+       </div>
+       {installations.length === 0 ? (
+@@ -63,6 +65,7 @@
+         ))
+       )}
+     </section>
++    </SettingsPage>
+   );
+ }
+ 
+@@ -83,7 +86,7 @@
+           href={html_url}
+           target="_blank"
+           rel="noreferrer"
+-          className={buttonVariants({ variant: "outline", size: "small" })}
++          className={buttonVariants({ size: "small" })}
+         >
+           Manage on GitHub
+           <ArrowUpRight className="size-4" />
+@@ -97,7 +100,7 @@
+           onChange={setQuery}
+         />
+       </div>
+-      <ul className="max-h-80 divide-y divide-divider overflow-y-auto border-t border-divider">
++      <ul className="max-h-80 overflow-y-auto pb-1">
+         {shown.map(({ full_name, html_url: url, private: isPrivate }) => (
+           <li key={full_name} className="flex items-center gap-2.5 px-3 py-2">
+             <GitHubMark className="text-muted" />

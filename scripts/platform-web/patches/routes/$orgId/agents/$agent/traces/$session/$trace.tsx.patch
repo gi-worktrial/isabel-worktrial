@@ -1,0 +1,111 @@
+--- a/routes/$orgId/agents/$agent/traces/$session/$trace.tsx
++++ b/routes/$orgId/agents/$agent/traces/$session/$trace.tsx
+@@ -1,5 +1,5 @@
+ import {
+-  FAIL_LABEL,
++  type Annotation,
+   type Message,
+   type Span,
+   getGradeCriterion,
+@@ -12,7 +12,8 @@
+ import { z } from "zod";
+ 
+ import { crumbs } from "#/crumbs";
+-import { type Grade, GradeRow, TextStep, ToolCall, gradeKey, sessionTitle } from "#/trace-view";
++import { type Grade, GradeRow, TextStep, ToolCall, gradeKey } from "#/trace-view";
++import { sessionTitle } from "#/titles";
+ import {
+   KIND_ICONS,
+   SpanBar,
+@@ -26,11 +27,18 @@
+   toolLabel,
+ } from "#/traces";
+ import { Fact, Facts } from "#/ui/facts";
+-import { formatDuration } from "#/ui/format";
++import { formatDuration } from "#src/features/traces/duration";
+ import { Markdown } from "#/ui/markdown";
+ import { SearchField } from "#/ui/search-field";
+ import { Tag } from "#/ui/tag";
+ import { Timestamp } from "#/ui/timestamp";
++import { crumbTitle, turnCrumb } from "#src/features/traces/crumbs";
++import {
++  SpanTurnHeader,
++  spanFailures,
++  spanNotes,
++} from "#src/features/traces/span-page";
++import { StepNotes } from "#src/features/traces/transcript";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/$trace")({
+   validateSearch: z.object({ span: z.string().optional() }),
+@@ -41,9 +49,9 @@
+     ]);
+     return crumbs(
+       { label: "Traces", to: "/$orgId/agents/$agent/traces" },
+-      { label: sessionTitle(page.session), to: "/$orgId/agents/$agent/traces/$session" },
++      { label: crumbTitle(sessionTitle(page.session)), to: "/$orgId/agents/$agent/traces/$session" },
+       {
+-        label: `Trace ${params.trace.slice(0, 8)}`,
++        label: turnCrumb(page.turns, params.trace),
+         to: "/$orgId/agents/$agent/traces/$session/$trace",
+       },
+     );
+@@ -66,14 +74,13 @@
+     const span_id = annotation.span_id || (root?.span_id ?? "");
+     return criterion === undefined ? [] : [{ ...annotation, span_id, criterion, step: undefined }];
+   });
+-  const failed = new Set(
+-    grades.flatMap((grade) => (grade.label === FAIL_LABEL ? [grade.span_id] : [])),
+-  );
++  const failed = spanFailures(annotations, spans);
+ 
+   return (
+-    <article aria-label="Spans" className="flex min-h-0 flex-col gap-4">
++    <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
++      <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
+       <SpanTimeline traces={[spans]} failed={failed} selected={selected?.span_id} onPick={pick} />
+-      <div className="grid min-h-0 grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)] gap-6">
++      <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
+         <ol aria-label="Span tree" className="flex min-w-0 flex-col">
+           {rows.map(({ span, depth }) => {
+             const Icon = KIND_ICONS[spanKind(span)];
+@@ -109,6 +116,7 @@
+             key={selected.span_id}
+             span={selected}
+             grades={grades.filter(({ span_id }) => span_id === selected.span_id)}
++            notes={spanNotes(annotations, selected, spans)}
+           />
+         )}
+       </div>
+@@ -124,7 +132,15 @@
+   "gen_ai.tool.call.result",
+ ]);
+ 
+-function SpanDetails({ span, grades }: { span: Span; grades: Grade[] }) {
++function SpanDetails({
++  span,
++  grades,
++  notes,
++}: {
++  span: Span;
++  grades: Grade[];
++  notes: Annotation[];
++}) {
+   const error = spanError(span);
+   const messages = [
+     ...spanMessages(span, "gen_ai.input.messages"),
+@@ -144,14 +160,13 @@
+             <Timestamp at={span.started_at} />
+           </Fact>
+           <Fact label="Duration">{formatDuration(span.duration_ns)}</Fact>
+-          <Fact label="Kind">{span.kind}</Fact>
+-          <Fact label="Status">{span.status_code}</Fact>
+         </Facts>
+         {error !== undefined && (
+           <p className="max-w-reading rounded-xs bg-danger-tint px-3 py-2 type-label-13 text-danger">
+             {error}
+           </p>
+         )}
++        <StepNotes step={span.span_id} name={spanLabel(span)} notes={notes} />
+       </header>
+       {grades.length > 0 && (
+         <Section title="Grades">

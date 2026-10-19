@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.tsbuildinfo
+test-results/
+.DS_Store
+.env
+.env.local
+.fallow/
+.dev.vars
+.wrangler/
+
+# TanStack router generation cache
+.tanstack/
+
+# role and name baseline the names journey writes, which carries demo-data records
+test/names/

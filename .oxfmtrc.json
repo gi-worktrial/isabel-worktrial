@@ -1,0 +1,6 @@
+{
+  "printWidth": 100,
+  "quoteProps": "consistent",
+  "sortImports": true,
+  "ignorePatterns": ["test/datasets/**", "src/sdk/**", "src/platform/**", "docs/design-spec.md"]
+}

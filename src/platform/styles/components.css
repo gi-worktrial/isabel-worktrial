@@ -1,0 +1,346 @@
+@utility field-control {
+  min-height: 32px;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--color-fill);
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-ink);
+
+  &::placeholder {
+    color: var(--color-faint);
+  }
+  &:hover:not(:disabled) {
+    background: var(--color-inset);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 0;
+  }
+  &:disabled {
+    color: var(--color-faint);
+  }
+}
+
+/* The box behind the checked segment, which slides to the next one. */
+@utility slider {
+  position: relative;
+  isolation: isolate;
+  anchor-scope: --pick;
+
+  & > [aria-checked="true"] {
+    anchor-name: --pick;
+  }
+  &::before {
+    content: "";
+    position: absolute;
+    position-anchor: --pick;
+    inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
+    z-index: -1;
+    border-radius: var(--radius-xs);
+    background: var(--slide-fill, var(--color-inset));
+    transition: inset 130ms var(--ease-out);
+  }
+  @supports not (anchor-name: --pick) {
+    & > [aria-checked="true"] {
+      background: var(--slide-fill, var(--color-inset));
+    }
+  }
+}
+
+@utility float-layer {
+  border: 1px solid var(--color-divider);
+  background: var(--color-overlay);
+  box-shadow: var(--shadow-float);
+  [data-theme="dark"] & {
+    border-color: var(--color-divider-strong);
+  }
+}
+
+/* Menus open above dialogs (z-40), so a select inside one stays clickable. */
+@utility menu-panel {
+  @apply float-layer;
+  z-index: 50;
+  border-radius: var(--radius-sm);
+  padding-block: 4px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-ink);
+  outline: none;
+  transform-origin: top;
+  --pop-y: -4px;
+
+  &[data-side="top"] {
+    transform-origin: bottom;
+    --pop-y: 4px;
+  }
+  &:is([data-side="left"], [data-side="right"]) {
+    --pop-y: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    &[data-state="open"] {
+      animation: var(--animate-pop-in);
+    }
+    &[data-state="closed"] {
+      animation: var(--animate-pop-out);
+    }
+  }
+}
+
+@utility menu-item {
+  --menu-item-inset: 4px;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 28px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 var(--menu-item-inset);
+    z-index: -1;
+    border-radius: var(--menu-item-radius, var(--radius-xs));
+  }
+  &:is([data-highlighted], [aria-selected="true"])::before {
+    background: var(--color-fill);
+  }
+  /* cmdk writes data-disabled="false" on enabled rows. */
+  &:is([data-disabled]:not([data-disabled="false"]), [aria-disabled="true"]) {
+    cursor: default;
+    color: var(--color-faint);
+  }
+}
+
+@utility menu-selector {
+  & .menu-item {
+    --menu-item-radius: var(--radius-control);
+  }
+  & .menu-item::before {
+    transition: background-color 150ms var(--ease-out);
+  }
+  & .menu-item[data-state="checked"] {
+    color: var(--color-accent-ink);
+  }
+  & .menu-item[data-state="checked"]::before {
+    background: var(--color-accent-tint);
+  }
+  & .menu-item[data-state="checked"] .text-muted {
+    color: var(--color-accent);
+  }
+  & .menu-item[data-state="checked"] + button[aria-haspopup="menu"] {
+    color: var(--color-accent-ink);
+
+    &:is(:hover, [data-state="open"]) {
+      background-color: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    }
+  }
+}
+
+@utility menu-selector-trigger {
+  & > svg {
+    @media (prefers-reduced-motion: no-preference) {
+      transition: transform 150ms var(--ease-out);
+    }
+  }
+  &[data-state="open"] > svg {
+    transform: rotate(180deg);
+  }
+}
+
+@utility card {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+/* Controls (nav) tint their label too, rows only their fill. */
+@utility selected {
+  background: var(--color-selection);
+  color: var(--color-accent-ink);
+}
+
+@utility row-selected {
+  background: var(--color-selection);
+}
+
+/* The focus ring drawn inside, for rows a scroller would clip. */
+@utility focus-inset {
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+/* A row's actions show only while it is hovered or focused. */
+@utility record-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-ink);
+
+  & thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  & thead th {
+    height: 36px;
+    padding: 0 var(--cell-x, 12px);
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--table-head, var(--color-surface));
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  & td {
+    height: 36px;
+    padding: 0 var(--cell-x, 12px);
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  & [colspan] {
+    max-width: 0;
+  }
+  & tbody th {
+    padding: 0;
+    text-align: left;
+    font-weight: inherit;
+  }
+  & tbody tr:has(.row-action):is(:hover, :focus-within) {
+    background: var(--color-subtle);
+  }
+  /* As specific as the hover rule above, so a selected row keeps its fill while hovered or focused. */
+  & tbody tr[data-selected="true"]:is(:hover, *) {
+    @apply row-selected;
+  }
+  & tr:has(.row-action) {
+    position: relative;
+    isolation: isolate;
+    cursor: pointer;
+  }
+  & tr:has(.row-action) :is(a, button, [role="switch"], [data-state]):not(.row-action) {
+    position: relative;
+    z-index: 2;
+  }
+  & td.row-actions {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  & td.row-actions > * {
+    opacity: 0;
+  }
+  & tr:is(:hover, :focus-within) > td.row-actions > * {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    & td.row-actions > * {
+      opacity: 1;
+    }
+  }
+}
+
+/* A row's opening control stretches over the row, and other controls stay above it. */
+@utility row-action {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  &:focus-visible {
+    outline: none;
+  }
+  &:focus-visible::after {
+    outline: 2px solid var(--color-ring);
+    outline-offset: -2px;
+  }
+}
+
+@utility shimmer {
+  background: linear-gradient(
+      90deg,
+      var(--color-muted) 40%,
+      var(--color-ink) 50%,
+      var(--color-muted) 60%
+    )
+    0 0 / 300% 100%;
+  background-clip: text;
+  color: transparent;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: shimmer 1.8s linear infinite;
+  }
+}
+/* A live dot's slow ring in its own color, kept under reduced motion. */
+@utility breathe {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 999px;
+    background: inherit;
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    &::after {
+      animation: breathe 2s ease-in-out infinite;
+    }
+  }
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* Fumadocs Editor's tokens, set to ours so Canvas's editor matches the rendered notes. */
+@utility document-editor {
+  --fde-background: var(--color-surface);
+  --fde-foreground: var(--color-ink);
+  --fde-muted: var(--color-subtle);
+  --fde-muted-foreground: var(--color-muted);
+  --fde-popover: var(--color-overlay);
+  --fde-popover-foreground: var(--color-ink);
+  --fde-card: var(--color-subtle);
+  --fde-card-foreground: var(--color-ink);
+  --fde-border: var(--color-divider);
+  --fde-primary: var(--color-primary);
+  --fde-primary-foreground: var(--color-on-primary);
+  --fde-secondary: var(--color-fill);
+  --fde-secondary-foreground: var(--color-ink);
+  --fde-accent: var(--color-inset);
+  --fde-accent-foreground: var(--color-ink);
+  --fde-ring: var(--color-ring);
+  --fde-font-size: 14px;
+
+  & h1 {
+    @apply type-title-18!;
+  }
+
+  & :is(h2, h3, h4) {
+    @apply type-heading-15!;
+  }
+}

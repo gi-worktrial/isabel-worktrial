@@ -1,0 +1,54 @@
+--- a/routes/$orgId/settings/members.tsx
++++ b/routes/$orgId/settings/members.tsx
+@@ -7,6 +7,8 @@
+ import { FieldGroup } from "#/ui/field";
+ import { Input } from "#/ui/input";
+ import { crumbs } from "#/crumbs";
++import { Locked, SettingsPage } from "#src/features/settings/settings-page";
++import { SETTINGS_LOCKS } from "#src/queries/client";
+ 
+ export const Route = createFileRoute("/$orgId/settings/members")({
+   loader: async ({ context: { queryClient }, params }) => {
+@@ -60,15 +62,16 @@
+   }
+ 
+   return (
+-    <div className="flex flex-col gap-10">
+-      <FieldGroup title="Members">
++    <SettingsPage title="Members">
++      <section aria-label="Members" className="flex flex-col gap-3">
++        <Locked reason={SETTINGS_LOCKS.members}>
+         <div className="card overflow-clip">
+           <table className="record-table">
+             <tbody>
+               {page.members.map(({ membershipId, name, email, role, self }) => (
+                 <tr key={membershipId}>
+                   <td>{name}</td>
+-                  <td>{email}</td>
++                  <td className="@max-lg:hidden">{email}</td>
+                   <td>
+                     <select
+                       className="field-control w-auto"
+@@ -105,9 +108,11 @@
+             </tbody>
+           </table>
+         </div>
+-      </FieldGroup>
++        </Locked>
++      </section>
+ 
+       <FieldGroup title="Invitations">
++        <Locked reason={SETTINGS_LOCKS.invitations}>
+         <ul className="flex flex-col gap-2">
+           {page.invitations.map(({ id, email, expiresAt }) => (
+             <li key={id}>
+@@ -129,7 +134,8 @@
+           </select>
+           <Button type="submit">Invite</Button>
+         </form>
++        </Locked>
+       </FieldGroup>
+-    </div>
++    </SettingsPage>
+   );
+ }

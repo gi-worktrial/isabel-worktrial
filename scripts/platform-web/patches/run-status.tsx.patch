@@ -1,0 +1,13 @@
+--- a/run-status.tsx
++++ b/run-status.tsx
+@@ -7,7 +7,9 @@
+     return <Tag>Queued</Tag>;
+   }
+   if (run.status === "in_progress") {
+-    return <Tag>{run.cancel_requested_at === null ? "Running" : "Cancelling"}</Tag>;
++    return (
++      <Tag tone="accent">{run.cancel_requested_at === null ? "Running" : "Cancelling"}</Tag>
++    );
+   }
+ 
+   return run.conclusion === "success" ? (

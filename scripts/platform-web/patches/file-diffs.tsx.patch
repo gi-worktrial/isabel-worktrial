@@ -1,0 +1,55 @@
+--- a/file-diffs.tsx
++++ b/file-diffs.tsx
+@@ -5,6 +5,9 @@
+ 
+ import { EmptyState } from "#/ui/empty-state";
+ import { useTheme } from "#/ui/theme";
++import { FileFold } from "#src/features/candidates/file-fold";
++import { LineCounts } from "#src/ui/file-name";
++import { LinesSkeleton } from "#src/ui/skeleton";
+ 
+ export const THEME = { light: "pierre-light", dark: "pierre-dark" } as const;
+ 
+@@ -24,28 +27,19 @@
+   ].join("\n");
+ 
+ /** Changed files, one unified diff each. */
+-export function FileDiffs({ files }: { files: readonly PullFile[] }) {
++export function FileDiffs({ files, empty = "This Candidate doesn't change any files yet." }: { files: readonly PullFile[]; empty?: string }) {
+   if (files.length === 0) {
+-    return (
+-      <div className="card overflow-clip">
+-        <EmptyState title="No changes" description="This Candidate doesn't change any files yet." />
+-      </div>
+-    );
++    return <EmptyState title="No changes" description={empty} />;
+   }
+ 
+-  return files.map((file) => (
+-    <section key={file.filename} aria-label={file.filename} className="card overflow-clip">
+-      <header className="flex items-center gap-3 border-b border-divider px-3 py-2">
+-        <span className="min-w-0 flex-1 truncate type-mono-12 text-ink">{file.filename}</span>
+-        <span className="type-mono-12 text-success">+{file.additions}</span>
+-        <span className="type-mono-12 text-danger">−{file.deletions}</span>
+-      </header>
++  return files.map((file, index) => (
++    <FileFold key={file.filename} path={file.filename} defaultOpen={index === 0} meta={<LineCounts added={file.additions} removed={file.deletions} className="type-mono-12" />}>
+       {file.patch === undefined ? (
+         <p className="px-3 py-2 type-meta-12 text-muted">No text diff for this file.</p>
+       ) : (
+         <PatchView patch={filePatch(file)} />
+       )}
+-    </section>
++    </FileFold>
+   ));
+ }
+ 
+@@ -53,7 +47,7 @@
+ export function PatchView({ patch }: { patch: string }) {
+   const theme = useTheme();
+   return (
+-    <Suspense>
++    <Suspense fallback={<LinesSkeleton lines={4} label="Loading diff" className="p-3" />}>
+       <HighlightedPatchDiff
+         patch={patch}
+         options={{

@@ -1,0 +1,24 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue/index.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue/index.tsx
+@@ -3,6 +3,7 @@
+ 
+ import { EmptyState } from "#/ui/empty-state";
+ import { Markdown } from "#/ui/markdown";
++import { IssueAtAGlance } from "#src/features/issue/at-a-glance";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/")({
+   component: IssueOverview,
+@@ -20,5 +21,12 @@
+     );
+   }
+ 
+-  return <Markdown text={body} mdx />;
++  return (
++    <div className="flex flex-col gap-8">
++      <section aria-label="Issue overview" className="max-w-reading">
++        <Markdown text={body} mdx />
++      </section>
++      <IssueAtAGlance />
++    </div>
++  );
+ }

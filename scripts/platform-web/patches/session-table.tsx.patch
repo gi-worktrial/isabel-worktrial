@@ -1,0 +1,131 @@
+--- a/session-table.tsx
++++ b/session-table.tsx
+@@ -2,14 +2,16 @@
+ import { Link, useLocation } from "@tanstack/react-router";
+ import { SESSION_PAGE_SIZE } from "#/queries";
+ import { ChevronLeft, ChevronRight } from "lucide-react";
+-import { type ReactNode, useEffect, useRef } from "react";
++import { type ReactNode, useEffect, useRef, useState } from "react";
+ 
+ import { isPlainKey } from "./shortcuts";
+ import { GradeTally, OutcomeTag, issuesOf, sessionTitle } from "./trace-view";
++import { IssueLinks } from "./evals";
+ import { PageLink } from "#/ui/page-link";
+ import { Tag } from "#/ui/tag";
+-import { Timestamp } from "#/ui/timestamp";
+ import { Tooltip } from "#/ui/tooltip";
++import { PeekRow, onPeekKey } from "#src/features/traces/peek";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ const compact = new Intl.NumberFormat("en", { notation: "compact" });
+ 
+@@ -60,6 +62,8 @@
+   const href = useLocation({ select: (location) => location.href });
+   const list = { href, sessions: page.sessions.map(({ session_id }) => session_id) };
+   const rows = useRef<HTMLTableSectionElement>(null);
++  const [peek, setPeek] = useState<string>();
++  const errors = page.sessions.some((session) => session.errors > 0);
+ 
+   // ↓ from the page focuses the first row, and in the table ↑ and ↓ move between rows, which Enter opens.
+   useEffect(() => {
+@@ -77,21 +81,27 @@
+   return (
+     <div className="flex min-w-0 flex-1 flex-col gap-3">
+       <div className="card overflow-clip">
+-        <table className="record-table">
++        <table aria-label="Traces" className="record-table">
+           <thead>
+             <tr>
++              <th aria-label="Peek" className="@max-lg:hidden" />
+               <th className="w-full">First message</th>
+-              {source === "eval" ? <th>Grades</th> : <th className="text-right">Turns</th>}
++              {source === "eval" ? (
++                <th className="@max-lg:hidden">Grades</th>
++              ) : (
++                <th className="@max-lg:hidden">Turns</th>
++              )}
+               <th>Outcome</th>
+-              {source === "production" && <th>Issues</th>}
+-              <th className="text-right">Errors</th>
+-              <th className="text-right">Tokens</th>
+-              <th className="text-right">Time</th>
++              {source === "production" && <th className="@max-2xl:hidden">Issues</th>}
++              <th className={errors ? "@max-lg:hidden" : "hidden"}>Errors</th>
++              <th className="@max-2xl:hidden">Tokens</th>
++              <th>Time</th>
+             </tr>
+           </thead>
+           <tbody
+             ref={rows}
+             onKeyDown={(event) => {
++              onPeekKey(event, setPeek);
+               const step = event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
+               if (step === 0 || !isPlainKey(event.nativeEvent)) {
+                 return;
+@@ -110,46 +120,53 @@
+             }}
+           >
+             {page.sessions.map((session) => (
+-              <tr key={session.session_id}>
++              <PeekRow
++                key={session.session_id}
++                params={{ orgId, agent }}
++                session={session}
++                peek={peek}
++                onPeek={setPeek}
++              >
+                 <td className="max-w-0 text-ink">
+                   <Link
+                     to="/$orgId/agents/$agent/traces/$session"
+                     params={{ orgId, agent, session: session.session_id }}
+                     state={{ list }}
+                     className="row-action block truncate"
++                    title={sessionTitle(session)}
+                   >
+                     {sessionTitle(session)}
+                   </Link>
+                 </td>
+                 {source === "eval" ? (
+-                  <td>
++                  <td className="@max-lg:hidden">
+                     <GradeTally annotations={session.annotations} />
+                   </td>
+                 ) : (
+-                  <td className="text-right tabular-nums">{session.turns}</td>
++                  <td className="tabular-nums @max-lg:hidden">{session.turns}</td>
+                 )}
+                 <td>
+                   <OutcomeTag annotations={session.annotations} />
+                 </td>
+                 {source === "production" && (
+-                  <td>
++                  <td className="@max-2xl:hidden">
+                     <span className="flex gap-1">
+-                      {issuesOf(session.annotations).map((issue) => (
+-                        <Tag key={issue}>{issue}</Tag>
+-                      ))}
++                      <IssueLinks orgId={orgId} agent={agent} issues={issuesOf(session.annotations)} />
+                     </span>
+                   </td>
+                 )}
+-                <td className="text-right">
++                <td className={errors ? "@max-lg:hidden" : "hidden"}>
+                   {session.errors > 0 && <Tag tone="danger">{session.errors}</Tag>}
+                 </td>
+-                <td className="text-right whitespace-nowrap text-muted tabular-nums">
+-                  <TokenCount input={session.input_tokens} output={session.output_tokens} />
++                <td className="whitespace-nowrap tabular-nums @max-2xl:hidden">
++                  <Tag>
++                    <TokenCount input={session.input_tokens} output={session.output_tokens} />
++                  </Tag>
+                 </td>
+-                <td className="text-right text-muted">
+-                  <Timestamp at={session.last_turn_at} />
++                <td className="whitespace-nowrap tabular-nums">
++                  <TimeTag at={session.last_turn_at} />
+                 </td>
+-              </tr>
++              </PeekRow>
+             ))}
+           </tbody>
+         </table>

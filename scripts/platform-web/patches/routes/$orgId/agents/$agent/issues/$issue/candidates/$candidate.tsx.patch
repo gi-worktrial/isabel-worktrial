@@ -1,0 +1,98 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue/candidates/$candidate.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue/candidates/$candidate.tsx
+@@ -4,17 +4,19 @@
+ import { Link, createFileRoute } from "@tanstack/react-router";
+ 
+ import { useIssue, useIssueChange } from "../../../../../../../issue-view";
+-import {
+-  CandidateActions,
+-  CandidateNotFound,
+-  CandidateResultTags,
+-  CandidateStatusTag,
+-} from "#/candidate-results";
+-import { Button, buttonVariants } from "#/ui/button";
+-import { FileDiffs } from "#/file-diffs";
+-import { Markdown } from "#/ui/markdown";
++import { CandidateActions, CandidateNotFound, CandidateStatusTag } from "#/candidate-results";
++import { buttonVariants } from "#/ui/button";
+ import { Tag } from "#/ui/tag";
+ import { crumbs } from "#/crumbs";
++import { ApproveDialog } from "#src/features/candidates/approval";
++import { CandidateBranch } from "#src/features/candidates/branches";
++import {
++  CandidateActionsEnd,
++  CandidateBody,
++  FixCard,
++  debugVariant,
++} from "#src/features/candidates/candidate-page";
++import { EvalResults } from "#src/features/candidates/proofs-view";
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/candidates/$candidate")({
+   loader: async ({ context: { queryClient }, params }) => {
+@@ -37,14 +39,14 @@
+     <section aria-label={candidate.title} className="flex flex-col gap-4">
+       <h2 className="flex min-w-0 items-center gap-2 type-heading-15 text-ink">
+         <span className="min-w-0 truncate">{candidate.title}</span>
+-        <Tag title={candidate.head_sha}>{candidate.head_sha.slice(0, 7)}</Tag>
++        <CandidateBranch candidate={candidate} />
+         <CandidateStatusTag candidate={candidate} />
+         {candidate.recommended !== undefined && (
+           <Tag tone="accent" title={candidate.recommended}>
+             Recommended
+           </Tag>
+         )}
+-        <span className="ml-auto flex shrink-0 items-center gap-2">
++        <CandidateActionsEnd>
+           <CandidateActions agent={agent} candidate={candidate} />
+           {canApprove(issue.state, candidate.results) && (
+             <ApproveButton issue={issue} candidate={candidate} />
+@@ -52,26 +54,15 @@
+           <Link
+             to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
+             params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
+-            className={buttonVariants({ variant: "outline" })}
++            className={buttonVariants({ variant: debugVariant(issue.state, candidate.results) })}
+           >
+             Debug
+           </Link>
+-        </span>
++        </CandidateActionsEnd>
+       </h2>
+-      <span className="flex items-center gap-2">
+-        <CandidateResultTags results={candidate.results} />
+-        {candidate.results !== undefined && (
+-          <Link
+-            to="/$orgId/agents/$agent/runs/$run"
+-            params={{ orgId, agent, run: candidate.results.run.id }}
+-            className="rounded-xs type-label-13 font-medium text-accent-ink hover:underline"
+-          >
+-            Eval run
+-          </Link>
+-        )}
+-      </span>
+-      <Markdown text={candidate.body} mdx />
+-      <FileDiffs files={candidate.files} />
++      <EvalResults candidate={candidate} />
++      <CandidateBody body={candidate.body} />
++      <FixCard files={candidate.files} />
+     </section>
+   );
+ }
+@@ -90,12 +81,12 @@
+           {error}
+         </span>
+       )}
+-      <Button
++      <ApproveDialog
++        candidate={candidate}
++        variant={issue.approved === undefined ? "primary" : "secondary"}
+         disabled={pending}
+-        onClick={() => change({ action: "approve", candidate: candidate.id })}
+-      >
+-        Approve
+-      </Button>
++        onApprove={() => change({ action: "approve", candidate: candidate.id })}
++      />
+     </span>
+   );
+ }

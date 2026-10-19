@@ -1,0 +1,33 @@
+/* platform's sheets, kept byte for byte in src/platform/styles, then what the product adds on top of them, the way
+   tokens-demo.css adds to platform's tokens */
+@import "../platform/styles/global.css";
+@import "./tokens-demo.css";
+/* platform's sheet scans src/platform, and our modules sit beside it */
+@source "../**/*.{ts,tsx}";
+
+/* a field's inline inset on the 4px grid; 6px centres the 20px line in the 32px row */
+@utility field-control {
+  padding: 6px 12px;
+}
+
+/* an inline link in accent ink, underlined on hover; the type and weight come from where it sits */
+@utility inline-link {
+  border-radius: var(--radius-xs);
+  color: var(--color-accent-ink);
+
+  &:hover {
+    text-decoration-line: underline;
+  }
+}
+
+/* a panel on the left keeps the chat's right edge on the panel's moving edge, so it slides rather than wipes */
+:root:active-view-transition-type(dock-left)::view-transition-old(pebble-chat),
+:root:active-view-transition-type(dock-left)::view-transition-new(pebble-chat) {
+  inset-inline: auto 0;
+}
+
+/* a platform record table's card is its size container, so a call site hides a low-priority column in a narrow table
+   with `@max-2xl:hidden` (below 42rem) or `@max-lg:hidden` (below 32rem); a card that fits its table sizes to it */
+.card:not(.w-fit):has(> .record-table) {
+  container-type: inline-size;
+}

@@ -1,0 +1,83 @@
+--- a/automations.tsx
++++ b/automations.tsx
+@@ -6,13 +6,14 @@
+ import { describeSchedule, shortSchedule } from "./cron";
+ import { automationsQuery, RUNS_PAGE_SIZE, runsKey } from "./queries";
+ import { RunStatusTag } from "./run-status";
++import { jobTitle } from "./titles";
+ import { Button, IconButton } from "#/ui/button";
+ import { PageLink } from "#/ui/page-link";
+ import { EmptyState } from "#/ui/empty-state";
+ import { formatDuration } from "#/ui/format";
+ import { Tag } from "#/ui/tag";
+-import { Timestamp } from "#/ui/timestamp";
+ import { Tooltip } from "#/ui/tooltip";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ type ActiveJob = Extract<Job, { state: "active" }>;
+ type Params = { orgId: string; agent: string };
+@@ -26,8 +27,7 @@
+   schedule: "Schedule",
+ };
+ 
+-export const jobTitle = (job: Job) =>
+-  (job.state === "active" ? job.display_name : null) ?? job.name;
++export { jobTitle };
+ 
+ const TRIGGERS = ["schedule", "push", "pull_request", "workflow_dispatch"] as const;
+ 
+@@ -176,15 +176,15 @@
+ 
+   return (
+     <div className="card overflow-clip">
+-      <table className="record-table">
++      <table aria-label="Runs" className="record-table">
+         <thead>
+           <tr>
+             <th className="w-full">{jobs ? "Automation" : "Run"}</th>
+-            <th>Trigger</th>
+-            <th>Ref</th>
++            <th className="@max-lg:hidden">Trigger</th>
++            <th className="@max-2xl:hidden">Ref</th>
+             <th>{live ? "Progress" : "Result"}</th>
+-            <th className="text-right">Started</th>
+-            {!live && <th className="text-right">Duration</th>}
++            <th>Started</th>
++            {!live && <th className="@max-lg:hidden">Duration</th>}
+           </tr>
+         </thead>
+         <tbody>
+@@ -199,13 +199,13 @@
+                   {jobs ? title(run) : run.id.slice(0, 8)}
+                 </Link>
+               </td>
+-              <td className="text-muted">{RUN_TRIGGER_LABELS[run.trigger]}</td>
+-              <td>
++              <td className="text-muted @max-lg:hidden">{RUN_TRIGGER_LABELS[run.trigger]}</td>
++              <td className="@max-2xl:hidden">
+                 <Tooltip label={run.sha}>
+                   <Tag tabIndex={0}>{run.ref.replace(/^refs\/heads\//, "")}</Tag>
+                 </Tooltip>
+               </td>
+-              <td className={live ? "max-w-96" : undefined}>
++              <td className={live ? "max-w-96 @max-2xl:max-w-40" : undefined}>
+                 {live ? (
+                   <span className="flex min-w-0 items-center gap-2">
+                     <RunStatusTag run={run} />
+@@ -215,12 +215,12 @@
+                   <RunStatusTag run={run} />
+                 )}
+               </td>
+-              <td className="text-right text-muted">
+-                <Timestamp at={run.created_at} />
++              <td className="whitespace-nowrap">
++                <TimeTag at={run.created_at} short />
+               </td>
+               {!live && (
+-                <td className="text-right text-muted tabular-nums">
+-                  <RunDuration run={run} />
++                <td className="whitespace-nowrap tabular-nums @max-lg:hidden">
++                  <Tag><RunDuration run={run} /></Tag>
+                 </td>
+               )}
+             </tr>

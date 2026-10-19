@@ -1,0 +1,103 @@
+--- a/routes/$orgId/agents/$agent/runs/$run.tsx
++++ b/routes/$orgId/agents/$agent/runs/$run.tsx
+@@ -9,8 +9,10 @@
+ import { automationsQuery, runQuery, runsKey, stepLogQuery } from "#/queries";
+ import { Link, createFileRoute, useRouteContext } from "@tanstack/react-router";
+ import { Circle, CircleCheck, CircleMinus, CircleStop, CircleX, LoaderCircle } from "lucide-react";
++import { z } from "zod";
+ 
+-import { jobTitle, RunDuration, RUN_TRIGGER_LABELS } from "../../../../../automations";
++import { RunDuration, RUN_TRIGGER_LABELS } from "../../../../../automations";
++import { jobTitle } from "#/titles";
+ import { RunStatusTag } from "#/run-status";
+ import { Button } from "#/ui/button";
+ import { GradeTally, OutcomeTag } from "#/trace-view";
+@@ -19,13 +21,18 @@
+ import { Fact, Facts } from "#/ui/facts";
+ import { Tag } from "#/ui/tag";
+ import { Tooltip } from "#/ui/tooltip";
+-import { Timestamp } from "#/ui/timestamp";
+ import { type Crumb, crumbs } from "#/crumbs";
++import { usePebblePage } from "#src/features/pebble/page";
++import { RunTrials, runPebblePage } from "#src/features/traces/run-pages";
++import { TRIALS_SEARCH } from "#src/features/traces/search";
++import { LinesSkeleton } from "#src/ui/skeleton";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ type Params = { orgId: string; agent: string; run: string };
+ type Step = JobRun["steps"][number];
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/runs/$run")({
++  validateSearch: z.object(TRIALS_SEARCH),
+   loader: async ({ context: { queryClient }, params }) => {
+     const [{ run }, automations] = await Promise.all([
+       queryClient.ensureQueryData(runQuery(params)),
+@@ -49,6 +56,7 @@
+ function RunPage() {
+   const params = Route.useParams();
+   const { run, output } = useSuspenseQuery(runQuery(params)).data;
++  usePebblePage(...runPebblePage(run, output));
+ 
+   return (
+     <article aria-label="Run" className="flex flex-col gap-4">
+@@ -68,11 +76,11 @@
+             </Tooltip>
+           </Fact>
+           <Fact label="Started">
+-            <Timestamp at={run.created_at} />
++            <TimeTag at={run.created_at} />
+           </Fact>
+           {run.completed_at !== null && (
+             <Fact label="Duration">
+-              <RunDuration run={run} />
++              <Tag><RunDuration run={run} /></Tag>
+             </Fact>
+           )}
+           {run.dry_run && (
+@@ -177,6 +185,9 @@
+ function StepLog({ params, step }: { params: Params; step: Step }) {
+   const log = useQuery({ ...stepLogQuery({ ...params, step }), placeholderData: keepPreviousData });
+   const text = log.data?.text;
++  if (text === undefined && log.error === null) {
++    return <LinesSkeleton label={`Loading ${step.name} log`} className="p-2" />;
++  }
+ 
+   return (
+     <pre
+@@ -185,8 +196,6 @@
+     >
+       {log.error !== null ? (
+         <span className="text-danger">{log.error.message}</span>
+-      ) : text === undefined ? (
+-        <span className="text-muted">Loading…</span>
+       ) : text === "" ? (
+         <span className="text-muted">No output</span>
+       ) : (
+@@ -202,6 +211,7 @@
+   return (
+     <section aria-label="Eval results" className="flex flex-col gap-2">
+       <h2 className="type-heading-15 text-ink">Eval results</h2>
++      <RunTrials params={params} results={results} />
+       <div className="card overflow-clip">
+         <table className="record-table">
+           <thead>
+@@ -209,7 +219,7 @@
+               <th className="w-full">Eval</th>
+               <th>Grades</th>
+               <th>Outcome</th>
+-              <th className="text-right">Time</th>
++              <th>Time</th>
+             </tr>
+           </thead>
+           <tbody>
+@@ -231,8 +241,8 @@
+                   <td>
+                     <OutcomeTag annotations={trial.annotations} />
+                   </td>
+-                  <td className="text-right text-muted">
+-                    <Timestamp at={trial.started_at} />
++                  <td className="whitespace-nowrap">
++                    <TimeTag at={trial.started_at} />
+                   </td>
+                 </tr>
+               )),

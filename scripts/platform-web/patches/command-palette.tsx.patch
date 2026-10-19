@@ -1,0 +1,35 @@
+--- a/command-palette.tsx
++++ b/command-palette.tsx
+@@ -14,6 +14,7 @@
+ import { Kbd } from "#/ui/kbd";
+ import { PebbleMark } from "#/ui/marks";
+ import { setTheme, useTheme } from "#/ui/theme";
++import { paletteGroups } from "#src/ui/palette-groups";
+ 
+ type CommandPaletteProps = {
+   orgId: string;
+@@ -134,7 +135,7 @@
+           {onPebble !== undefined && (
+             <PaletteItem
+               value="Ask Pebble"
+-              icon={<PebbleMark size={16} />}
++              icon={<PebbleMark />}
+               shortcut={chord("J")}
+               onSelect={run(onPebble)}
+             />
+@@ -151,6 +152,15 @@
+             onSelect={run(onShortcuts)}
+           />
+         </CommandPrimitive.Group>
++        {paletteGroups()
++          .filter((group) => search !== "" || group.searchOnly !== true)
++          .map(({ heading, items }) => (
++            <CommandPrimitive.Group key={heading} heading={heading}>
++              {items.map(({ onSelect, ...item }) => (
++                <PaletteItem key={item.value} {...item} onSelect={run(onSelect)} />
++              ))}
++            </CommandPrimitive.Group>
++          ))}
+         {search !== "" && (
+           <CommandPrimitive.Group heading="Traces" forceMount>
+             <PaletteItem

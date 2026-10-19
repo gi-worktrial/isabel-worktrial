@@ -1,0 +1,55 @@
+--- a/routes/$orgId/agents/$agent/evals/$eval/runs.tsx
++++ b/routes/$orgId/agents/$agent/evals/$eval/runs.tsx
+@@ -5,6 +5,8 @@
+ 
+ import { SessionTable } from "../../../../../../session-table";
+ import { EmptyState } from "#/ui/empty-state";
++import { EvalRunTrials } from "#src/features/traces/run-pages";
++import { TRIALS_SEARCH } from "#src/features/traces/search";
+ 
+ const runsQuery = (orgId: string, agent: string, id: string, afters: string[] | undefined) =>
+   sessionsQuery({
+@@ -17,7 +19,7 @@
+   });
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/evals/$eval/runs")({
+-  validateSearch: z.object({ afters: z.array(z.string()).optional() }),
++  validateSearch: z.object({ afters: z.array(z.string()).optional(), ...TRIALS_SEARCH }),
+   loaderDeps: ({ search }) => search,
+   loader: ({ context: { queryClient }, params, deps }) =>
+     queryClient.ensureQueryData(runsQuery(params.orgId, params.agent, params.eval, deps.afters)),
+@@ -30,18 +32,21 @@
+   const page = useSuspenseQuery(runsQuery(orgId, agent, id, afters)).data;
+ 
+   return (
+-    <SessionTable
+-      orgId={orgId}
+-      agent={agent}
+-      page={page}
+-      source="eval"
+-      afters={afters}
+-      empty={
+-        <EmptyState
+-          title="No runs yet"
+-          description="Trials show here once grounded/run-evals runs this Eval."
+-        />
+-      }
+-    />
++    <div className="flex flex-col gap-4">
++      <EvalRunTrials params={{ orgId, agent, eval: id }} sessions={page.sessions} />
++      <SessionTable
++        orgId={orgId}
++        agent={agent}
++        page={page}
++        source="eval"
++        afters={afters}
++        empty={
++          <EmptyState
++            title="No runs yet"
++            description="Trials show here once grounded/run-evals runs this Eval."
++          />
++        }
++      />
++    </div>
+   );
+ }

@@ -1,0 +1,178 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "unicorn", "oxc", "import", "promise", "node"],
+  "jsPlugins": [
+    "./scripts/oxlint-plugin-repo.mjs",
+    { "name": "react-doctor", "specifier": "oxlint-plugin-react-doctor" }
+  ],
+  "env": { "browser": true, "es2022": true },
+  "categories": { "correctness": "error", "suspicious": "error" },
+  "rules": {
+    "no-console": "error",
+    "eqeqeq": "error",
+    "curly": "error",
+    "no-throw-literal": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "typescript/no-explicit-any": "error",
+    "typescript/array-type": ["error", { "default": "array-simple" }],
+    "typescript/consistent-type-imports": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    "unicorn/custom-error-definition": "error",
+    "unicorn/no-array-for-each": "error",
+    "unicorn/no-array-sort": "error",
+    "import/no-default-export": "error",
+    "import/no-mutable-exports": "error",
+    "import/no-relative-parent-imports": "error",
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/jsx-key": "error",
+    "react/forward-ref-uses-ref": "error",
+    "react/no-array-index-key": "error",
+    "react/no-unstable-nested-components": "error",
+    // the automatic jsx runtime needs no React in scope
+    "react/react-in-jsx-scope": "off",
+    "react/refs": "off",
+    "react/immutability": "off",
+    "react/set-state-in-effect": "off",
+    "react/exhaustive-effect-dependencies": "off",
+    "react-doctor/no-derived-state-effect": "error",
+    "react-doctor/no-mirror-prop-effect": "error",
+    "react-doctor/no-adjust-state-on-prop-change": "error",
+    "react-doctor/no-effect-event-handler": "error",
+    "react-doctor/no-effect-event-in-deps": "error",
+    "react-doctor/no-nested-component-definition": "error",
+    "react-doctor/no-fetch-in-effect": "error",
+    "react-doctor/no-set-state-after-await-in-effect": "error",
+    "react-doctor/effect-needs-cleanup": "error",
+    "react-doctor/effect-listener-cleanup-mismatch": "error",
+    "react-doctor/effect-observer-needs-disconnect": "error",
+    "react-doctor/client-passive-event-listeners": "error",
+    "react-doctor/async-parallel": "error",
+    "react-doctor/async-await-in-loop": "error",
+    "react-doctor/no-transition-all": "error",
+    "react-doctor/no-layout-property-animation": "error",
+    "react-doctor/no-document-start-view-transition": "error",
+    "react-doctor/rendering-conditional-render": "error",
+    "react-doctor/no-ref-current-in-render": "error",
+    "repo/layers": "error",
+    "repo/no-enum": "error",
+    "repo/no-typographic-punctuation": "error",
+    // static checks for the grounded-design skill
+    "repo/colour-tokens-only": "error",
+    "repo/colour-no-purple": "error",
+    "repo/colour-one-primary": "warn",
+    "repo/colour-focus-quiet": "warn",
+    "repo/type-named-by-size": "error",
+    "repo/type-no-mono-heading": "error",
+    "repo/type-bold-titles-only": "warn",
+    "repo/type-heading-scale": "error",
+    "repo/type-known-token": "error",
+    "repo/theme-light-default": "error",
+    "repo/layout-spacing-scale": "error",
+    "repo/layout-shadow-floats-only": "warn",
+    "repo/layout-rounded-not-square": "warn",
+    "repo/motion-no-transition-all": "error",
+    "repo/controls-pickers-are-select": "error",
+    "repo/controls-icon-button-label": "error",
+    "repo/selection-no-ink-border": "error",
+    "repo/sections-flat-disclosure": "warn",
+    "repo/persistence-browser-storage-only": "error",
+    "promise/always-return": "off"
+  },
+  "ignorePatterns": ["node_modules/**", "dist/**", "src/platform/routeTree.gen.ts"],
+  "overrides": [
+    {
+      // the only cross-repo static import is the browser-compatible generic test fixture built by demo-data
+      "files": ["test/tiny-seed.ts"],
+      "rules": { "import/no-relative-parent-imports": "off" }
+    },
+    {
+      // the product libraries platform takes as libs import each other by relative path, as its libs do
+      "files": ["src/sdk/**"],
+      "rules": { "import/no-relative-parent-imports": "off" }
+    },
+    {
+      // platform's grounded-sdk files, kept byte for byte, follow platform's lint
+      "files": ["src/sdk/**"],
+      "rules": { "typescript/array-type": "off", "unicorn/no-array-sort": "off" }
+    },
+    {
+      // loaders that demand a default export
+      "files": [
+        "vite.config.ts",
+        "src/demo/worker/index.ts",
+        "playwright.config.ts",
+        "scripts/oxlint-plugin-repo.mjs"
+      ],
+      "rules": { "import/no-default-export": "off" }
+    },
+    {
+      // TanStack Router names a route's file for its path, whose params are camelCase as platform's web has them
+      "files": ["src/platform/routes/**"],
+      "rules": { "unicorn/filename-case": "off" }
+    },
+    {
+      // platform's web files, kept byte for byte or with a recorded patch, follow platform's lint (docs/plan.md)
+      "files": ["src/platform/**"],
+      "rules": {
+        "repo/layout-spacing-scale": "off",
+        "import/no-relative-parent-imports": "off",
+        "typescript/array-type": "off",
+        "unicorn/no-array-sort": "off",
+        "no-shadow": "off",
+        "react/no-array-index-key": "off",
+        "react/exhaustive-deps": "off",
+        "react-doctor/async-await-in-loop": "off",
+        "preserve-caught-error": "off",
+        "repo/controls-pickers-are-select": "off",
+        "repo/persistence-browser-storage-only": "off",
+        "unicorn/consistent-function-scoping": "off",
+        "repo/colour-tokens-only": "off",
+        "repo/type-heading-scale": "off",
+        "react/rules-of-hooks": "off",
+        "repo/layout-rounded-not-square": "off",
+        "unicorn/no-array-reverse": "off",
+        "unicorn/no-array-for-each": "off",
+        "react/no-children-prop": "off",
+        "react/no-unstable-nested-components": "off",
+        "repo/no-typographic-punctuation": "off",
+        "react/memo-dependencies": "off",
+        "import/no-empty-named-blocks": "off",
+        "unicorn/require-module-specifiers": "off",
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      // the app's stylesheet and font imports, and the Canvas editor's stylesheet
+      "files": ["src/app/app.tsx", "src/platform/document-editor.tsx"],
+      "rules": { "import/no-unassigned-import": "off" }
+    },
+    {
+      "files": ["**/*.test.ts", "test/**"],
+      "plugins": ["vitest"],
+      "env": { "node": true },
+      "rules": {
+        "vitest/no-focused-tests": "error",
+        "vitest/no-identical-title": "error",
+        "vitest/valid-expect": ["error", { "maxArgs": 2 }],
+        "vitest/require-to-throw-message": "off"
+      }
+    },
+    {
+      "files": ["scripts/**"],
+      "env": { "node": true }
+    }
+  ]
+}

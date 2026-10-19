@@ -1,0 +1,71 @@
+--- a/routes/$orgId/agents/$agent/issues/$issue/activity.tsx
++++ b/routes/$orgId/agents/$agent/issues/$issue/activity.tsx
+@@ -1,21 +1,9 @@
+ import { useSuspenseQuery } from "@tanstack/react-query";
+ import { issueEventsQuery } from "#/queries";
+-import type { IssueEvent, IssueState } from "@grounded-intelligence/grounded-sdk";
+ import { createFileRoute } from "@tanstack/react-router";
+ 
+-import { STATE_WORDS } from "../../../../../../issue-view";
+-import { EmptyState } from "#/ui/empty-state";
+-import { formatDay, formatExact, formatTime } from "#/ui/format";
+-import { Tag } from "#/ui/tag";
+-import { Tooltip } from "#/ui/tooltip";
++import { ActivityLog } from "#src/features/issue/activity-log";
+ 
+-const STATE_TONES: Record<IssueState, "neutral" | "accent" | "success"> = {
+-  detected: "neutral",
+-  reviewing: "accent",
+-  resolved: "success",
+-  dismissed: "neutral",
+-};
+-
+ export const Route = createFileRoute("/$orgId/agents/$agent/issues/$issue/activity")({
+   loader: ({ context: { queryClient }, params }) =>
+     queryClient.ensureQueryData(issueEventsQuery(params)),
+@@ -24,44 +12,5 @@
+ 
+ function IssueActivity() {
+   const { events, names } = useSuspenseQuery(issueEventsQuery(Route.useParams())).data;
+-  if (events.length === 0) {
+-    return <EmptyState title="No activity yet" />;
+-  }
+-
+-  const days = new Map<string, IssueEvent[]>();
+-  for (const event of events) {
+-    const day = formatDay(event.at);
+-    days.set(day, [...(days.get(day) ?? []), event]);
+-  }
+-
+-  return (
+-    <div className="flex flex-col gap-6">
+-      {[...days].map(([day, rows]) => (
+-        <section key={day} aria-label={day} className="flex flex-col gap-1">
+-          <h2 className="type-meta-12 font-medium text-muted">{day}</h2>
+-          <ol className="flex flex-col divide-y divide-divider">
+-            {rows.map((event) => (
+-              <li key={event.sha} className="flex h-10 items-center gap-3 type-label-13">
+-                <span className="min-w-0 flex-1 truncate text-ink" title={event.subject}>
+-                  {event.subject}
+-                </span>
+-                {event.state !== undefined && (
+-                  <Tag tone={STATE_TONES[event.state]}>{STATE_WORDS[event.state]}</Tag>
+-                )}
+-                <span className="shrink-0 text-muted">
+-                  {names[event.author] ?? event.author}
+-                  {event.via !== undefined && ` via ${event.via}`}
+-                </span>
+-                <Tooltip label={formatExact(event.at)}>
+-                  <time dateTime={event.at} className="shrink-0 text-muted tabular-nums">
+-                    {formatTime(event.at)}
+-                  </time>
+-                </Tooltip>
+-              </li>
+-            ))}
+-          </ol>
+-        </section>
+-      ))}
+-    </div>
+-  );
++  return <ActivityLog events={events} names={names} />;
+ }

@@ -1,0 +1,11 @@
+--- a/routes/$orgId/chat/$thread.tsx
++++ b/routes/$orgId/chat/$thread.tsx
+@@ -54,7 +54,7 @@
+       <Panel id="chat" minSize={PANEL_MIN_SIZE}>
+         <section
+           aria-label="Pebble"
+-          className="flex h-full flex-col bg-surface [--chat-width:var(--container-3xl)] [view-transition-name:pebble-chat]"
++          className="flex h-full flex-col bg-surface [--chat-width:var(--container-reading)] [view-transition-name:pebble-chat]"
+         >
+           <OutPortal node={chat} />
+         </section>

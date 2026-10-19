@@ -1,0 +1,18 @@
+--- a/ui/markdown/apply-prompt.tsx
++++ b/ui/markdown/apply-prompt.tsx
+@@ -48,12 +48,12 @@
+ 
+ export function ApplyPrompt({ prompt, children }: { prompt: string; children?: ReactNode }) {
+   return (
+-    <div className="my-2 rounded-xs border border-divider first:mt-0 last:mb-0">
+-      <div className="flex h-9 items-center justify-between border-b border-divider pr-2 pl-3">
++    <div className="my-2 rounded-xs bg-subtle first:mt-0 last:mb-0">
++      <div className="flex h-9 items-center justify-between pr-2 pl-3">
+         <span className="type-label-13 font-semibold text-ink">Apply prompt</span>
+         <CopyButton text={prompt} label="Copy prompt" />
+       </div>
+-      <div className="p-3">{children}</div>
++      <div className="px-3 pb-3">{children}</div>
+     </div>
+   );
+ }

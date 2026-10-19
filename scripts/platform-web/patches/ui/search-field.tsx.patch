@@ -1,0 +1,53 @@
+--- a/ui/search-field.tsx
++++ b/ui/search-field.tsx
+@@ -1,5 +1,5 @@
+ import { Search, X } from "lucide-react";
+-import { useEffect, useRef, useState } from "react";
++import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from "react";
+ 
+ import { cn } from "#/ui/cn";
+ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "#/ui/input-group";
+@@ -12,16 +12,22 @@
+   placeholder,
+   value,
+   onChange,
++  onKeyDown,
+   onEscape,
+   autoFocus,
++  controls,
++  debounce = DEBOUNCE_MS,
+   className,
+ }: {
+   label: string;
+   placeholder: string;
+   value: string;
+   onChange(value: string): void;
++  onKeyDown?: ((event: ReactKeyboardEvent<HTMLInputElement>) => void) | undefined;
+   onEscape?: (() => void) | undefined;
+   autoFocus?: boolean | undefined;
++  controls?: string | undefined;
++  debounce?: number;
+   className?: string;
+ }) {
+   const input = useRef<HTMLInputElement>(null);
+@@ -71,8 +77,9 @@
+         placeholder={placeholder}
+         value={draft}
+         autoFocus={autoFocus}
+-        onChange={(event) => change(event.target.value, DEBOUNCE_MS)}
++        onChange={(event) => change(event.target.value, debounce)}
+         onKeyDown={(event) => {
++          onKeyDown?.(event);
+           if (event.key !== "Escape" || event.nativeEvent.isComposing) {
+             return;
+           }
+@@ -84,6 +91,9 @@
+             change("", 0);
+           }
+         }}
++        {...(controls === undefined
++          ? {}
++          : { role: "combobox", "aria-controls": controls, "aria-expanded": true })}
+         className="p-0"
+       />
+       <InputGroupAddon className="p-0">

@@ -1,0 +1,463 @@
+--- a/trace-view.tsx
++++ b/trace-view.tsx
+@@ -1,6 +1,5 @@
+ import {
+   type Annotation,
+-  type SessionSummary,
+   type TracePage,
+   type Span,
+   type Turn,
+@@ -12,13 +11,12 @@
+   spanChildren,
+   spanMessages,
+ } from "@grounded-intelligence/grounded-sdk";
+-import { Link, useParams } from "@tanstack/react-router";
++import { Link } from "@tanstack/react-router";
+ import { ArrowDown, ArrowUpRight, Check, Minus, X } from "lucide-react";
+ import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
+ import { z } from "zod";
+ 
+ import {
+-  SpanTimeline,
+   counted,
+   inputPreview,
+   flatFields,
+@@ -33,18 +31,27 @@
+ import { cn } from "#/ui/cn";
+ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/ui/collapsible";
+ import { CopyButton } from "#/ui/copy-button";
+-import { flat, formatDuration } from "#/ui/format";
++import { flat } from "#/ui/format";
+ import { Markdown } from "#/ui/markdown";
+ import { Tag } from "#/ui/tag";
+ import { Tooltip } from "#/ui/tooltip";
++import { formatDuration } from "#src/features/traces/duration";
++import { TurnsTimeline } from "#src/features/traces/timeline";
++import { type PartName, PartMark, SPANS_LINK, TurnNumber } from "#src/features/traces/turn-row";
++import {
++  ExpandAll,
++  StepNotes,
++  StepPlace,
++  citationSources,
++  openAt,
++  useSessionParams,
++} from "#src/features/traces/transcript";
++import { CitationSources } from "#src/ui/citation";
+ 
+ type Label = { name: string; label: string };
+ export type Grade = Annotation & { criterion: string; step: string | undefined };
+ 
+-/** A session's first input on one line, or its ID when the agent doesn't export content. */
+-export function sessionTitle(session: SessionSummary) {
+-  return flat(messageText(session.first_input)) || session.session_id;
+-}
++export { sessionTitle } from "#/titles";
+ 
+ /** A trace's input on one line, or its ID when the agent doesn't export content. */
+ export function traceTitle(trace: TracePage["traces"][number]) {
+@@ -84,7 +91,7 @@
+   }
+ 
+   return (
+-    <Tag tone={passed === graded.length ? "success" : "danger"}>
++    <Tag tone={passed === graded.length ? "neutral" : "danger"}>
+       {passed}/{graded.length}
+     </Tag>
+   );
+@@ -95,9 +102,12 @@
+ /** A session's Grades split into dimensions (grades with others nested under them) and criteria, failures first. */
+ export function sessionGrades(annotations: readonly Annotation[], turns: readonly Turn[]) {
+   const views = turns.map(turnSpans);
++  const failing = failingSteps(views, annotations);
+   const grades: Grade[] = annotations.flatMap((annotation) => {
+     const criterion = getGradeCriterion(annotation);
+-    const step = views.map((view) => annotatedStep(view, annotation)).find(Boolean);
++    const step =
++      views.map((view) => annotatedStep(view, annotation)).find(Boolean) ??
++      failingStep(failing, annotation);
+     return criterion === undefined ? [] : [{ ...annotation, criterion, step }];
+   });
+   const isDimension = ({ criterion }: Grade) =>
+@@ -138,10 +148,10 @@
+   ),
+ ];
+ 
+-const operation = (span: Span) => span.attributes["gen_ai.operation.name"];
++export const operation = (span: Span) => span.attributes["gen_ai.operation.name"];
+ 
+ /** A turn's root, its spans by parent, the span holding its reply, and its top-level steps. */
+-function turnSpans(turn: Turn) {
++export function turnSpans(turn: Turn) {
+   const root = turn.spans.find((span) => span.parent_span_id === "");
+   const children = spanChildren(turn.spans);
+   // Spans whose parent wasn't exported sit under "" next to the root.
+@@ -154,40 +164,55 @@
+   return { turn, root, children, topLevel, reply, prompt };
+ }
+ 
+-type TurnSpans = ReturnType<typeof turnSpans>;
++export type TurnSpans = ReturnType<typeof turnSpans>;
+ 
+-const outputText = (span: Span) => messageText(spanMessages(span, "gen_ai.output.messages"));
++export const outputText = (span: Span) => messageText(spanMessages(span, "gen_ai.output.messages"));
+ 
+ const isFailing = (turn: Turn) => turn.annotations.some(({ label }) => label === FAIL_LABEL);
+ 
++/** Each turn's failing parts by its trace, none for a passing turn. */
++export function failingSteps(views: readonly TurnSpans[], annotations: readonly Annotation[]) {
++  return new Map(
++    views.map((view) => [
++      view.turn.trace_id,
++      isFailing(view.turn) ? failingParts(view, annotations) : [],
++    ]),
++  );
++}
++
++/** A failing annotation without a step of its own at its turn's first failing part, or the session's when it grades the session. */
++function failingStep(
++  failing: ReadonlyMap<string, readonly string[]>,
++  { label, trace_id }: Label & { trace_id: string },
++) {
++  const parts =
++    trace_id === "" ? [...failing.values()].find((each) => each.length > 0) : failing.get(trace_id);
++  return label === FAIL_LABEL ? parts?.[0] : undefined;
++}
++
+ /** A session's turns under a timeline, with failing steps marked in red and each step's reasoning under it. */
+ export function TraceTurns({
+   annotations,
+   turns,
++  step,
+ }: {
+   annotations: readonly Annotation[];
+   turns: readonly Turn[];
++  step?: string | undefined;
+ }) {
+   const list = useRef<HTMLOListElement>(null);
+   const views = turns.map(turnSpans);
+   const { criteria } = sessionGrades(annotations, turns);
+-  const failing = new Map(
+-    views.map((view) => [
+-      view.turn.trace_id,
+-      isFailing(view.turn) ? failingParts(view, annotations) : [],
+-    ]),
+-  );
++  const failing = failingSteps(views, annotations);
+   const failures = [...failing.values()].flat();
+   const marked = new Set(failures);
+   const notes = stepNotes(views, annotations, failing);
+-  const [opened, setOpened] = useState(
+-    () => new Set(views.slice(0, 1).map(({ turn }) => turn.trace_id)),
+-  );
++  const [opened, setOpened] = useState(() => openAt(turns, step));
+   const [failureAt, setFailureAt] = useState<number>();
+ 
+   // `count` changes on every pick, so re-picking the same step still scrolls to it
+   // and remounts it (via `key`), reopening it if the user collapsed it.
+-  const [picked, setPicked] = useState<{ id: string; count: number }>();
++  const [picked, setPicked] = useState(step === undefined ? undefined : { id: step, count: 1 });
+   const pick = (id: string) => {
+     const view = views.find(
+       ({ turn }) => turn.trace_id === id || turn.spans.some((span) => span.span_id === id),
+@@ -215,14 +240,15 @@
+   }, [picked]);
+ 
+   return (
+-    <>
++    <CitationSources value={citationSources(turns, pick)}>
+       {criteria.length > 0 && <Grades grades={criteria} onPick={pick} />}
+       <section aria-label="Turns" className="flex flex-col gap-2">
+         <div className="sticky top-0 z-[1] flex items-start gap-3 border-b border-divider bg-surface py-3">
+           <div className="min-w-0 flex-1">
+-            <SpanTimeline
+-              traces={views.map(({ turn }) => turn.spans)}
++            <TurnsTimeline
++              turns={turns}
+               failed={marked}
++              open={opened}
+               onPick={(span) => {
+                 const view = views.find(({ turn }) => turn.spans.includes(span));
+                 if (view) {
+@@ -231,7 +257,7 @@
+               }}
+             />
+           </div>
+-          {failures.length > 0 && (
++          {failures.length > 1 && (
+             <Button variant="quiet" size="small" onClick={nextFailure} className="-my-2">
+               <ArrowDown aria-hidden="true" className="size-3.5" />
+               Next failure
+@@ -242,6 +268,7 @@
+               )}
+             </Button>
+           )}
++          <ExpandAll turns={turns} opened={opened} onOpen={setOpened} />
+         </div>
+         <ol ref={list} className="flex flex-col gap-1">
+           {views.map((view) => (
+@@ -252,6 +279,7 @@
+               className="flex flex-col"
+             >
+               <Collapsible
++                className="group/turn -mx-2 rounded-sm px-2 hover:bg-subtle data-[state=open]:bg-subtle data-[state=open]:pb-3"
+                 open={opened.has(view.turn.trace_id)}
+                 onOpenChange={(open) =>
+                   setOpened((current) =>
+@@ -262,20 +290,25 @@
+                 }
+               >
+                 <div className="flex items-center gap-2">
+-                  <CollapsibleTrigger className="mr-0 flex-1">
+-                    <span className="shrink-0 type-label-13 font-semibold text-ink tabular-nums">
+-                      Turn {view.turn.position}
+-                    </span>
+-                    {isFailing(view.turn) && <Tag tone="danger">Failed</Tag>}
+-                    <span className="min-w-0 flex-1 truncate type-label-13 text-muted group-aria-expanded/expand:invisible">
++                  <CollapsibleTrigger className="mr-0 h-auto min-h-7 flex-1 py-1">
++                    <TurnNumber turn={view.turn} />
++                    <span className="min-w-0 flex-1 truncate type-copy-14 font-medium text-ink group-aria-expanded/expand:whitespace-normal">
+                       {flat(view.prompt)}
+                     </span>
++                    {isFailing(view.turn) && <Tag tone="danger">Failed</Tag>}
+                     <span className="shrink-0 type-meta-12 text-muted tabular-nums">
+                       {formatDuration(view.turn.duration_ns)}
+                     </span>
+                   </CollapsibleTrigger>
+-                  <SpanPageLink trace={view.turn.trace_id} className="shrink-0">
++                  <SpanPageLink
++                    trace={view.turn.trace_id}
++                    className={cn(
++                      SPANS_LINK,
++                      "opacity-0 group-hover/turn:opacity-100 group-data-[state=open]/turn:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100",
++                    )}
++                  >
+                     Spans
++                    <ArrowUpRight aria-hidden="true" className="size-3.5" />
+                   </SpanPageLink>
+                 </div>
+                 <CollapsibleContent className="pl-5.5">
+@@ -286,7 +319,7 @@
+           ))}
+         </ol>
+       </section>
+-    </>
++    </CitationSources>
+   );
+ }
+ 
+@@ -302,7 +335,7 @@
+ }
+ 
+ /** Annotations with reasoning by the step they name; a failing turn's unplaced failures go under its first failing step. */
+-function stepNotes(
++export function stepNotes(
+   views: readonly TurnSpans[],
+   annotations: readonly Annotation[],
+   failing: ReadonlyMap<string, readonly string[]>,
+@@ -310,12 +343,7 @@
+   const notes = new Map<string, Annotation[]>();
+   for (const annotation of annotations) {
+     const view = views.find(({ turn }) => turn.trace_id === annotation.trace_id);
+-    const step =
+-      view &&
+-      (annotatedStep(view, annotation) ??
+-        (annotation.label === FAIL_LABEL && getGradeCriterion(annotation) === undefined
+-          ? failing.get(view.turn.trace_id)?.[0]
+-          : undefined));
++    const step = (view && annotatedStep(view, annotation)) ?? failingStep(failing, annotation);
+     if (step !== undefined && annotation.explanation) {
+       notes.set(step, [...(notes.get(step) ?? []), annotation]);
+     }
+@@ -323,7 +351,7 @@
+   return notes;
+ }
+ 
+-function SpanPageLink({
++export function SpanPageLink({
+   trace,
+   span,
+   label,
+@@ -336,7 +364,7 @@
+   className?: string;
+   children: ReactNode;
+ }) {
+-  const params = useParams({ from: "/$orgId/agents/$agent/traces/$session/" });
++  const params = useSessionParams();
+   return (
+     <Link
+       to="/$orgId/agents/$agent/traces/$session/$trace"
+@@ -367,7 +395,7 @@
+ }
+ 
+ const MARKS = {
+-  [PASS_LABEL]: { Mark: Check, tone: "text-success", word: "Passed" },
++  [PASS_LABEL]: { Mark: Check, tone: "text-muted", word: "Passed" },
+   [FAIL_LABEL]: { Mark: X, tone: "text-danger", word: "Failed" },
+   score: { Mark: Minus, tone: "text-muted", word: "Scored" },
+ };
+@@ -396,7 +424,7 @@
+   const { Mark, tone, word } =
+     MARKS[grade.label === PASS_LABEL || grade.label === FAIL_LABEL ? grade.label : "score"];
+   const score = scoreText(grade);
+-  const name = <span className="min-w-0 truncate">{grade.criterion}</span>;
++  const name = <span className="min-w-0 truncate">{grade.description || grade.criterion}</span>;
+   const { step } = grade;
+   return (
+     <li className="flex min-w-0 gap-2.5 py-1">
+@@ -404,11 +432,11 @@
+       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+         <p className="flex min-h-5 min-w-0 items-center gap-2 type-label-13 text-ink">
+           <span className="sr-only">{word}</span>
+-          {grade.description ? <Tooltip label={grade.description}>{name}</Tooltip> : name}
++          {grade.description ? <Tooltip label={grade.criterion}>{name}</Tooltip> : name}
+           {score !== undefined && <Tag>{score}</Tag>}
+           {step !== undefined && onPick && (
+             <Button variant="quiet" size="small" onClick={() => onPick(step)} className="ml-auto">
+-              Go to step
++              <StepPlace step={step} />
+             </Button>
+           )}
+         </p>
+@@ -444,35 +472,13 @@
+       )}
+     >
+       {children}
+-      {notes.get(id)?.map((annotation) => (
+-        <StepNote key={gradeKey(annotation)} annotation={annotation} />
+-      ))}
++      <StepNotes step={id} notes={notes.get(id)} />
+     </li>
+   );
+ }
+ 
+-/** An annotation's reasoning under the step it names, in red when it fails. */
+-function StepNote({ annotation }: { annotation: Annotation }) {
+-  const failed = annotation.label === FAIL_LABEL;
+-  const issue = getMatchedIssue(annotation);
+-  return (
+-    <div
+-      className={cn(
+-        "my-1 flex max-w-reading flex-col gap-0.5 rounded-xs px-3 py-2 type-label-13",
+-        failed ? "bg-danger-tint" : "bg-fill",
+-      )}
+-    >
+-      <p className={cn("font-medium", failed ? "text-danger" : "text-ink")}>
+-        {getGradeCriterion(annotation) ??
+-          (issue === undefined ? annotation.name : `Issue ${issue}`)}
+-      </p>
+-      <p className="text-ink">{annotation.explanation}</p>
+-    </div>
+-  );
+-}
+-
+ function TurnParts({ view, ...selection }: Selection & { view: TurnSpans }) {
+-  const { turn, root, children, topLevel, reply } = view;
++  const { turn, children, topLevel, reply } = view;
+   const { picked } = selection;
+   const steps = topLevel.filter((span) => span !== reply);
+   const reasoning = reply && operation(reply) === "chat" ? modelText(reply)?.reasoning : undefined;
+@@ -485,7 +491,7 @@
+   }: {
+     id: string;
+     span: string | undefined;
+-    who: string;
++    who: PartName;
+     body: ReactNode;
+     lead?: ReactNode;
+   }) => (
+@@ -493,7 +499,7 @@
+       <Part
+         who={who}
+         action={span !== undefined && <StepLink trace={turn.trace_id} span={span} />}
+-        className={cn(id === picked?.id && "-mx-2 rounded-xs px-2 row-selected")}
++        className={cn(id === picked?.id && "-mx-2 rounded-xs bg-fill px-2")}
+       >
+         {lead}
+         <div className="max-w-reading">{body}</div>
+@@ -503,15 +509,10 @@
+ 
+   return (
+     <ol aria-label={`Turn ${turn.position} parts`} className="flex flex-col">
+-      {view.prompt &&
+-        say({
+-          id: turn.trace_id,
+-          span: root?.span_id,
+-          who: "User message",
+-          body: (
+-            <p className="type-copy-14 whitespace-pre-wrap wrap-anywhere text-ink">{view.prompt}</p>
+-          ),
+-        })}
++      {/* the turn's row shows the user's message, so its step keeps only its anchor and notes */}
++      <Unit id={turn.trace_id} {...selection}>
++        {null}
++      </Unit>
+       {steps.length > 0 && (
+         <li>
+           <Part who="Agent steps">
+@@ -568,9 +569,7 @@
+     <Collapsible open={open} onOpenChange={setOpen}>
+       <CollapsibleTrigger className="type-label-13 text-muted hover:text-ink">
+         <span>Worked for {formatDuration(spanTiming(steps).total)}</span>
+-        {tools.length > 0 && (
+-          <span className="type-meta-12 text-muted">{counted(tools.length, "tool calls")}</span>
+-        )}
++        {tools.length > 0 && <Tag>{counted(tools.length, "tool calls")}</Tag>}
+         {failed > 0 && <Tag tone="danger">{failed} failed</Tag>}
+       </CollapsibleTrigger>
+       <CollapsibleContent className="mt-1 ml-1.5 border-l border-divider pl-3.5">
+@@ -678,23 +677,21 @@
+   className,
+   children,
+ }: {
+-  who: ReactNode;
++  who: PartName;
+   action?: ReactNode;
+   className?: string | undefined;
+   children: ReactNode;
+ }) {
+   return (
+-    <div className={cn("group/line flex items-baseline gap-4 py-1", className)}>
+-      <p className="flex w-28 shrink-0 items-center gap-1.5 type-meta-12 font-medium text-muted">
+-        {who}
+-      </p>
+-      <div className="min-w-0 flex-1">{children}</div>
++    <div className={cn("group/line flex items-start gap-3 py-1", className)}>
++      <PartMark who={who} />
++      <div className="min-w-0 flex-1 basis-64">{children}</div>
+       {action}
+     </div>
+   );
+ }
+ 
+-function modelText(span: Span) {
++export function modelText(span: Span) {
+   const parts = spanMessages(span, "gen_ai.output.messages").flatMap((message) => message.parts);
+   const text = (type: string) =>
+     parts.flatMap((part) => (part.type === type && part.content ? [part.content] : [])).join("");
+@@ -795,7 +792,7 @@
+ 
+ function ResultTag({ span }: { span: Span }) {
+   const { text, failed } = toolResult(span);
+-  return <Tag tone={failed ? "danger" : "neutral"}>{text}</Tag>;
++  return failed ? <Tag tone="danger">{text}</Tag> : null;
+ }
+ 
+ /** A tool call's input and output, side by side when there's room. */
+@@ -855,7 +852,7 @@
+ 
+ const TOKEN = /"(?:\\.|[^"\\])*"|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/gu;
+ 
+-/** JSON with keys in ink and values in blue over grey punctuation. */
++/** JSON with keys and values in ink over grey punctuation. */
+ function Json({ text }: { text: string }) {
+   let last = 0;
+   const parts: ReactNode[] = [];
+@@ -863,7 +860,7 @@
+     const end = index + token.length;
+     parts.push(
+       text.slice(last, index),
+-      <span key={index} className={text[end] === ":" ? "text-ink" : "text-accent-ink"}>
++      <span key={index} className="text-ink">
+         {token}
+       </span>,
+     );

@@ -1,0 +1,36 @@
+--- a/queries.ts
++++ b/queries.ts
+@@ -54,9 +54,9 @@
+     state.data !== undefined && pending(state.data) ? RUN_POLL_INTERVAL : false;
+ 
+ const orgKey = (orgId: string) => ["orgs", orgId];
+-const agentKey = ({ orgId, agent }: AgentParams) => [...orgKey(orgId), "agents", agent];
++export const agentKey = ({ orgId, agent }: AgentParams) => [...orgKey(orgId), "agents", agent];
+ export const runsKey = (params: AgentParams) => [...agentKey(params), "runs"];
+-const issueKey = ({ issue, ...params }: IssueParams) => [...agentKey(params), "issues", issue];
++export const issueKey = ({ issue, ...params }: IssueParams) => [...agentKey(params), "issues", issue];
+ 
+ /** Read once per page load, since a membership rarely changes and every route needs it first. */
+ export const accessQuery = ({ orgId }: Org) =>
+@@ -102,7 +102,7 @@
+ };
+ 
+ /** The Agent's repository, read from the Agents list the shell loaded rather than with a request. */
+-async function agentRepo(client: QueryClient, { orgId, agent }: AgentParams) {
++export async function agentRepo(client: QueryClient, { orgId, agent }: AgentParams) {
+   // An Agent created since the list loaded is missing from it until the list is read again.
+   const cached = await client.query({ ...agentsQuery({ orgId }), staleTime: "static" });
+   const agents = cached.some(({ name }) => name === agent)
+@@ -167,7 +167,11 @@
+   });
+ 
+ /** The commit at the head of `branch`, read as a ref so it's found however many branches there are. */
+-export async function branchHead(client: GroundedClient, repo: string, branch: string) {
++export async function branchHead(
++  client: { git: Pick<GroundedClient["git"], "listMatchingRefs"> },
++  repo: string,
++  branch: string,
++) {
+   const refs = await client.git.listMatchingRefs({ repo, ref: `heads/${branch}` });
+   const head = refs.find(({ ref }) => ref === `refs/heads/${branch}`);
+   if (head === undefined) {

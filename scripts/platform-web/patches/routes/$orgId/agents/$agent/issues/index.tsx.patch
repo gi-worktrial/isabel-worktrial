@@ -1,0 +1,160 @@
+--- a/routes/$orgId/agents/$agent/issues/index.tsx
++++ b/routes/$orgId/agents/$agent/issues/index.tsx
+@@ -5,20 +5,23 @@
+ import { z } from "zod";
+ 
+ import { ISSUE_STATES, type IssueSummary } from "@grounded-intelligence/grounded-sdk";
+-import { STATE_WORDS, StatusPill, SeverityMark, traceCount } from "../../../../../issue-view";
+ import { EmptyState } from "#/ui/empty-state";
+ import { SearchField } from "#/ui/search-field";
+ import { SegmentedControl } from "#/ui/segmented-control";
+-import { Tag } from "#/ui/tag";
+-import { Timestamp } from "#/ui/timestamp";
+ import { crumbs } from "#/crumbs";
++import { IssuePeek, usePeekCard } from "#src/features/inbox/issue-peek";
++import { IssueTable } from "#src/features/inbox/issue-table";
++import { IssueCard, Lane } from "#src/features/inbox/lanes";
+ 
+ const VIEWS = [
+   { value: "board", label: "Board" },
+   { value: "list", label: "List" },
+ ] as const;
+ 
+-const searchSchema = z.object({ view: z.enum(["board", "list"]).optional() });
++const searchSchema = z.object({
++  view: z.enum(["board", "list"]).optional(),
++  peek: z.string().optional(),
++});
+ 
+ export const Route = createFileRoute("/$orgId/agents/$agent/issues/")({
+   validateSearch: searchSchema,
+@@ -31,7 +34,7 @@
+ 
+ function IssuesInbox() {
+   const issues = useSuspenseQuery(issuesQuery(Route.useParams())).data;
+-  const { view = "board" } = Route.useSearch();
++  const { view = "board", peek } = Route.useSearch();
+   const navigate = useNavigate({ from: Route.fullPath });
+   const [query, setQuery] = useState("");
+   const rows = issues.filter((issue) =>
+@@ -71,10 +74,11 @@
+         />
+       ) : rows.length === 0 ? (
+         <EmptyState title="No Issues match" onClear={() => setQuery("")} />
+-      ) : view === "board" ? (
+-        <IssueBoard rows={rows} />
+       ) : (
+-        <IssueList rows={rows} />
++        <div className="flex items-start gap-4">
++          {view === "board" ? <IssueBoard rows={rows} /> : <IssueList rows={rows} />}
++          {peek !== undefined && <IssuePeek id={peek} />}
++        </div>
+       )}
+     </div>
+   );
+@@ -82,45 +86,24 @@
+ 
+ function IssueBoard({ rows }: { rows: IssueSummary[] }) {
+   return (
+-    <div className="grid grid-cols-[repeat(4,minmax(176px,1fr))] items-start gap-4 overflow-x-auto">
++    <div className="grid min-w-0 flex-1 grid-cols-[repeat(4,minmax(176px,1fr))] items-start gap-4 overflow-x-auto">
+       {ISSUE_STATES.map((state) => {
+         const lane = rows.filter((issue) => issue.state === state);
+         return (
+-          <section key={state} aria-label={STATE_WORDS[state]} className="flex min-w-0 flex-col">
+-            <h2 className="flex h-9 items-center gap-2 type-label-13 font-semibold text-ink">
+-              {STATE_WORDS[state]}
+-              <span className="font-normal text-muted tabular-nums">{lane.length}</span>
+-            </h2>
++          <Lane key={state} state={state} count={lane.length}>
+             <ul className="flex flex-col gap-2">
+               {lane.map((issue) => (
+                 <li key={issue.id}>
+                   <IssueLink
+                     issue={issue}
+-                    className="flex flex-col gap-2 card p-3 hover:border-divider-strong motion-safe:transition-colors"
++                    className="flex flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
+                   >
+-                    <span className="flex items-center justify-between gap-2 type-meta-12 text-muted">
+-                      <Tag title={issue.id} className="shrink">
+-                        <span className="truncate">{issue.id}</span>
+-                      </Tag>
+-                      <Timestamp at={issue.last_seen_at} className="shrink-0" />
+-                    </span>
+-                    <span className="line-clamp-3 type-copy-14 font-medium text-ink">
+-                      {issue.title}
+-                    </span>
+-                    <span className="flex items-center gap-2 type-meta-12 text-muted">
+-                      <SeverityMark severity={issue.severity} />
+-                      <span className="tabular-nums">{traceCount(issue.trace_count)}</span>
+-                      {issue.status !== undefined && (
+-                        <span className="ml-auto">
+-                          <StatusPill status={issue.status} />
+-                        </span>
+-                      )}
+-                    </span>
++                    <IssueCard issue={issue} />
+                   </IssueLink>
+                 </li>
+               ))}
+             </ul>
+-          </section>
++          </Lane>
+         );
+       })}
+     </div>
+@@ -129,37 +112,9 @@
+ 
+ function IssueList({ rows }: { rows: IssueSummary[] }) {
+   return (
+-    <table className="record-table">
+-      <thead>
+-        <tr>
+-          <th className="w-full">Issue</th>
+-          <th>State</th>
+-          <th className="text-right">Traces</th>
+-          <th className="text-right">Last seen</th>
+-        </tr>
+-      </thead>
+-      <tbody>
+-        {ISSUE_STATES.flatMap((state) => rows.filter((issue) => issue.state === state)).map(
+-          (issue) => (
+-            <tr key={issue.id}>
+-              <td>
+-                <IssueLink issue={issue} className="flex min-w-0 items-center gap-3">
+-                  <SeverityMark severity={issue.severity} />
+-                  <Tag>{issue.id}</Tag>
+-                  <span className="min-w-0 truncate">{issue.title}</span>
+-                  <StatusPill status={issue.status} />
+-                </IssueLink>
+-              </td>
+-              <td>{STATE_WORDS[issue.state]}</td>
+-              <td className="text-right tabular-nums">{issue.trace_count}</td>
+-              <td className="text-right">
+-                <Timestamp at={issue.last_seen_at} />
+-              </td>
+-            </tr>
+-          ),
+-        )}
+-      </tbody>
+-    </table>
++    <div className="min-w-0 flex-1">
++      <IssueTable rows={rows} />
++    </div>
+   );
+ }
+ 
+@@ -173,11 +128,13 @@
+   children: ReactNode;
+ }) {
+   const { orgId, agent } = Route.useParams();
++  const peek = usePeekCard(issue);
+   return (
+     <Link
+       to="/$orgId/agents/$agent/issues/$issue"
+       params={{ orgId, agent, issue: issue.id }}
+       className={className}
++      {...peek}
+     >
+       {children}
+     </Link>

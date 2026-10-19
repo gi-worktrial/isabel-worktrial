@@ -1,0 +1,114 @@
+--- a/evals.tsx
++++ b/evals.tsx
+@@ -2,8 +2,11 @@
+ import { Link } from "@tanstack/react-router";
+ 
+ import { Tag } from "#/ui/tag";
+-import { Timestamp } from "#/ui/timestamp";
+ import { Tooltip } from "#/ui/tooltip";
++import { EvalLink } from "#src/features/evals/eval-link";
++import { Chip } from "#src/ui/chip";
++import { NotRun } from "#src/ui/result-tag";
++import { TimeTag } from "#src/ui/time-tag";
+ 
+ type Criterion = RegisteredEval["criteria"][number];
+ 
+@@ -34,12 +37,12 @@
+ 
+ export function CriteriaList({ criteria }: { criteria: readonly Criterion[] }) {
+   return (
+-    <ul className="flex flex-col divide-y divide-divider">
++    <ul className="flex flex-col py-2">
+       {criteria.map((criterion) => (
+         <li
+           key={criterion.name}
+           aria-label={criterion.name}
+-          className="flex min-w-0 items-center gap-3 py-3"
++          className="flex min-w-0 items-center gap-3 py-2"
+         >
+           <p className="min-w-0 flex-1 type-label-13 text-ink" title={criterion.name}>
+             {criterion.description || criterionTitle(criterion.name)}
+@@ -64,15 +67,17 @@
+   issues: readonly string[];
+ }) {
+   return issues.map((issue) => (
+-    <Link key={issue} to="/$orgId/agents/$agent/issues/$issue" params={{ orgId, agent, issue }}>
+-      <Tag>{issue}</Tag>
+-    </Link>
++    <Chip key={issue} asChild code>
++      <Link to="/$orgId/agents/$agent/issues/$issue" params={{ orgId, agent, issue }}>
++        {issue}
++      </Link>
++    </Chip>
+   ));
+ }
+ 
+ function ResultTag({ passed }: { passed: boolean | undefined }) {
+   if (passed === undefined) {
+-    return <Tag>Not run</Tag>;
++    return <NotRun />;
+   }
+ 
+   return passed ? <Tag tone="success">Passed</Tag> : <Tag tone="danger">Failed</Tag>;
+@@ -84,21 +89,23 @@
+   agent,
+   evals,
+   statuses,
++  issue,
+ }: {
+   orgId: string;
+   agent: string;
+   evals: readonly RegisteredEval[];
+   statuses?: ReadonlyMap<string, EvalStatus> | undefined;
++  issue?: string | undefined;
+ }) {
+   return (
+-    <table className="record-table">
++    <table aria-label="Evals" className="record-table">
+       <thead>
+         <tr>
+           <th className="w-full">Eval</th>
+           {statuses && <th>Result</th>}
+-          {statuses && <th>Last passed</th>}
++          {statuses && <th className="@max-lg:hidden">Last passed</th>}
+           <th>Issues</th>
+-          <th className="text-right">Criteria</th>
++          <th className="@max-lg:hidden">Criteria</th>
+         </tr>
+       </thead>
+       <tbody>
+@@ -107,13 +114,7 @@
+           return (
+             <tr key={task.id}>
+               <td className="max-w-0 text-ink">
+-                <Link
+-                  to="/$orgId/agents/$agent/evals/$eval"
+-                  params={{ orgId, agent, eval: task.id }}
+-                  className="row-action block truncate"
+-                >
+-                  {task.title}
+-                </Link>
++                <EvalLink orgId={orgId} agent={agent} task={task} issue={issue} />
+               </td>
+               {statuses && (
+                 <td>
+@@ -121,8 +122,8 @@
+                 </td>
+               )}
+               {statuses && (
+-                <td className="text-muted">
+-                  {status?.passed_at === undefined ? "Never" : <Timestamp at={status.passed_at} />}
++                <td className="text-muted @max-lg:hidden">
++                  {status?.passed_at === undefined ? "Never" : <TimeTag at={status.passed_at} />}
+                 </td>
+               )}
+               <td>
+@@ -130,7 +131,7 @@
+                   <IssueLinks orgId={orgId} agent={agent} issues={task.issues} />
+                 </span>
+               </td>
+-              <td className="text-right tabular-nums">{task.criteria.length}</td>
++              <td className="tabular-nums @max-lg:hidden">{task.criteria.length}</td>
+             </tr>
+           );
+         })}
