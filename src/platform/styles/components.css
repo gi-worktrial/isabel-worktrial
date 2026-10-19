@@ -325,17 +325,19 @@
 .pebble-hint-active::before {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: -1.5px;
   pointer-events: none;
   border-radius: inherit;
-  padding: 1px;
+  padding: 1.5px;
   background: conic-gradient(
     from var(--pebble-border-angle),
-    var(--color-accent),
-    var(--color-teal),
-    var(--color-accent),
-    var(--color-teal),
-    var(--color-accent)
+    #20d9c2 0%,
+    #20d9c2 25%,
+    #8b5cf6 38%,
+    #8b5cf6 55%,
+    #2d7ff9 68%,
+    #2d7ff9 88%,
+    #20d9c2 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
