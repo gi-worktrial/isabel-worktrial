@@ -57,7 +57,7 @@ export function SpanTurnHeader({
   const step = selected === undefined || selected === root ? params.trace : selected.span_id;
   return (
     <header className="flex h-8 min-w-0 items-center gap-3">
-      <p title={question} className="min-w-0 flex-1 truncate type-heading-15 text-ink">
+      <p title={question} className="min-w-0 flex-1 truncate type-title-18 text-ink">
         {question}
       </p>
       {turn !== undefined && (

@@ -167,7 +167,7 @@ function SpanDetails({
   return (
     <section aria-label="Span details" className="@container flex min-w-0 flex-col gap-5">
       <header className="flex flex-col gap-3">
-        <h1 className="flex items-center gap-2 type-title-18 text-ink">
+        <h1 className="flex items-center gap-2 type-heading-15 text-ink">
           <span className="min-w-0 truncate">{spanLabel(span)}</span>
           {error !== undefined && <Tag tone="danger">Error</Tag>}
         </h1>
