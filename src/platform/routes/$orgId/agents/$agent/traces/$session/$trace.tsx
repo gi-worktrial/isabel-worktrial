@@ -90,10 +90,11 @@ function TracePage() {
         <section aria-label="Trace tree" className="flex min-w-0 flex-col gap-2">
           <h2 className="type-heading-15 text-ink">Trace tree</h2>
           <ol aria-label="Span tree" className="flex min-w-0 flex-col gap-px">
-            {rows.map(({ span, depth }) => {
+            {rows.map(({ span, depth }, index) => {
               const kind = spanKind(span);
               const Icon = KIND_ICONS[kind];
             const isRoot = span === root;
+              const isLast = index === rows.length - 1;
             return (
                 <li key={span.span_id} className="min-w-0">
                 <Link
@@ -103,14 +104,17 @@ function TracePage() {
                   replace
                   aria-current={span === selected ? "true" : undefined}
                   className={cn(
-                    "min-w-0 rounded-sm bg-subtle text-ink hover:bg-fill aria-current:row-selected",
+                      "min-w-0 rounded-sm bg-surface text-ink hover:bg-fill aria-current:row-selected",
                       isRoot ? "block" : "grid h-10 grid-cols-[1rem_minmax(0,1fr)]",
                   )}
                 >
                   {!isRoot && (
                     <span
                       aria-hidden="true"
-                        className="relative self-stretch before:absolute before:inset-y-[-1px] before:left-1/2 before:w-px before:bg-divider-strong after:absolute after:top-1/2 after:left-1/2 after:h-px after:w-1/2 after:bg-divider-strong"
+                        className={cn(
+                          "relative self-stretch before:absolute before:top-[-1px] before:left-1/2 before:w-px before:bg-divider-strong after:absolute after:top-1/2 after:left-1/2 after:h-px after:w-1/2 after:bg-divider-strong",
+                          isLast ? "before:bottom-1/2" : "before:bottom-[-1px]",
+                        )}
                     />
                   )}
                   <span
