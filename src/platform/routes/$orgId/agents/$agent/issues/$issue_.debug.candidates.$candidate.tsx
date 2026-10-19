@@ -22,7 +22,7 @@ import {
   useAgentRepo,
 } from "#/queries";
 import { crumbs } from "#/crumbs";
-import { ApproveButton } from "#src/features/candidates/approval";
+import { ShipButton } from "#src/features/candidates/approval";
 import { BranchSwitcher } from "#src/features/candidates/branches";
 import { EvalResults } from "#src/features/candidates/proofs-view";
 import { useBranching } from "#src/features/debug/branching";
@@ -144,7 +144,7 @@ function DebugPage() {
         <CandidateStatusTag candidate={candidate} />
         <EvalResults candidate={candidate} />
         <CandidateActions agent={agent} candidate={candidate} />
-        <ApproveButton candidate={candidate} />
+        <ShipButton candidate={candidate} />
       </header>
       {branching.dialog}
       <div className="flex min-h-0 flex-1 gap-3">

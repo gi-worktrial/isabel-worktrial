@@ -22,9 +22,9 @@ describe("relativeTime", () => {
   const now = new Date("2026-10-18T20:00:00Z").getTime();
 
   it.each([
-    ["2026-10-18T17:30:00Z", "2 hours"],
-    ["2026-10-16T12:00:00Z", "2 days"],
-    ["2026-09-30T12:00:00Z", "2 weeks"],
+    ["2026-10-18T17:30:00Z", "2 hours ago"],
+    ["2026-10-16T12:00:00Z", "2 days ago"],
+    ["2026-09-30T12:00:00Z", "2 weeks ago"],
   ])("reads %s as %s", (at, expected) => {
     expect(relativeTime(at, now)).toBe(expected);
   });

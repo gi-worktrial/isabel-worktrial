@@ -1,9 +1,10 @@
 // the Inbox board's lanes and cards, each lane in its state's color with a bar over it, as the Issue page's stepper
 // draws its steps, and its count tinted to match, so Reviewing and Resolved read at a glance
 import { ListTree } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { STATE_WORDS, SeverityMark, StateMark, StatusPill, traceCount } from "#/issue-view";
+import { cn } from "#/ui/cn";
 import { Tag } from "#/ui/tag";
 import { Tooltip } from "#/ui/tooltip";
 import type { IssueState, IssueSummary } from "#src/sdk/issues";
@@ -22,15 +23,21 @@ export function Lane({
   state,
   count,
   children,
+  className,
+  ...rest
 }: {
   state: IssueState;
   count: number;
   children: ReactNode;
-}) {
+} & ComponentPropsWithoutRef<"section">) {
   return (
     <section
+      {...rest}
       aria-label={STATE_WORDS[state]}
-      className="flex h-full min-h-32 min-w-0 flex-col gap-2 overflow-hidden rounded-sm"
+      className={cn(
+        "flex h-full min-h-32 min-w-0 flex-col gap-2 overflow-hidden rounded-sm",
+        className,
+      )}
     >
       <h2 className="flex h-7 items-center gap-2 px-1 type-label-13 font-semibold text-ink">
         <StateMark state={state} />

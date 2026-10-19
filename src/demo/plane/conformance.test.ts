@@ -40,7 +40,7 @@ describe("platform's Issues over the memory client", () => {
     expect(events.map((event) => [event.subject, event.state])).toEqual([
       [`Reopen issue ${ISSUE}`, "reviewing"],
       [`Dismiss issue ${ISSUE}`, "dismissed"],
-      [`Validate issue ${ISSUE}`, "reviewing"],
+      [`Start work on issue ${ISSUE}`, "reviewing"],
       [`Find issue ${ISSUE}`, undefined],
     ]);
     const [head] = await client.repos.listCommits({ repo: AGENT, per_page: 1 });
@@ -126,6 +126,16 @@ describe("platform's Issues over the memory client", () => {
     expect(head?.commit.message.split("\n", 1)[0]).toBe(
       `Ship candidate ${CANDIDATE} of issue ${ISSUE}`,
     );
+  });
+
+  it("treats shipping a ready Candidate as its approval", async () => {
+    const { client, get, update, rerun } = tinyClient();
+    await rerun();
+    await update({ action: "ship", candidate: CANDIDATE });
+    const shipped = await get();
+    expect(shipped).toMatchObject({ state: "resolved", approved: undefined });
+    const main = await client.repos.getContent({ repo: AGENT, path: "agent/agent.py" });
+    expect("content" in main && atob(main.content)).toBe("limit = 100\n");
   });
 
   it("opens a new Candidate off the evals branch, and an edit to it runs its pull request", async () => {
