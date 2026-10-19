@@ -16,13 +16,11 @@ import { type Grade, GradeRow, TextStep, ToolCall, gradeKey } from "#/trace-view
 import { sessionTitle } from "#/titles";
 import {
   KIND_ICONS,
-  SpanBar,
   formatJson,
   spanError,
   spanKind,
   spanLabel,
   spanRows,
-  spanTiming,
   toolLabel,
 } from "#/traces";
 import { cn } from "#/ui/cn";
@@ -64,8 +62,8 @@ function TracePage() {
   const search = Route.useSearch();
   const { spans, annotations } = useSuspenseQuery(traceQuery({ orgId, agent, trace })).data;
   const rows = spanRows(spans);
-  const timing = spanTiming(spans);
   const root = rows[0]?.span;
+  const longestProcess = Math.max(...rows.slice(1).map(({ span }) => span.duration_ns), 1);
   const selected = spans.find(({ span_id }) => span_id === search.span) ?? root;
   const grades = annotations.flatMap((annotation) => {
     const criterion = getGradeCriterion(annotation);
@@ -94,8 +92,11 @@ function TracePage() {
                 {!isRoot && (
                   <span
                     aria-hidden="true"
+                    style={{
+                      height: `${Math.max((span.duration_ns / longestProcess) * 20, 2)}px`,
+                    }}
                     className={cn(
-                      "my-1 w-1.5 rounded-full",
+                      "w-1.5 self-center rounded-full",
                       failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
                     )}
                   />
@@ -115,14 +116,6 @@ function TracePage() {
                     <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
                       {formatDuration(span.duration_ns)}
                     </span>
-                  {!isRoot && (
-                    <SpanBar
-                      span={span}
-                      timing={timing}
-                      failed={failing}
-                      className="w-16"
-                    />
-                  )}
                   </Link>
               </li>
             );

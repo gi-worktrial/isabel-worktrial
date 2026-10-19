@@ -185,18 +185,13 @@ export function SpanBar({
   span,
   timing,
   failed,
-  className,
 }: {
   span: Span;
   timing: ReturnType<typeof spanTiming>;
   failed: boolean;
-  className?: string;
 }) {
   return (
-    <span
-      aria-hidden="true"
-      className={cn("relative h-1.5 w-24 shrink-0 rounded-xs bg-fill", className)}
-    >
+    <span aria-hidden="true" className="relative h-1.5 w-24 shrink-0 rounded-xs bg-fill">
       <span
         style={{
           left: `${(timing.offset(span) / timing.total) * 100}%`,
