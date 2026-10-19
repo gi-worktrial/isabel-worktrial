@@ -181,13 +181,13 @@ function CandidateCards() {
             </Link>
           </header>
           {detail !== undefined && (
-            <div className="flex items-center gap-2 border-t border-divider pt-3">
-              <span className="type-label-13 font-semibold text-ink">Fix</span>
-              <span className="type-label-13 text-muted tabular-nums">
+            <Tag className="self-start gap-2">
+              <span>Fix</span>
+              <span className="font-normal text-muted">
                 {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
               </span>
-              <LineCounts {...totalLines(detail.files)} className="ml-auto type-mono-12" />
-            </div>
+              <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
+            </Tag>
           )}
         </li>
       </ul>

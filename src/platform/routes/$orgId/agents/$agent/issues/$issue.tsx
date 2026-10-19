@@ -121,15 +121,17 @@ function IssuePage() {
           </Fact>
           {lastEdited !== undefined && (
             <Fact label="Last edited" orientation="vertical">
-              <Timestamp at={lastEdited} />
-              <IconButton
-                label="View full issue history"
-                size="small"
-                className="-my-1"
-                onClick={() => openActivity(params)}
-              >
-                <History aria-hidden="true" className="size-3.5 text-muted" />
-              </IconButton>
+              <span className="flex items-center">
+                <Timestamp at={lastEdited} />
+                <IconButton
+                  label="View full issue history"
+                  size="small"
+                  className="-my-1 -ml-1"
+                  onClick={() => openActivity(params)}
+                >
+                  <History aria-hidden="true" className="size-3.5 text-muted" />
+                </IconButton>
+              </span>
             </Fact>
           )}
         </Facts>
