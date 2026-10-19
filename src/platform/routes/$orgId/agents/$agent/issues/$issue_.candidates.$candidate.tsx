@@ -198,6 +198,7 @@ function ShipButton({ candidate }: { candidate: Candidate }) {
       <ShipDialog
         candidate={candidate}
         variant="primary"
+        label="Ship candidate"
         disabled={pending}
         onShip={() => change({ action: "ship", candidate: candidate.id })}
       />
