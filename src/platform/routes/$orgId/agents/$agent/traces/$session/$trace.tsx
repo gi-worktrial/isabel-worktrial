@@ -114,7 +114,9 @@ function TracePage() {
                     style={{ paddingLeft: `${depth + 0.25}rem` }}
                     className="flex h-7 min-w-0 self-center items-center gap-2 pr-2 type-label-13"
                   >
-                    <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
+                    {!isRoot && (
+                      <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
+                    )}
                     <span className="min-w-0 truncate">{spanLabel(span)}</span>
                     {spanError(span) !== undefined && <Tag tone="danger">Error</Tag>}
                     <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
