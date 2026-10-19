@@ -158,7 +158,9 @@ export function SpanTimeline({
             vertical ? "min-h-0 flex-col gap-px" : "min-w-0 gap-px",
           )}
         >
-          {blocks(spans).map(({ span, kind }) => {
+          {blocks(spans)
+            .filter(({ kind }) => !vertical || kind !== "user")
+            .map(({ span, kind }) => {
             const failing = failed.has(span.span_id);
             const name =
               kind === "user"
@@ -179,7 +181,7 @@ export function SpanTimeline({
                   className={cn(
                     "basis-0 hover:brightness-90 focus-visible:outline-2 focus-visible:outline-ring",
                     vertical
-                      ? "w-full aria-current:ring-1 aria-current:ring-ring aria-current:ring-inset"
+                      ? "w-full aria-current:bg-ring"
                       : "rounded-xs aria-current:outline-2 aria-current:outline-offset-1 aria-current:outline-ring",
                     kind === "user"
                       ? vertical
