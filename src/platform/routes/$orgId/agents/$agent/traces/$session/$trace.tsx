@@ -73,6 +73,7 @@ function TracePage() {
 
   return (
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
+      <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
         <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
           {rows.map(({ span, depth }) => {
@@ -128,17 +129,14 @@ function TracePage() {
             );
           })}
         </ol>
-        <div className="flex min-w-0 flex-col gap-4">
-          <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
-          {selected && (
-            <SpanDetails
-              key={selected.span_id}
-              span={selected}
-              grades={grades.filter(({ span_id }) => span_id === selected.span_id)}
-              notes={spanNotes(annotations, selected, spans)}
-            />
-          )}
-        </div>
+        {selected && (
+          <SpanDetails
+            key={selected.span_id}
+            span={selected}
+            grades={grades.filter(({ span_id }) => span_id === selected.span_id)}
+            notes={spanNotes(annotations, selected, spans)}
+          />
+        )}
       </div>
     </article>
   );
