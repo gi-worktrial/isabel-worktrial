@@ -16,13 +16,12 @@ import { type Grade, GradeRow, TextStep, ToolCall, gradeKey } from "#/trace-view
 import { sessionTitle } from "#/titles";
 import {
   KIND_ICONS,
-  SpanBar,
+  SpanTimeline,
   formatJson,
   spanError,
   spanKind,
   spanLabel,
   spanRows,
-  spanTiming,
   toolLabel,
 } from "#/traces";
 import { Fact, Facts } from "#/ui/facts";
@@ -61,11 +60,12 @@ export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/$tra
 function TracePage() {
   const { orgId, agent, trace } = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { spans, annotations } = useSuspenseQuery(traceQuery({ orgId, agent, trace })).data;
   const rows = spanRows(spans);
-  const timing = spanTiming(spans);
   const root = rows[0]?.span;
   const selected = spans.find(({ span_id }) => span_id === search.span) ?? root;
+  const pick = (span: Span) => navigate({ search: { span: span.span_id }, replace: true });
   const grades = annotations.flatMap((annotation) => {
     const criterion = getGradeCriterion(annotation);
     const span_id = annotation.span_id || (root?.span_id ?? "");
@@ -77,40 +77,40 @@ function TracePage() {
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
-        <ol
-          aria-label="Span timeline"
-          className="flex min-w-0 flex-col"
-        >
-          {rows.map(({ span, depth }) => {
-            const Icon = KIND_ICONS[spanKind(span)];
-            const failing = failed.has(span.span_id) || spanError(span) !== undefined;
-            return (
-              <li key={span.span_id}>
-                <Link
-                  from={Route.fullPath}
-                  to="."
-                  search={{ span: span.span_id }}
-                  replace
-                  aria-current={span === selected ? "true" : undefined}
-                  style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
-                  className="flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
-                >
-                  <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
-                  <span className="min-w-0 truncate">{spanLabel(span)}</span>
-                  {spanError(span) !== undefined && <Tag tone="danger">Error</Tag>}
-                  <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
-                    {formatDuration(span.duration_ns)}
-                  </span>
-                  <SpanBar
-                    span={span}
-                    timing={timing}
-                    failed={failing}
-                  />
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
+        <div className="flex min-w-0 gap-3">
+          <SpanTimeline
+            traces={[spans]}
+            failed={failed}
+            selected={selected?.span_id}
+            onPick={pick}
+            orientation="vertical"
+          />
+          <ol aria-label="Span tree" className="flex min-w-0 flex-1 flex-col">
+            {rows.map(({ span, depth }) => {
+              const Icon = KIND_ICONS[spanKind(span)];
+              return (
+                <li key={span.span_id}>
+                  <Link
+                    from={Route.fullPath}
+                    to="."
+                    search={{ span: span.span_id }}
+                    replace
+                    aria-current={span === selected ? "true" : undefined}
+                    style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
+                    className="flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
+                  >
+                    <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
+                    <span className="min-w-0 truncate">{spanLabel(span)}</span>
+                    {spanError(span) !== undefined && <Tag tone="danger">Error</Tag>}
+                    <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
+                      {formatDuration(span.duration_ns)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
         {selected && (
           <SpanDetails
             key={selected.span_id}
