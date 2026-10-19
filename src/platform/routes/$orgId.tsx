@@ -902,7 +902,7 @@ function Shell() {
                         {editingCandidate && !pebbleHintDismissed && !pebbleOpen && (
                           <aside
                             aria-label="Pebble editing help"
-                            className="float-layer absolute top-10 right-0 z-30 flex w-64 gap-2 rounded-sm p-3 text-ink"
+                            className="float-layer absolute top-9 right-0 z-30 flex w-64 gap-2 rounded-sm p-3 text-ink"
                           >
                             <div className="min-w-0 flex-1">
                               <p className="type-label-13 font-medium">Pebble can help while you edit</p>
