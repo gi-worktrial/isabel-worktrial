@@ -42,7 +42,10 @@
 
 [data-item-type="folder"] > [data-item-section="git"] {
   order: 2;
-  margin-left: 2px;
+  margin-left: -4px;
+}
+[data-item-type="folder"] > [data-item-section="decoration"]:empty {
+  display: none;
 }
 
 /* names come from the label and cut at the end */
