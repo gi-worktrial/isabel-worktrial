@@ -283,8 +283,11 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
               state={state}
               count={lane.length}
               className={cn(
+                "motion-safe:transition-[background-color,box-shadow,outline-color] motion-safe:duration-200",
                 canMove(state) && "outline-1 outline-dashed outline-divider-strong",
-                over === state && canMove(state) && "bg-accent-tint outline-accent",
+                over === state &&
+                  canMove(state) &&
+                  "bg-accent-tint shadow-sm outline-accent ring-2 ring-inset ring-accent/20",
               )}
               onDragEnter={() => canMove(state) && setOver(state)}
               onDragOver={(event) => {
@@ -308,7 +311,10 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
                   <li
                     key={issue.id}
                     draggable={issue.state === "detected" || issue.state === "reviewing"}
-                    className={cn(dragged?.id === issue.id && "opacity-50")}
+                    className={cn(
+                      "origin-center motion-safe:transition-[opacity,transform] motion-safe:duration-150",
+                      dragged?.id === issue.id && "scale-[0.98] opacity-25",
+                    )}
                     onDragStart={(event: DragEvent<HTMLLIElement>) => {
                       setDragged(issue);
                       event.dataTransfer.effectAllowed = "move";
@@ -321,7 +327,7 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
                   >
                     <IssueLink
                       issue={issue}
-                      className="flex flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
+                      className="flex cursor-grab flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong active:cursor-grabbing motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
                     >
                       <IssueCard issue={issue} />
                     </IssueLink>
