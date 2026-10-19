@@ -233,59 +233,71 @@ const ROLES = new Map([
   ["system", "System"],
   ["tool", "Tool"],
 ]);
+const ToolIcon = KIND_ICONS.tool;
 
 function Conversation({ messages }: { messages: Message[] }) {
   return (
     <ol className="flex flex-col gap-3 rounded-md bg-subtle p-3">
-      {messages.map((message, index) => (
-        <li
-          key={index}
-          className={cn(
-            "flex flex-col gap-1",
-            message.role === "user" ? "items-end" : "items-start",
-          )}
-        >
-          <div
+      {messages.map((message, index) => {
+        const calls = message.parts.filter((part) => part.type === "tool_call");
+        if (calls.length > 0 && calls.length === message.parts.length) {
+          return (
+            <li key={index} className="flex items-center gap-2 px-1 py-1 type-label-13 text-muted">
+              <ToolIcon aria-hidden="true" className="size-3.5 shrink-0" />
+              Calls {calls.map((call) => toolLabel(call.name ?? "a tool")).join(", ")}
+            </li>
+          );
+        }
+        return (
+          <li
+            key={index}
             className={cn(
-              "flex min-w-0 max-w-reading flex-col gap-1 rounded-md px-3 py-2",
-              message.role === "user" ? "bg-accent-tint" : "bg-fill",
+              "flex flex-col gap-1",
+              message.role === "user" ? "items-end" : "items-start",
             )}
           >
-            {message.parts.map((part, at) => {
-              switch (part.type) {
-                case "text":
-                  return <Markdown key={at} text={part.content ?? ""} />;
-                case "reasoning":
-                  return <TextStep key={at} label="Reasoning" text={part.content ?? ""} />;
-                case "tool_call":
-                  return (
-                    <p key={at} className="type-label-13 text-muted">
-                      Calls {toolLabel(part.name ?? "a tool")}
-                    </p>
-                  );
-                case "tool_call_response":
-                  return (
-                    <pre
-                      key={at}
-                      className="max-h-60 overflow-auto rounded-sm bg-fill px-3 py-2 type-mono-12 whitespace-pre-wrap wrap-anywhere text-ink"
-                    >
-                      {JSON.stringify(part.response, null, 2)}
-                    </pre>
-                  );
-                default:
-                  return (
-                    <p key={at} className="type-label-13 text-muted">
-                      {part.type}
-                    </p>
-                  );
-              }
-            })}
-          </div>
-          <p className="type-meta-12 font-medium text-muted">
-            {ROLES.get(message.role) ?? message.role}
-          </p>
-        </li>
-      ))}
+            <div
+              className={cn(
+                "flex min-w-0 max-w-reading flex-col gap-1 rounded-md px-3 py-2",
+                message.role === "user" ? "bg-accent-tint" : "bg-fill",
+              )}
+            >
+              {message.parts.map((part, at) => {
+                switch (part.type) {
+                  case "text":
+                    return <Markdown key={at} text={part.content ?? ""} />;
+                  case "reasoning":
+                    return <TextStep key={at} label="Reasoning" text={part.content ?? ""} />;
+                  case "tool_call":
+                    return (
+                      <p key={at} className="type-label-13 text-muted">
+                        Calls {toolLabel(part.name ?? "a tool")}
+                      </p>
+                    );
+                  case "tool_call_response":
+                    return (
+                      <pre
+                        key={at}
+                        className="max-h-60 overflow-auto rounded-sm bg-fill px-3 py-2 type-mono-12 whitespace-pre-wrap wrap-anywhere text-ink"
+                      >
+                        {JSON.stringify(part.response, null, 2)}
+                      </pre>
+                    );
+                  default:
+                    return (
+                      <p key={at} className="type-label-13 text-muted">
+                        {part.type}
+                      </p>
+                    );
+                }
+              })}
+            </div>
+            <p className="type-meta-12 font-medium text-muted">
+              {ROLES.get(message.role) ?? message.role}
+            </p>
+          </li>
+        );
+      })}
     </ol>
   );
 }
