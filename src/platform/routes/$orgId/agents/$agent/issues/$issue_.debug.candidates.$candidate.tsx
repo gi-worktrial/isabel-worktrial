@@ -121,30 +121,6 @@ function DebugPage() {
 
   return (
     <div className="flex h-[calc(100dvh-6rem)] flex-col gap-3">
-      <div className="flex min-w-0 items-center justify-end gap-2">
-        <nav
-          aria-label="Current file"
-          className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden type-label-13 text-muted"
-        >
-          {location.map((part, index) => (
-            <span key={`${index}:${part}`} className="contents">
-              {index > 0 && <span aria-hidden="true">/</span>}
-              <span className="min-w-0 truncate" title={part}>
-                {part}
-              </span>
-            </span>
-          ))}
-        </nav>
-        {branching.error}
-        <Link
-          to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-          params={{ orgId, agent, issue, candidate: candidate.id }}
-          className={buttonVariants({ variant: "secondary" })}
-        >
-          Cancel changes
-        </Link>
-        <ShipButton candidate={candidate} label="Ship changes" />
-      </div>
       {branching.dialog}
       <div className="flex min-h-0 flex-1 gap-3">
         <FileEditor
@@ -153,6 +129,32 @@ function DebugPage() {
           changes={changes}
           initialPath={initialFile}
           onFileChange={setOpenFile}
+          paneHeader={
+            <>
+              <nav
+                aria-label="Current file"
+                className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden type-label-13 text-muted"
+              >
+                {location.map((part, index) => (
+                  <span key={`${index}:${part}`} className="contents">
+                    {index > 0 && <span aria-hidden="true">/</span>}
+                    <span className="min-w-0 truncate" title={part}>
+                      {part}
+                    </span>
+                  </span>
+                ))}
+              </nav>
+              {branching.error}
+              <Link
+                to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
+                params={{ orgId, agent, issue, candidate: candidate.id }}
+                className={buttonVariants({ variant: "secondary" })}
+              >
+                Cancel changes
+              </Link>
+              <ShipButton candidate={candidate} label="Ship changes" />
+            </>
+          }
           overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
           primary
           diff={diff}
