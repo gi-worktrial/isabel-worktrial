@@ -57,13 +57,13 @@ export function SpanTurnHeader({
   const step = selected === undefined || selected === root ? params.trace : selected.span_id;
   return (
     <header className="flex h-8 min-w-0 items-center gap-3">
-      {turn !== undefined && (
-        <p className="shrink-0 type-heading-15 text-ink tabular-nums">Turn {turn.position}</p>
-      )}
-      {annotations.some(({ label }) => label === FAIL_LABEL) && <Tag tone="danger">Failed</Tag>}
-      <p title={question} className="min-w-0 flex-1 truncate type-label-13 text-muted">
+      <p title={question} className="min-w-0 flex-1 truncate type-heading-15 text-ink">
         {question}
       </p>
+      {turn !== undefined && (
+        <p className="shrink-0 type-label-13 text-muted tabular-nums">Turn {turn.position}</p>
+      )}
+      {annotations.some(({ label }) => label === FAIL_LABEL) && <Tag tone="danger">Failed</Tag>}
       <Link
         to="/$orgId/agents/$agent/traces/$session"
         params={params}
