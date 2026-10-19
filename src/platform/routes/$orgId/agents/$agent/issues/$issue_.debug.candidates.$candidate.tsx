@@ -113,6 +113,11 @@ function DebugPage() {
         setBase({ head: latest.head_sha, changes: latest.files });
       }
     }
+    await navigate({
+      to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
+      params: { orgId, agent, issue, candidate: candidate.id },
+      search: { view: "grades" },
+    });
   }
   const branching = useBranching({ candidate, tree, changes, saveHere: save });
   const location = [repo, ...(openFile === undefined ? ["Fix"] : openFile.split("/"))];
