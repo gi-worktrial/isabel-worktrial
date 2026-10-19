@@ -102,13 +102,13 @@ function DebugPage() {
         expectedHeadOid: head,
         files,
       });
+      setSavedAt(Date.now());
     } catch (caught) {
       if (caught instanceof GroundedError && caught.status === BRANCH_MOVED_STATUS) {
         throw new Error("This Candidate changed since the page loaded, so it now shows the latest");
       }
       throw caught;
     } finally {
-      setSavedAt(Date.now());
       await queryClient.invalidateQueries();
       const latest = queryClient.getQueryData(candidateQuery(params).queryKey);
       if (latest !== undefined) {
@@ -129,6 +129,7 @@ function DebugPage() {
           changes={changes}
           initialPath={initialFile}
           onFileChange={setOpenFile}
+          railToTop
           paneHeader={
             <>
               <nav
@@ -152,7 +153,11 @@ function DebugPage() {
               >
                 Cancel changes
               </Link>
-              <ShipButton candidate={candidate} label="Ship changes" />
+              <ShipButton
+                candidate={candidate}
+                label="Ship changes"
+                disabled={savedAt === undefined}
+              />
             </>
           }
           overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}

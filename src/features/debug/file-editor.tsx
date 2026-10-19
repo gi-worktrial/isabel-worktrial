@@ -22,7 +22,6 @@ import { cn } from "#/ui/cn";
 import { EmptyState } from "#/ui/empty-state";
 import { SearchField } from "#/ui/search-field";
 import { SegmentedControl } from "#/ui/segmented-control";
-import { TabButton } from "#/ui/tabs";
 import { Tag } from "#/ui/tag";
 import { useTheme } from "#/ui/theme";
 import { Tooltip } from "#/ui/tooltip";
@@ -73,6 +72,8 @@ type FileEditorProps = {
   actions?: ReactNode;
   /** Workspace controls above the code pane, beside the file rail. */
   paneHeader?: ReactNode;
+  /** Extends the rail's divider through the page's top padding. */
+  railToTop?: boolean;
   /** Reports the file in view so a surrounding workspace can identify it. */
   onFileChange?: ((path: string | undefined) => void) | undefined;
   /** Whether Save is the view's one primary action. */
@@ -113,6 +114,7 @@ export function FileEditor({
   initialPath,
   actions,
   paneHeader,
+  railToTop = false,
   onFileChange,
   primary = false,
   diff,
@@ -209,14 +211,6 @@ export function FileEditor({
       : [],
   );
 
-  function showFix() {
-    for (const path of model.getSelectedPaths()) {
-      model.getItem(path)?.deselect();
-    }
-    // queued after the deselections' callbacks, which would otherwise reopen the focused file
-    queueMicrotask(() => setOpen(undefined));
-  }
-
   const entry = files.find(({ path }) => path === open);
   const text = entry?.content === undefined ? undefined : readText(entry.content);
 
@@ -299,7 +293,10 @@ export function FileEditor({
         className="flex min-w-0 flex-1 gap-3 overflow-hidden"
       >
         {rail && (
-          <FileRail label="Files">
+          <FileRail
+            label="Files"
+            className={cn("w-60", railToTop && "-mt-4 h-[calc(100%+1rem)] pt-4")}
+          >
             <div className="flex shrink-0 items-center gap-1 pr-2">
               <RailToggle
                 shown
@@ -335,35 +332,6 @@ export function FileEditor({
                   }}
                 />
               )}
-              <nav aria-label="Tabs" className="flex min-w-0 flex-1 items-end gap-1 self-stretch">
-                <TabButton aria-current={open === undefined} onClick={showFix}>
-                  {overview.label}
-                </TabButton>
-                {open !== undefined && (
-                  <TabButton aria-current title={open}>
-                    <span className="min-w-0 truncate">{open}</span>
-                    {drafts.has(open) && (
-                      <span
-                        role="img"
-                        aria-label="Unsaved"
-                        className="size-2 shrink-0 rounded-full bg-accent"
-                      />
-                    )}
-                  </TabButton>
-                )}
-                {open !== undefined && drafts.has(open) && (
-                  <Tooltip label="Drop this file's unsaved edits">
-                    <Button
-                      size="small"
-                      className="self-center"
-                      disabled={pending}
-                      onClick={() => revert(open)}
-                    >
-                      Revert
-                    </Button>
-                  </Tooltip>
-                )}
-              </nav>
               {diff !== undefined && (
                 <SegmentedControl<Mode>
                   label="View"
@@ -372,6 +340,14 @@ export function FileEditor({
                   onChange={setMode}
                 />
               )}
+              {open !== undefined && drafts.has(open) && (
+                <Tooltip label="Drop this file's unsaved edits">
+                  <Button size="small" disabled={pending} onClick={() => revert(open)}>
+                    Revert
+                  </Button>
+                </Tooltip>
+              )}
+              <span className="min-w-0 flex-1" />
               {drafts.size > 0 && (
                 <span className="shrink-0 type-label-13 text-muted">{drafts.size} unsaved</span>
               )}

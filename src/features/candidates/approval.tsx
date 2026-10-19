@@ -152,7 +152,15 @@ export function ShipDialog({
 }
 
 /** Debug's Ship action beside a Candidate that's ready to ship. */
-export function ShipButton({ candidate, label }: { candidate: Candidate; label?: string }) {
+export function ShipButton({
+  candidate,
+  label,
+  disabled = false,
+}: {
+  candidate: Candidate;
+  label?: string;
+  disabled?: boolean;
+}) {
   const issue = useIssue();
   const { pending, error, change } = useIssueChange();
   if (!canApprove(issue.state, candidate.results)) {
@@ -169,7 +177,7 @@ export function ShipButton({ candidate, label }: { candidate: Candidate; label?:
       <ShipDialog
         candidate={candidate}
         variant="primary"
-        disabled={pending}
+        disabled={pending || disabled}
         debugging
         {...(label === undefined ? {} : { label })}
         onShip={() => change({ action: "ship", candidate: candidate.id })}
