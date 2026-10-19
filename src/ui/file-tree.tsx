@@ -35,10 +35,12 @@ export function FileRail({
       aria-label={label}
       className={`flex shrink-0 flex-col border-r border-divider ${className}`}
     >
-      <div className="flex h-10 shrink-0 items-center gap-1 border-b border-divider px-2">
-        {onHide === undefined ? null : <RailToggle shown onToggle={onHide} />}
-        {title}
-      </div>
+      {(onHide !== undefined || title !== undefined) && (
+        <div className="flex h-10 shrink-0 items-center gap-1 border-b border-divider px-2">
+          {onHide === undefined ? null : <RailToggle shown onToggle={onHide} />}
+          {title}
+        </div>
+      )}
       {children}
     </nav>
   );

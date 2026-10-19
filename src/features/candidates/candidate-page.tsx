@@ -1,11 +1,12 @@
 import type { GitStatusEntry } from "@pierre/trees";
 import { FileTree, useFileTree } from "@pierre/trees/react";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { FileDiffs } from "#/file-diffs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/ui/collapsible";
 import { CopyButton } from "#/ui/copy-button";
 import { Markdown } from "#/ui/markdown";
+import { SearchField } from "#/ui/search-field";
 import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
 import { needsDebug } from "#src/features/candidates/proofs";
 import {
@@ -80,16 +81,27 @@ function ChangedFilesNav({
   fileIds: readonly string[];
 }) {
   const ready = useRef(false);
+  const [query, setQuery] = useState("");
   useEffect(() => {
     ready.current = true;
   }, []);
-  const paths = files.map(({ filename }) => filename);
-  const gitStatus: GitStatusEntry[] = files.map(({ filename, status }) => ({
-    path: filename,
-    status: status === "removed" ? "deleted" : status === "added" ? "added" : "modified",
-  }));
+  const paths = useMemo(() => files.map(({ filename }) => filename), [files]);
+  const visiblePaths = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase();
+    return normalized === ""
+      ? paths
+      : paths.filter((path) => path.toLocaleLowerCase().includes(normalized));
+  }, [paths, query]);
+  const gitStatus: GitStatusEntry[] = useMemo(
+    () =>
+      files.map(({ filename, status }) => ({
+        path: filename,
+        status: status === "removed" ? "deleted" : status === "added" ? "added" : "modified",
+      })),
+    [files],
+  );
   const { model } = useFileTree({
-    paths,
+    paths: visiblePaths,
     gitStatus,
     flattenEmptyDirectories: true,
     initialExpansion: "open",
@@ -107,14 +119,24 @@ function ChangedFilesNav({
       }
     },
   });
+  useEffect(() => {
+    model.resetPaths(visiblePaths);
+    model.setGitStatus(gitStatus);
+  }, [gitStatus, model, visiblePaths]);
 
   return (
-    <div className="sticky top-3 hidden h-[calc(100dvh-7.5rem)] w-56 shrink-0 overflow-hidden card lg:flex">
-      <FileRail
-        label="Changed files"
-        title={<span className="type-label-13 font-medium text-muted">Files</span>}
-        className="w-56 border-r-0"
-      >
+    <div className="sticky top-3 hidden h-[calc(100dvh-7.5rem)] w-56 shrink-0 lg:flex">
+      <FileRail label="Changed files" className="w-56">
+        <div className="shrink-0 p-2">
+          <SearchField
+            label="Search changed files"
+            placeholder="Search files"
+            value={query}
+            onChange={setQuery}
+            debounce={0}
+            className="w-full"
+          />
+        </div>
         <FileTree model={model} aria-label="Changed files" className="min-h-0 flex-1 p-2" />
       </FileRail>
     </div>
