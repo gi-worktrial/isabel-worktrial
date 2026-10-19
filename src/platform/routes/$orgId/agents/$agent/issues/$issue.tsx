@@ -6,14 +6,12 @@ import {
   issueEventsQuery,
   issueQuery,
 } from "#/queries";
-import { canShip, getIssueActions, type Issue } from "@grounded-intelligence/grounded-sdk";
+import type { Issue } from "@grounded-intelligence/grounded-sdk";
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 import { ChevronDown, History } from "lucide-react";
-import { type ReactNode, useState } from "react";
 
 import { usePebbleDock, usePebblePage } from "#/pebble/page";
 import {
-  ACTION_WORDS,
   APPROVAL_OUTDATED,
   SEVERITY_WORDS,
   STATE_WORDS,
@@ -24,11 +22,9 @@ import {
   useIssueChange,
 } from "../../../../../issue-view";
 import { Button, IconButton } from "#/ui/button";
-import { ConfirmDialog } from "#/ui/dialog";
 import { Fact, Facts } from "#/ui/facts";
-import { Textarea } from "#/ui/input";
 import { Markdown } from "#/ui/markdown";
-import { Dropdown, MenuItem } from "#/ui/menu";
+import { Dropdown, MenuRadioGroup, MenuRadioItem } from "#/ui/menu";
 import { Tab, Tabs } from "#/ui/tabs";
 import { Tag } from "#/ui/tag";
 import { Timestamp } from "#/ui/timestamp";
@@ -87,12 +83,10 @@ function IssuePage() {
             </span>
           </h1>
           <StatusPill status={issue.status} />
-          <IssueActions issue={issue} />
         </div>
         <Facts label="Issue details" className="items-start">
           <Fact label="State" orientation="vertical">
-            <StateMark state={issue.state} className="size-3.5" />
-            {STATE_WORDS[issue.state]}
+            <IssueStateControl issue={issue} />
           </Fact>
           {issue.approved !== undefined && (
             <Fact label="Approved" orientation="vertical">
@@ -206,118 +200,51 @@ function ClosedTabs({ params }: { params: IssueParams }) {
   );
 }
 
-function IssueActions({ issue }: { issue: Issue }) {
-  const { pending, error, change: run } = useIssueChange();
-  const params = Route.useParams();
-  const actions = getIssueActions(issue.state);
-  const { openActivity } = usePebbleDock();
+function IssueStateControl({ issue }: { issue: Issue }) {
+  const { pending, error, change } = useIssueChange();
+  if (issue.state !== "detected" && issue.state !== "reviewing") {
+    return (
+      <>
+        <StateMark state={issue.state} className="size-3.5" />
+        {STATE_WORDS[issue.state]}
+      </>
+    );
+  }
 
   return (
-    <div
-      role="group"
-      aria-label="Issue actions"
-      className="flex flex-wrap items-center justify-end gap-2"
-    >
-      {error !== undefined && (
-        <p role="alert" className="w-full text-right type-label-13 text-danger">
-          {error}
-        </p>
-      )}
+    <>
       <Dropdown
-        align="end"
+        align="start"
         trigger={
-          <Button variant="secondary" size="small">
-            Actions
+          <Button variant="quiet" size="small" className="-my-1 -ml-2" disabled={pending}>
+            <StateMark state={issue.state} className="size-3.5" />
+            {STATE_WORDS[issue.state]}
             <ChevronDown className="size-3.5" />
           </Button>
         }
       >
-        {actions.includes("validate") && (
-          <MenuItem disabled={pending} onSelect={() => run({ action: "validate" })}>
-            Start work
-          </MenuItem>
-        )}
-        {actions.includes("reset") && (
-          <MenuItem disabled={pending} onSelect={() => run({ action: "reset" })}>
-            Move back to New
-          </MenuItem>
-        )}
-        {issue.state === "reviewing" &&
-          issue.approved !== undefined &&
-          (canShip(issue) ? (
-            <ShipDialog
-              candidate={issue.approved.candidate}
-              trigger={<MenuItem>Mark as shipped</MenuItem>}
-              onShip={() => run({ action: "ship" })}
-            />
-          ) : (
-            <MenuItem disabled title={APPROVAL_OUTDATED}>
-              Mark as shipped
-            </MenuItem>
-          ))}
-        {actions.includes("dismiss") && (
-          <DismissDialog
-            id={issue.id}
-            trigger={<MenuItem disabled={pending}>Dismiss issue</MenuItem>}
-            onDismiss={(reason) => run({ action: "dismiss", reason })}
-          />
-        )}
-        <MenuItem onSelect={() => openActivity(params)}>View activity</MenuItem>
+        <MenuRadioGroup
+          value={issue.state}
+          onValueChange={(state) => {
+            if (state === "detected" && issue.state === "reviewing") {
+              change({ action: "reset" });
+            } else if (state === "reviewing" && issue.state === "detected") {
+              change({ action: "validate" });
+            }
+          }}
+        >
+          <MenuRadioItem value="detected">New</MenuRadioItem>
+          <MenuRadioItem value="reviewing">In progress</MenuRadioItem>
+          <MenuRadioItem value="resolved" disabled title="Ship a Candidate to resolve this Issue">
+            Resolved
+          </MenuRadioItem>
+        </MenuRadioGroup>
       </Dropdown>
-    </div>
-  );
-}
-
-function ShipDialog({
-  candidate,
-  trigger,
-  onShip,
-}: {
-  candidate: string;
-  trigger: ReactNode;
-  onShip(): void;
-}) {
-  return (
-    <ConfirmDialog
-      trigger={trigger}
-      title="Mark as shipped"
-      confirmLabel="Mark as shipped"
-      onConfirm={onShip}
-    >
-      <p className="type-copy-14 text-muted">
-        Merges {candidate} and this Issue's Evals into main, then resolves the Issue.
-      </p>
-    </ConfirmDialog>
-  );
-}
-
-function DismissDialog({
-  id,
-  trigger,
-  onDismiss,
-}: {
-  id: string;
-  trigger: ReactNode;
-  onDismiss(reason: string): void;
-}) {
-  const [reason, setReason] = useState("");
-
-  return (
-    <ConfirmDialog
-      trigger={trigger}
-      title={`Dismiss ${id}`}
-      confirmLabel={ACTION_WORDS.dismiss}
-      blocked={reason.trim() === ""}
-      onConfirm={() => onDismiss(reason)}
-    >
-      <Textarea
-        aria-label="Reason"
-        rows={3}
-        autoFocus
-        placeholder="e.g. Fixed in our next release"
-        value={reason}
-        onChange={(event) => setReason(event.target.value)}
-      />
-    </ConfirmDialog>
+      {error !== undefined && (
+        <span role="alert" className="type-meta-12 text-danger">
+          {error}
+        </span>
+      )}
+    </>
   );
 }
