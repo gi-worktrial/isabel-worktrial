@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   type IssueParams,
   candidatesQuery,
@@ -7,13 +7,12 @@ import {
   issueQuery,
 } from "#/queries";
 import type { Issue } from "@grounded-intelligence/grounded-sdk";
-import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
 import { ChevronDown, History } from "lucide-react";
 import { useState } from "react";
 
 import { usePebbleDock, usePebblePage } from "#/pebble/page";
 import {
-  APPROVAL_OUTDATED,
   SEVERITY_WORDS,
   STATE_WORDS,
   SeverityMark,
@@ -89,10 +88,6 @@ function IssuePage() {
     }) !== false;
   const lastEdited = useSuspenseQuery(issueEventsQuery(params)).data.events[0]?.at;
   const { openActivity } = usePebbleDock();
-  const approved = useQuery({
-    ...candidatesQuery(params),
-    enabled: issue.approved !== undefined,
-  }).data?.find(({ id }) => id === issue.approved?.candidate);
   usePebblePage(
     `The engineer is viewing Issue ${issue.id}, "${issue.title}" (${issue.state}). Its file is issues/${issue.id}/issue.mdx, at commit ${issue.head_oid} on main.`,
     ISSUE_PROMPTS,
@@ -114,19 +109,6 @@ function IssuePage() {
           <Fact label="State" orientation="vertical">
             <IssueStateControl issue={issue} />
           </Fact>
-          {issue.approved !== undefined && (
-            <Fact label="Approved" orientation="vertical">
-              <Link
-                to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-                params={{ ...params, candidate: issue.approved.candidate }}
-                title={issue.approved.candidate}
-                className="min-w-0 truncate rounded-xs text-accent-ink hover:underline"
-              >
-                {approved?.title ?? issue.approved.candidate}
-              </Link>
-              {issue.approved.outdated && <Tag tone="warning">{APPROVAL_OUTDATED}</Tag>}
-            </Fact>
-          )}
           {issue.fix !== undefined && (
             <Fact label="Fix" orientation="vertical">
               <Tag title={issue.fix}>{issue.fix.slice(0, 7)}</Tag>
