@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { useIssueParams } from "#/issue-view";
+import { useIssueParams, useStartIssueWork } from "#/issue-view";
 import { usePebbleDock } from "#/pebble/page";
 import { Button } from "#/ui/button";
 import { PebbleMark } from "#/ui/marks";
@@ -13,8 +13,16 @@ export const NEW_EVAL_PROMPT = "Write a New Eval for this Issue: ";
 /** Add Evals: Pebble writes an Issue its first Evals, the one next step while it has none. */
 export function AddEvals({ variant }: { variant?: "outline" }) {
   const pebble = usePebbleDock();
+  const startWork = useStartIssueWork();
   return (
-    <Button size="small" variant={variant} onClick={() => pebble.prefill(NEW_EVAL_PROMPT)}>
+    <Button
+      size="small"
+      variant={variant}
+      onClick={() => {
+        startWork();
+        pebble.prefill(NEW_EVAL_PROMPT);
+      }}
+    >
       <PebbleMark />
       Add Evals
     </Button>
@@ -24,11 +32,16 @@ export function AddEvals({ variant }: { variant?: "outline" }) {
 /** Debug Evals at the right end of the Issue's tab row, disabled with its reason until the Issue has an evals branch. */
 export function DebugEvalsAction({ exists }: { exists: boolean }) {
   const params = useIssueParams();
+  const startWork = useStartIssueWork();
   return (
     <TabActions>
       {exists ? (
         <Button size="small" asChild>
-          <Link to="/$orgId/agents/$agent/issues/$issue/debug/evals" params={params}>
+          <Link
+            to="/$orgId/agents/$agent/issues/$issue/debug/evals"
+            params={params}
+            onClick={startWork}
+          >
             Debug Evals
           </Link>
         </Button>

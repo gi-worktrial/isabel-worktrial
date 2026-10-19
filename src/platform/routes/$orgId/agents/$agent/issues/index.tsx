@@ -1,8 +1,8 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { issuesQuery } from "#/queries";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { issueQuery, issuesQuery, useAgentRepo } from "#/queries";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LayoutGrid, List as ListIcon, SlidersHorizontal } from "lucide-react";
-import { type ReactNode } from "react";
+import { type DragEvent, type ReactNode, useState, useTransition } from "react";
 import { z } from "zod";
 
 import {
@@ -212,35 +212,126 @@ function IssuesInbox() {
 }
 
 function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly IssueState[] }) {
-  return (
-    <div
-      className={cn(
-        "grid h-[calc(100dvh-7.75rem)] min-w-0 flex-1 items-stretch gap-4 overflow-x-auto overflow-y-hidden",
-        states.length === 1 && "grid-cols-[minmax(176px,1fr)]",
-        states.length === 2 && "grid-cols-[repeat(2,minmax(176px,1fr))]",
-        states.length === 3 && "grid-cols-[repeat(3,minmax(176px,1fr))]",
-        states.length === 4 && "grid-cols-[repeat(4,minmax(176px,1fr))]",
-      )}
-    >
-      {states.map((state) => {
-        const lane = rows.filter((issue) => issue.state === state);
-        return (
-          <Lane key={state} state={state} count={lane.length}>
-            <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pt-0.5">
-              {lane.map((issue) => (
-                <li key={issue.id}>
-                  <IssueLink
-                    issue={issue}
-                    className="flex flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
-                  >
-                    <IssueCard issue={issue} />
-                  </IssueLink>
-                </li>
-              ))}
-            </ul>
-          </Lane>
+  const params = Route.useParams();
+  const { client } = Route.useRouteContext();
+  const repo = useAgentRepo(params);
+  const queryClient = useQueryClient();
+  const [dragged, setDragged] = useState<IssueSummary>();
+  const [over, setOver] = useState<IssueState>();
+  const [error, setError] = useState<string>();
+  const [pending, startTransition] = useTransition();
+  const canMove = (to: IssueState) =>
+    dragged !== undefined &&
+    ((dragged.state === "detected" && to === "reviewing") ||
+      (dragged.state === "reviewing" && to === "detected"));
+
+  function drop(to: IssueState) {
+    const issue = dragged;
+    setDragged(undefined);
+    setOver(undefined);
+    if (
+      issue === undefined ||
+      !(
+        (issue.state === "detected" && to === "reviewing") ||
+        (issue.state === "reviewing" && to === "detected")
+      )
+    ) {
+      return;
+    }
+    startTransition(async () => {
+      try {
+        const current = await queryClient.fetchQuery(
+          issueQuery({ ...params, issue: issue.id }),
         );
-      })}
+        await client.issues.update({
+          agent: params.agent,
+          repo,
+          id: issue.id,
+          expectedHeadOid: current.head_oid,
+          action: to === "reviewing" ? "validate" : "reset",
+        });
+        setError(undefined);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : String(caught));
+      }
+      await queryClient.invalidateQueries();
+    });
+  }
+
+  return (
+    <div className="min-w-0 flex-1">
+      {error !== undefined && (
+        <p role="alert" className="mb-2 type-label-13 text-danger">
+          {error}
+        </p>
+      )}
+      <div
+        aria-busy={pending}
+        className={cn(
+          "grid h-[calc(100dvh-7.75rem)] min-w-0 items-stretch gap-4 overflow-x-auto overflow-y-hidden",
+          states.length === 1 && "grid-cols-[minmax(176px,1fr)]",
+          states.length === 2 && "grid-cols-[repeat(2,minmax(176px,1fr))]",
+          states.length === 3 && "grid-cols-[repeat(3,minmax(176px,1fr))]",
+          states.length === 4 && "grid-cols-[repeat(4,minmax(176px,1fr))]",
+        )}
+      >
+        {states.map((state) => {
+          const lane = rows.filter((issue) => issue.state === state);
+          return (
+            <Lane
+              key={state}
+              state={state}
+              count={lane.length}
+              className={cn(
+                canMove(state) && "outline-1 outline-dashed outline-divider-strong",
+                over === state && canMove(state) && "bg-accent-tint outline-accent",
+              )}
+              onDragEnter={() => canMove(state) && setOver(state)}
+              onDragOver={(event) => {
+                if (canMove(state)) {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                }
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  setOver(undefined);
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                drop(state);
+              }}
+            >
+              <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pt-0.5">
+                {lane.map((issue) => (
+                  <li
+                    key={issue.id}
+                    draggable={issue.state === "detected" || issue.state === "reviewing"}
+                    className={cn(dragged?.id === issue.id && "opacity-50")}
+                    onDragStart={(event: DragEvent<HTMLLIElement>) => {
+                      setDragged(issue);
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData("text/plain", issue.id);
+                    }}
+                    onDragEnd={() => {
+                      setDragged(undefined);
+                      setOver(undefined);
+                    }}
+                  >
+                    <IssueLink
+                      issue={issue}
+                      className="flex flex-col gap-2 card p-3 hover:-translate-y-px hover:border-divider-strong motion-safe:transition aria-[current=true]:border-accent aria-[current=true]:ring-1 aria-[current=true]:ring-accent aria-[current=true]:ring-inset scroll-my-4"
+                    >
+                      <IssueCard issue={issue} />
+                    </IssueLink>
+                  </li>
+                ))}
+              </ul>
+            </Lane>
+          );
+        })}
+      </div>
     </div>
   );
 }

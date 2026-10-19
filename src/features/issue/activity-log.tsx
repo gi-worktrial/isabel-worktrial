@@ -40,6 +40,12 @@ const ACTIONS: ReadonlyArray<{
 }> = [
   { subject: /^Find issue /u, verb: "found the Issue", mark: ScanSearch, to: "detected" },
   {
+    subject: /^Start work on issue /u,
+    verb: "started work on the Issue",
+    mark: CircleCheck,
+    to: "reviewing",
+  },
+  {
     subject: /^Validate issue /u,
     verb: "validated the Issue",
     mark: CircleCheck,

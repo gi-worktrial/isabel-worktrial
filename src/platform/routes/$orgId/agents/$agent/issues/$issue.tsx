@@ -219,6 +219,16 @@ function IssueActions({ issue }: { issue: Issue }) {
           </Button>
         }
       >
+        {actions.includes("validate") && (
+          <MenuItem disabled={pending} onSelect={() => run({ action: "validate" })}>
+            Start work
+          </MenuItem>
+        )}
+        {actions.includes("reset") && (
+          <MenuItem disabled={pending} onSelect={() => run({ action: "reset" })}>
+            Move back to New
+          </MenuItem>
+        )}
         {issue.state === "reviewing" &&
           issue.approved !== undefined &&
           (canShip(issue) ? (

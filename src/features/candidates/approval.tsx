@@ -66,23 +66,22 @@ function remedy(
 }
 
 /**
- * Platform's Approve, confirmed like a pull request approval: the four proofs with what fixes each one that doesn't
- * hold, then what is approved at which test merge. Platform's `canApprove` decides whether it can be confirmed, and
- * `onApprove` is platform's approve.
+ * Ships a Candidate after showing the four proofs and the exact test merge being shipped. Shipping is also the
+ * user's approval, so the platform validates and merges the tested revision in one action.
  */
-export function ApproveDialog({
+export function ShipDialog({
   candidate,
   variant,
   disabled,
   debugging = false,
-  onApprove,
+  onShip,
 }: {
   candidate: CandidateSummary | Candidate;
   variant?: "primary" | "secondary" | "outline";
   disabled: boolean;
   /** Whether this is Debug's header, which needs no Debug link. */
   debugging?: boolean;
-  onApprove(): void;
+  onShip(): void;
 }) {
   const params = useIssueParams();
   const issue = useIssue();
@@ -96,17 +95,17 @@ export function ApproveDialog({
   return (
     <>
       <Button variant={variant} disabled={disabled} onClick={() => setOpen(true)}>
-        Approve
+        Ship
       </Button>
       <ConfirmDialog
         open={open}
-        title={`Approve ${candidate.title}`}
-        description="Approving records this Candidate's results at its test merge. Mark as shipped then merges it into main."
-        confirmLabel={results === undefined ? "Approve" : `Approve ${short(results.run.sha)}`}
+        title={`Ship ${candidate.title}`}
+        description="Shipping treats this Candidate as approved, merges its tested results into main, and resolves the Issue."
+        confirmLabel={results === undefined ? "Ship" : `Ship ${short(results.run.sha)}`}
         blocked={!canApprove(issue.state, results)}
         onConfirm={() => {
           setOpen(false);
-          onApprove();
+          onShip();
         }}
         onClose={() => setOpen(false)}
       >
@@ -150,12 +149,11 @@ export function ApproveDialog({
   );
 }
 
-/** Debug's Approve, beside a Candidate that's Ready to approve and not already the approved one. */
-export function ApproveButton({ candidate }: { candidate: Candidate }) {
+/** Debug's Ship action beside a Candidate that's ready to ship. */
+export function ShipButton({ candidate }: { candidate: Candidate }) {
   const issue = useIssue();
   const { pending, error, change } = useIssueChange();
-  const current = issue.approved?.candidate === candidate.id && !issue.approved.outdated;
-  if (current || !canApprove(issue.state, candidate.results)) {
+  if (!canApprove(issue.state, candidate.results)) {
     return null;
   }
 
@@ -166,12 +164,12 @@ export function ApproveButton({ candidate }: { candidate: Candidate }) {
           {error}
         </span>
       )}
-      <ApproveDialog
+      <ShipDialog
         candidate={candidate}
-        variant="outline"
+        variant="primary"
         disabled={pending}
         debugging
-        onApprove={() => change({ action: "approve", candidate: candidate.id })}
+        onShip={() => change({ action: "ship", candidate: candidate.id })}
       />
     </span>
   );

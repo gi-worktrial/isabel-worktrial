@@ -2,8 +2,8 @@ import { Link, useParams } from "@tanstack/react-router";
 import { ListTree } from "lucide-react";
 
 import { STATE_WORDS, SeverityMark, StateMark, StatusPill } from "#/issue-view";
+import { Tag } from "#/ui/tag";
 import { ISSUE_STATES, type IssueSummary } from "#src/sdk/issues";
-import { Chip } from "#src/ui/chip";
 import { ShortTimestamp } from "#src/ui/short-timestamp";
 
 type AgentParams = { orgId: string; agent: string };
@@ -19,7 +19,7 @@ function IssueLink({ issue, params }: { issue: IssueSummary; params: AgentParams
     >
       <span className="flex h-6 shrink-0 items-center gap-3">
         <SeverityMark severity={issue.severity} />
-        <Chip>{issue.id}</Chip>
+        <Tag title={issue.id}>{issue.id}</Tag>
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="flex min-w-0 items-center gap-2">

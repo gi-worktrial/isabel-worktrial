@@ -33,10 +33,10 @@ export const SEVERITY_WORDS = {
 } as const satisfies Record<Severity, string>;
 
 export const ACTION_WORDS = {
-  validate: "Validate",
+  validate: "Start work",
   dismiss: "Dismiss",
   reopen: "Reopen",
-  reset: "Move back to Detected",
+  reset: "Move back to New",
 } as const satisfies Record<IssueActionName, string>;
 
 export const APPROVAL_OUTDATED = "Approved revision is out of date";
@@ -101,6 +101,17 @@ export function useIssueChange() {
   }
 
   return { pending, error, change };
+}
+
+/** Starts a New Issue when an engineer begins working in one of its Debug flows. */
+export function useStartIssueWork() {
+  const issue = useIssue();
+  const { change } = useIssueChange();
+  return () => {
+    if (issue.state === "detected") {
+      change({ action: "validate" });
+    }
+  };
 }
 
 const PILLS = {

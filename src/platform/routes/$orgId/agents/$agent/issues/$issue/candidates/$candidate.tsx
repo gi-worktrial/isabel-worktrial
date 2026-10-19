@@ -1,14 +1,18 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { candidateQuery, candidatesQuery } from "#/queries";
-import { type Candidate, type Issue, canApprove } from "@grounded-intelligence/grounded-sdk";
+import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { useIssue, useIssueChange } from "../../../../../../../issue-view";
-import { CandidateActions, CandidateNotFound, CandidateStatusTag } from "#/candidate-results";
+import {
+  useIssue,
+  useIssueChange,
+  useStartIssueWork,
+} from "../../../../../../../issue-view";
+import { CandidateActions, CandidateNotFound } from "#/candidate-results";
 import { IconButton, buttonVariants } from "#/ui/button";
 import { Tag } from "#/ui/tag";
-import { ApproveDialog } from "#src/features/candidates/approval";
+import { ShipDialog } from "#src/features/candidates/approval";
 import { CandidateBranch } from "#src/features/candidates/branches";
 import {
   CandidateActionsEnd,
@@ -32,6 +36,7 @@ function CandidatePage() {
   const candidate = useSuspenseQuery(candidateQuery(params)).data;
   const candidates = useSuspenseQuery(candidatesQuery(params)).data;
   const issue = useIssue();
+  const startWork = useStartIssueWork();
 
   return (
     <section aria-label={candidate.title} className="flex flex-col gap-6">
@@ -39,9 +44,6 @@ function CandidatePage() {
         <h2 className="flex min-w-0 items-center gap-2 type-heading-15 text-ink">
           <span className="min-w-0 truncate">{candidate.title}</span>
           <CandidateBranch candidate={candidate} />
-          {issue.approved?.candidate === candidate.id && (
-            <CandidateStatusTag candidate={candidate} />
-          )}
           {candidate.recommended !== undefined && (
             <Tag tone="accent" title={candidate.recommended}>
               Recommended
@@ -53,11 +55,12 @@ function CandidatePage() {
               to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
               params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
               className={buttonVariants({ variant: debugVariant(issue.state, candidate.results) })}
+              onClick={startWork}
             >
               Debug
             </Link>
             {canApprove(issue.state, candidate.results) && (
-              <ApproveButton issue={issue} candidate={candidate} />
+              <ShipButton candidate={candidate} />
             )}
             <CandidateNavigation candidates={candidates} current={candidate.id} />
           </CandidateActionsEnd>
@@ -117,12 +120,8 @@ function CandidateNavigation({
   );
 }
 
-function ApproveButton({ issue, candidate }: { issue: Issue; candidate: Candidate }) {
+function ShipButton({ candidate }: { candidate: Candidate }) {
   const { pending, error, change } = useIssueChange();
-  const current = issue.approved?.candidate === candidate.id && !issue.approved.outdated;
-  if (current) {
-    return null;
-  }
 
   return (
     <span className="flex items-center gap-2">
@@ -131,11 +130,11 @@ function ApproveButton({ issue, candidate }: { issue: Issue; candidate: Candidat
           {error}
         </span>
       )}
-      <ApproveDialog
+      <ShipDialog
         candidate={candidate}
-        variant={issue.approved === undefined ? "primary" : "secondary"}
+        variant="primary"
         disabled={pending}
-        onApprove={() => change({ action: "approve", candidate: candidate.id })}
+        onShip={() => change({ action: "ship", candidate: candidate.id })}
       />
     </span>
   );

@@ -201,7 +201,7 @@ export type IssueActionName = (typeof ISSUE_ACTION_NAMES)[number];
 
 /** What each action an engineer takes moves an Issue from and to, and the subject of its commit. */
 const ISSUE_ACTIONS: Record<IssueActionName, IssueAction> = {
-  validate: { from: ["detected"], to: "reviewing", subject: (id) => `Validate issue ${id}` },
+  validate: { from: ["detected"], to: "reviewing", subject: (id) => `Start work on issue ${id}` },
   dismiss: {
     from: ["detected", "reviewing"],
     to: "dismissed",
@@ -225,7 +225,7 @@ export type IssueChange =
   | { action: "include_trace" | "exclude_trace"; trace: string }
   | { action: "approve"; candidate: string }
   | { action: "unapprove" }
-  | { action: "ship" };
+  | { action: "ship"; candidate?: string };
 
 export const CANDIDATE_STATUSES = [
   "not_shipped",
@@ -386,12 +386,26 @@ export class Issues {
     const file = await this.repos.getContent({ repo, path, ref: expectedHeadOid });
     const { frontmatter, yaml, body } = readIssue(file, path);
     if (change.action === "ship") {
+      const shipment =
+        change.candidate === undefined
+          ? frontmatter
+          : {
+              ...frontmatter,
+              state: "reviewing" as const,
+              approved: await this.approval(
+                agent,
+                repo,
+                id,
+                frontmatter.state,
+                change.candidate,
+              ),
+            };
       const { candidate, fix } = await this.mergeApproved(
         repo,
         default_branch,
         id,
         expectedHeadOid,
-        frontmatter,
+        shipment,
       );
       // The merges can change the Issue's file too, so the change applies to it as merged.
       const shipped = readIssue(await this.repos.getContent({ repo, path, ref: fix }), path);
@@ -697,6 +711,22 @@ export class Issues {
     state: IssueState,
     candidate: string,
   ) {
+    const approval = await this.approval(agent, repo, id, state, candidate);
+    if (state === "detected") {
+      document.set("state", "reviewing");
+    }
+    document.set("approved", approval);
+    return `Approve candidate ${candidate} of issue ${id}`;
+  }
+
+  /** Returns the exact tested Candidate revision once it is ready to approve or ship. */
+  private async approval(
+    agent: string,
+    repo: string,
+    id: string,
+    state: IssueState,
+    candidate: string,
+  ) {
     const [pull, baseline] = await Promise.all([
       this.candidatePull(repo, id, candidate),
       this.readBaseline(agent, repo, id),
@@ -708,11 +738,7 @@ export class Issues {
       throw new Error(`Candidate ${candidate} of issue ${id} isn't ready to approve: ${status}`);
     }
 
-    if (state === "detected") {
-      document.set("state", "reviewing");
-    }
-    document.set("approved", { candidate, sha: results!.run.sha });
-    return `Approve candidate ${candidate} of issue ${id}`;
+    return { candidate, sha: results!.run.sha };
   }
 
   private async commitIssue(
