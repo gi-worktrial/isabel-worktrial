@@ -8,7 +8,7 @@ import {
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { sessionQuery, traceQuery } from "#/queries";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
 import { z } from "zod";
 
 import { crumbs } from "#/crumbs";
@@ -27,7 +27,6 @@ import { cn } from "#/ui/cn";
 import { Fact, Facts } from "#/ui/facts";
 import { formatDuration } from "#src/features/traces/duration";
 import { Markdown } from "#/ui/markdown";
-import { SearchField } from "#/ui/search-field";
 import { Tag } from "#/ui/tag";
 import { Timestamp } from "#/ui/timestamp";
 import { crumbTitle, turnCrumb } from "#src/features/traces/crumbs";
@@ -239,11 +238,19 @@ function Conversation({ messages }: { messages: Message[] }) {
   return (
     <ol className="flex flex-col gap-3">
       {messages.map((message, index) => (
-        <li key={index} className="flex gap-4">
-          <p className="w-16 shrink-0 pt-0.5 type-meta-12 font-medium text-muted">
-            {ROLES.get(message.role) ?? message.role}
-          </p>
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <li
+          key={index}
+          className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}
+        >
+          <div
+            className={cn(
+              "flex min-w-0 max-w-reading flex-col gap-1 rounded-md px-3 py-2",
+              message.role === "user" ? "bg-accent-tint" : "bg-fill",
+            )}
+          >
+            <p className="type-meta-12 font-medium text-muted">
+              {ROLES.get(message.role) ?? message.role}
+            </p>
             {message.parts.map((part, at) => {
               switch (part.type) {
                 case "text":
@@ -282,7 +289,6 @@ function Conversation({ messages }: { messages: Message[] }) {
 
 /** Attributes grouped by namespace, then the resource and events, filtered by key or value. */
 function Attributes({ span }: { span: Span }) {
-  const [query, setQuery] = useState("");
   const namespaces = new Map<string, [string, string][]>();
   for (const [key, value] of Object.entries(span.attributes)) {
     if (!SHOWN.has(key)) {
@@ -299,25 +305,9 @@ function Attributes({ span }: { span: Span }) {
       entries: Object.entries(event.attributes),
     })),
   ];
-  const needle = query.toLowerCase();
-  const matching = groups.flatMap((group) => {
-    if (group.group.toLowerCase().includes(needle)) {
-      return [group];
-    }
-    const entries = group.entries.filter((entry) => entry.join(" ").toLowerCase().includes(needle));
-    return entries.length > 0 ? [{ ...group, entries }] : [];
-  });
-
   return (
     <Section title="Attributes">
-      <SearchField
-        label="Search attributes"
-        placeholder="Search attributes"
-        value={query}
-        onChange={setQuery}
-        className="max-w-80"
-      />
-      {matching.map(({ group, at, entries }, index) => (
+      {groups.map(({ group, at, entries }, index) => (
         <section key={index} aria-label={group} className="flex flex-col gap-1">
           <h3 className="flex gap-2 type-meta-12 font-medium text-muted">
             {group}
