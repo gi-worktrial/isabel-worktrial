@@ -1,6 +1,6 @@
 import { GroundedError, getCandidateBranchById } from "@grounded-intelligence/grounded-sdk";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { CandidateNotFound } from "#/candidate-results";
@@ -17,10 +17,11 @@ import {
   treeQuery,
   useAgentRepo,
 } from "#/queries";
-import { buttonVariants } from "#/ui/button";
+import { Button } from "#/ui/button";
 import { crumbs } from "#/crumbs";
 import { useBranching } from "#src/features/debug/branching";
 import { candidateBasehead, useDebugDiff } from "#src/features/debug/debug-diff";
+import { ConfirmDialog } from "#src/ui/confirm-dialog";
 
 const BRANCH_MOVED_STATUS = 409;
 // Jobs checks for pushes every 15 seconds, so a save's run can take this long to appear.
@@ -62,6 +63,7 @@ function DebugPage() {
   const params = Route.useParams();
   const { orgId, agent, issue } = params;
   const repo = useAgentRepo(params);
+  const navigate = Route.useNavigate();
   const { client } = Route.useRouteContext();
   const queryClient = useQueryClient();
   const [savedAt, setSavedAt] = useState<number>();
@@ -143,13 +145,19 @@ function DebugPage() {
                 ))}
               </nav>
               {branching.error}
-              <Link
-                to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
-                params={{ orgId, agent, issue, candidate: candidate.id }}
-                className={buttonVariants({ variant: "secondary" })}
-              >
-                Cancel changes
-              </Link>
+              <ConfirmDialog
+                trigger={<Button variant="secondary">Cancel changes</Button>}
+                title="Cancel changes?"
+                description="Any unsaved changes in this editing session will be lost."
+                confirmLabel="Cancel changes"
+                destructive
+                onConfirm={() =>
+                  void navigate({
+                    to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
+                    params: { orgId, agent, issue, candidate: candidate.id },
+                  })
+                }
+              />
             </>
           }
           overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
