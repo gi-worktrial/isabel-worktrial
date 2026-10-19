@@ -85,31 +85,34 @@ function TracePage() {
               ? undefined
               : { minHeight: `${Math.max((span.duration_ns / longestProcess) * 72, 28)}px` };
             return (
-              <li
-                key={span.span_id}
-                style={rowStyle}
-                className={cn(
-                  "min-w-0",
-                  !isRoot && "grid grid-cols-[0.375rem_minmax(0,1fr)] gap-2",
-                )}
-              >
-                {!isRoot && (
+              <li key={span.span_id} style={rowStyle} className="min-w-0">
+                <Link
+                  from={Route.fullPath}
+                  to="."
+                  search={{ span: span.span_id }}
+                  replace
+                  aria-current={span === selected ? "true" : undefined}
+                  className={cn(
+                    "min-w-0 rounded-xs text-ink hover:bg-fill aria-current:row-selected",
+                    isRoot ? "block" : "grid h-full grid-cols-[0.375rem_minmax(0,1fr)] gap-2",
+                  )}
+                >
+                  {!isRoot && (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "w-1.5 self-stretch rounded-xs",
+                        failing
+                          ? "bg-danger"
+                          : span === selected
+                            ? "bg-ring"
+                            : "bg-divider-strong",
+                      )}
+                    />
+                  )}
                   <span
-                    aria-hidden="true"
-                    className={cn(
-                      "w-1.5 self-stretch rounded-xs",
-                      failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
-                    )}
-                  />
-                )}
-                  <Link
-                    from={Route.fullPath}
-                    to="."
-                    search={{ span: span.span_id }}
-                    replace
-                    aria-current={span === selected ? "true" : undefined}
-                  style={{ paddingLeft: `${depth + 0.25}rem` }}
-                  className="flex h-7 min-w-0 self-center items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
+                    style={{ paddingLeft: `${depth + 0.25}rem` }}
+                    className="flex h-7 min-w-0 self-center items-center gap-2 pr-2 type-label-13"
                   >
                     <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
                     <span className="min-w-0 truncate">{spanLabel(span)}</span>
@@ -117,7 +120,8 @@ function TracePage() {
                     <span className="ml-auto shrink-0 type-meta-12 text-muted tabular-nums">
                       {formatDuration(span.duration_ns)}
                     </span>
-                  </Link>
+                  </span>
+                </Link>
               </li>
             );
           })}
