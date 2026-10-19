@@ -113,8 +113,9 @@ function TracePage() {
                     <span
                       aria-hidden="true"
                         className={cn(
-                          "relative self-stretch before:absolute before:top-[-1px] before:left-1/2 before:w-px before:bg-divider-strong after:absolute after:top-1/2 after:left-1/2 after:h-px after:w-1/2 after:bg-divider-strong",
-                          isLast ? "before:bottom-1/2" : "before:bottom-[-1px]",
+                          "relative self-stretch after:absolute after:top-[-1px] after:right-0 after:bottom-1/2 after:left-1/2 after:rounded-bl-md after:border-b after:border-l after:border-divider-strong",
+                          !isLast &&
+                            "before:absolute before:top-1/2 before:bottom-[-1px] before:left-1/2 before:border-l before:border-divider-strong",
                         )}
                     />
                   )}
