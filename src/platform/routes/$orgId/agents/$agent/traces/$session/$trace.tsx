@@ -37,6 +37,13 @@ import {
 } from "#src/features/traces/span-page";
 import { StepNotes } from "#src/features/traces/transcript";
 
+const ICON_TONES = {
+  agent: "bg-accent-tint text-accent-ink",
+  model: "bg-purple-tint text-purple",
+  tool: "bg-warning-tint text-warning-ink",
+  span: "bg-fill text-muted",
+} as const;
+
 export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/$trace")({
   validateSearch: z.object({ span: z.string().optional() }),
   loader: async ({ context: { queryClient }, params }) => {
@@ -87,9 +94,12 @@ function TracePage() {
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
-        <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
-          {rows.map(({ span, depth }) => {
-            const Icon = KIND_ICONS[spanKind(span)];
+        <section aria-label="Trace tree" className="flex min-w-0 flex-col gap-2">
+          <h2 className="type-heading-15 text-ink">Trace tree</h2>
+          <ol aria-label="Span timeline" className="flex min-w-0 flex-col gap-px">
+            {rows.map(({ span, depth }) => {
+              const kind = spanKind(span);
+              const Icon = KIND_ICONS[kind];
             const failing = failed.has(span.span_id) || spanError(span) !== undefined;
             const isRoot = span === root;
             const rowStyle = isRoot
@@ -104,7 +114,7 @@ function TracePage() {
                   replace
                   aria-current={span === selected ? "true" : undefined}
                   className={cn(
-                    "min-w-0 rounded-xs text-ink hover:bg-fill aria-current:row-selected",
+                    "min-w-0 rounded-sm bg-subtle text-ink hover:bg-fill aria-current:row-selected",
                     isRoot ? "block" : "grid h-full grid-cols-[0.375rem_minmax(0,1fr)] gap-1",
                   )}
                 >
@@ -112,7 +122,7 @@ function TracePage() {
                     <span
                       aria-hidden="true"
                       className={cn(
-                        "w-1.5 self-stretch rounded-xs",
+                        "relative w-1.5 self-stretch rounded-xs after:absolute after:top-1/2 after:left-full after:h-px after:w-1 after:bg-divider-strong",
                         failing
                           ? "bg-danger"
                           : span === selected
@@ -128,7 +138,14 @@ function TracePage() {
                     className="flex h-7 min-w-0 self-center items-center gap-2 pr-2 type-label-13"
                   >
                     {!isRoot && (
-                      <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
+                      <span
+                        className={cn(
+                          "flex size-6 shrink-0 items-center justify-center rounded-xs",
+                          ICON_TONES[kind],
+                        )}
+                      >
+                        <Icon aria-hidden="true" className="size-3.5" />
+                      </span>
                     )}
                     <span className="min-w-0 truncate">{spanLabel(span)}</span>
                     {spanError(span) !== undefined && <Tag tone="danger">Error</Tag>}
@@ -139,8 +156,9 @@ function TracePage() {
                 </Link>
               </li>
             );
-          })}
-        </ol>
+            })}
+          </ol>
+        </section>
         {selected && (
           <SpanDetails
             key={selected.span_id}
