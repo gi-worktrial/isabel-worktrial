@@ -332,9 +332,9 @@
   background: conic-gradient(
     from var(--pebble-border-angle),
     var(--color-accent),
-    var(--color-accent-ink),
+    var(--color-teal),
     var(--color-accent),
-    var(--color-accent-ink),
+    var(--color-teal),
     var(--color-accent)
   );
   -webkit-mask:
