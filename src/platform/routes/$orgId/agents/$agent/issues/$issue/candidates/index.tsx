@@ -161,8 +161,6 @@ function CandidateCards() {
                   <span className="truncate type-label-13 font-semibold text-ink">
                   {candidate.title}
                   </span>
-                  <CandidateBranch candidate={candidate} />
-                  <CandidateResultTags results={candidate.results} />
                   {candidate.recommended !== undefined && (
                     <Tag tone="accent" title={candidate.recommended}>
                       Recommended
@@ -177,14 +175,22 @@ function CandidateCards() {
                 View candidate
               </span>
             </header>
-            {detail !== undefined && (
-              <Tag className="self-start gap-2">
-                <span className="font-normal text-muted">
-                  {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
-                </span>
-                <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
-              </Tag>
-            )}
+            <footer className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+              <span className="flex min-w-0 flex-wrap items-center gap-2">
+                <CandidateBranch candidate={candidate} />
+                {detail !== undefined && (
+                  <Tag className="gap-2">
+                    <span className="font-normal text-muted">
+                      {detail.files.length === 1 ? "1 file" : `${detail.files.length} files`}
+                    </span>
+                    <LineCounts {...totalLines(detail.files)} className="type-mono-12" />
+                  </Tag>
+                )}
+              </span>
+              <span className="flex items-center">
+                <CandidateResultTags results={candidate.results} />
+              </span>
+            </footer>
           </Link>
         </li>
       </ul>
