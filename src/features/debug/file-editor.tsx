@@ -290,12 +290,12 @@ export function FileEditor({
             }
           }
         }}
-        className="flex min-w-0 flex-1 gap-3 overflow-hidden"
+        className="flex min-w-0 flex-1 gap-3"
       >
         {rail && (
           <FileRail
             label="Files"
-            className={cn("w-60", railToTop && "-mt-4 h-[calc(100%+1rem)] pt-4")}
+            className={cn("w-60", railToTop && "-my-4 h-[calc(100%+2rem)] py-4")}
           >
             <div className="flex shrink-0 items-center gap-1 pr-2">
               <RailToggle
