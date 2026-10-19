@@ -161,6 +161,7 @@ function CandidateCards() {
                   {candidate.title}
                 </Link>
                 <CandidateBranch candidate={candidate} />
+                <CandidateResultTags results={candidate.results} />
                 {candidate.recommended !== undefined && (
                   <Tag tone="accent" title={candidate.recommended}>
                     Recommended
@@ -179,9 +180,6 @@ function CandidateCards() {
               View candidate
             </Link>
           </header>
-          <div className="flex flex-wrap items-center gap-2">
-            <CandidateResultTags results={candidate.results} />
-          </div>
           {detail !== undefined && (
             <div className="flex items-center gap-2 border-t border-divider pt-3">
               <span className="type-label-13 font-semibold text-ink">Fix</span>
