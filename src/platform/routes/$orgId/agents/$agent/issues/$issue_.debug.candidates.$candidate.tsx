@@ -19,7 +19,6 @@ import {
 } from "#/queries";
 import { buttonVariants } from "#/ui/button";
 import { crumbs } from "#/crumbs";
-import { ShipButton } from "#src/features/candidates/approval";
 import { useBranching } from "#src/features/debug/branching";
 import { candidateBasehead, useDebugDiff } from "#src/features/debug/debug-diff";
 
@@ -130,6 +129,8 @@ function DebugPage() {
           initialPath={initialFile}
           onFileChange={setOpenFile}
           railToTop
+          saveInPaneHeader
+          saveLabel="Save changes"
           paneHeader={
             <>
               <nav
@@ -153,11 +154,6 @@ function DebugPage() {
               >
                 Cancel changes
               </Link>
-              <ShipButton
-                candidate={candidate}
-                label="Ship changes"
-                disabled={savedAt === undefined}
-              />
             </>
           }
           overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}

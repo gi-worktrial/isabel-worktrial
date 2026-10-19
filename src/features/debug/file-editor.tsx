@@ -72,6 +72,10 @@ type FileEditorProps = {
   actions?: ReactNode;
   /** Workspace controls above the code pane, beside the file rail. */
   paneHeader?: ReactNode;
+  /** Places Save beside `paneHeader` instead of in the editor toolbar. */
+  saveInPaneHeader?: boolean;
+  /** The Save action's label. */
+  saveLabel?: string;
   /** Extends the rail's divider through the page's top padding. */
   railToTop?: boolean;
   /** Reports the file in view so a surrounding workspace can identify it. */
@@ -114,6 +118,8 @@ export function FileEditor({
   initialPath,
   actions,
   paneHeader,
+  saveInPaneHeader = false,
+  saveLabel = "Save",
   railToTop = false,
   onFileChange,
   primary = false,
@@ -230,14 +236,22 @@ export function FileEditor({
   const edited = () => [...drafts].map(([path, contents]) => ({ path, contents }));
   const saveButton = (
     <Button
-      size="small"
+      size={saveInPaneHeader ? "default" : "small"}
       variant={primary ? "primary" : "secondary"}
       disabled={pending || drafts.size === 0}
       onClick={askOrSave}
     >
-      {pending ? "Saving…" : "Save"}
+      {pending ? "Saving…" : saveLabel}
     </Button>
   );
+  const saveControl =
+    drafts.size === 0 ? (
+      <Tooltip label="No unsaved edits">
+        <span className="inline-flex">{saveButton}</span>
+      </Tooltip>
+    ) : (
+      saveButton
+    );
 
   function askOrSave() {
     if (renderSaveDialog === undefined) {
@@ -319,10 +333,13 @@ export function FileEditor({
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
           {paneHeader !== undefined && (
-            <div className="flex h-8 shrink-0 items-center gap-2">{paneHeader}</div>
+            <div className="flex h-8 shrink-0 items-center gap-2">
+              {paneHeader}
+              {saveInPaneHeader && saveControl}
+            </div>
           )}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden card">
-            <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider px-2">
+            <header className="flex h-10 shrink-0 items-center gap-3 border-b border-divider bg-subtle px-2">
               {!rail && (
                 <RailToggle
                   shown={false}
@@ -352,13 +369,7 @@ export function FileEditor({
                 <span className="shrink-0 type-label-13 text-muted">{drafts.size} unsaved</span>
               )}
               {actions}
-              {drafts.size === 0 ? (
-                <Tooltip label="No unsaved edits">
-                  <span className="inline-flex">{saveButton}</span>
-                </Tooltip>
-              ) : (
-                saveButton
-              )}
+              {!saveInPaneHeader && saveControl}
             </header>
             {error !== undefined && (
               <p
