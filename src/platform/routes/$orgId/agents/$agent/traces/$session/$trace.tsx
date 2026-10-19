@@ -17,7 +17,6 @@ import { sessionTitle } from "#/titles";
 import {
   KIND_ICONS,
   SpanBar,
-  SpanTimeline,
   formatJson,
   spanError,
   spanKind,
@@ -27,6 +26,7 @@ import {
   toolLabel,
 } from "#/traces";
 import { Fact, Facts } from "#/ui/facts";
+import { cn } from "#/ui/cn";
 import { formatDuration } from "#src/features/traces/duration";
 import { Markdown } from "#/ui/markdown";
 import { SearchField } from "#/ui/search-field";
@@ -62,13 +62,11 @@ export const Route = createFileRoute("/$orgId/agents/$agent/traces/$session/$tra
 function TracePage() {
   const { orgId, agent, trace } = Route.useParams();
   const search = Route.useSearch();
-  const navigate = Route.useNavigate();
   const { spans, annotations } = useSuspenseQuery(traceQuery({ orgId, agent, trace })).data;
   const rows = spanRows(spans);
   const timing = spanTiming(spans);
   const root = rows[0]?.span;
   const selected = spans.find(({ span_id }) => span_id === search.span) ?? root;
-  const pick = (span: Span) => navigate({ search: { span: span.span_id }, replace: true });
   const grades = annotations.flatMap((annotation) => {
     const criterion = getGradeCriterion(annotation);
     const span_id = annotation.span_id || (root?.span_id ?? "");
@@ -79,13 +77,23 @@ function TracePage() {
   return (
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
-      <SpanTimeline traces={[spans]} failed={failed} selected={selected?.span_id} onPick={pick} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
-        <ol aria-label="Span tree" className="flex min-w-0 flex-col">
+        <ol
+          aria-label="Span timeline"
+          className="relative flex min-w-0 flex-col before:absolute before:top-3.5 before:bottom-3.5 before:left-1.5 before:w-px before:bg-divider"
+        >
           {rows.map(({ span, depth }) => {
             const Icon = KIND_ICONS[spanKind(span)];
+            const failing = failed.has(span.span_id) || spanError(span) !== undefined;
             return (
-              <li key={span.span_id}>
+              <li key={span.span_id} className="relative">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute top-3.5 left-1.5 z-[1] size-2 -translate-1/2 rounded-full ring-2 ring-surface",
+                    failing ? "bg-danger" : span === selected ? "bg-ring" : "bg-divider-strong",
+                  )}
+                />
                 <Link
                   from={Route.fullPath}
                   to="."
@@ -93,7 +101,7 @@ function TracePage() {
                   replace
                   aria-current={span === selected ? "true" : undefined}
                   style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
-                  className="flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
+                  className="ml-4 flex h-7 min-w-0 items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
                 >
                   <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
                   <span className="min-w-0 truncate">{spanLabel(span)}</span>
@@ -104,7 +112,7 @@ function TracePage() {
                   <SpanBar
                     span={span}
                     timing={timing}
-                    failed={failed.has(span.span_id) || spanError(span) !== undefined}
+                    failed={failing}
                   />
                 </Link>
               </li>
