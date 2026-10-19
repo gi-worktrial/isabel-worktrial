@@ -171,7 +171,7 @@ function SpanDetails({
           <span className="min-w-0 truncate">{spanLabel(span)}</span>
           {error !== undefined && <Tag tone="danger">Error</Tag>}
         </h1>
-        <Facts label="Span facts">
+        <Facts label="Span facts" className="gap-x-10">
           {span.name !== spanLabel(span) && (
             <Fact label="Name" orientation="vertical">
               {span.name}
