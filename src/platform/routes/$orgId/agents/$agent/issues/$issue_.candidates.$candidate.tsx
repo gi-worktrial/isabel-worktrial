@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { createTwoFilesPatch } from "diff";
+import { Pencil } from "lucide-react";
 
 import { CandidateActions, CandidateNotFound } from "#/candidate-results";
 import { debugSearchSchema } from "#/debug-search";
@@ -15,7 +16,9 @@ import {
   treeQuery,
 } from "#/queries";
 import { buttonVariants } from "#/ui/button";
+import { cn } from "#/ui/cn";
 import { Tag } from "#/ui/tag";
+import { Tooltip } from "#/ui/tooltip";
 import { crumbs } from "#/crumbs";
 import { ShipDialog } from "#src/features/candidates/approval";
 import { CandidateBranch } from "#src/features/candidates/branches";
@@ -30,6 +33,11 @@ import { CandidateGrades } from "#src/features/debug/eval-grades";
 import { entryText } from "#src/features/debug/files";
 import { candidateBasehead } from "#src/features/debug/debug-diff";
 import { comparisonQuery } from "#src/queries/extra";
+
+const FILE_EDIT_LINK = cn(
+  buttonVariants({ variant: "quiet", size: "small" }),
+  "size-7 px-0",
+);
 
 export const Route = createFileRoute(
   "/$orgId/agents/$agent/issues/$issue_/candidates/$candidate",
@@ -130,7 +138,7 @@ function CandidatePage() {
             className={buttonVariants({ variant: debugVariant(issue.state, candidate.results) })}
             onClick={startWork}
           >
-            Debug
+            Edit
           </Link>
           {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
         </CandidateActionsEnd>
@@ -141,7 +149,24 @@ function CandidatePage() {
         fileSummary={{ count: candidate.files.length, ...totalLines(candidate.files) }}
         files={
           <div className="w-full">
-            <FixCard files={candidate.files} getFullPatch={getFullPatch} />
+            <FixCard
+              files={candidate.files}
+              getFullPatch={getFullPatch}
+              renderFileAction={(file) => (
+                <Tooltip label={`Edit ${file.filename}`}>
+                  <Link
+                    to="/$orgId/agents/$agent/issues/$issue/debug/candidates/$candidate"
+                    params={{ orgId, agent, issue: issue.id, candidate: candidate.id }}
+                    search={{ file: file.filename }}
+                    aria-label={`Edit ${file.filename}`}
+                    className={FILE_EDIT_LINK}
+                    onClick={startWork}
+                  >
+                    <Pencil aria-hidden="true" className="size-3.5" />
+                  </Link>
+                </Tooltip>
+              )}
+            />
           </div>
         }
         grades={<CandidateGrades candidate={candidate} />}

@@ -155,6 +155,7 @@ function DebugPage() {
               key={candidate.id}
               entries={tree}
               changes={changes}
+              initialPath={search.file}
               overview={{ label: "Fix", content: <FileDiffs files={changes} /> }}
               primary
               diff={diff}

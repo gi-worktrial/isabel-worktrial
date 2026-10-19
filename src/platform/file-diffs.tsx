@@ -2,7 +2,7 @@ import type { PullFile } from "@grounded-intelligence/grounded-sdk";
 import { preloadHighlighter } from "@pierre/diffs";
 import { PatchDiff } from "@pierre/diffs/react";
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 
 import { EmptyState } from "#/ui/empty-state";
 import { IconButton } from "#/ui/button";
@@ -36,12 +36,14 @@ export function FileDiffs({
   separated = false,
   fileIds,
   getFullPatch,
+  renderFileAction,
 }: {
   files: readonly PullFile[];
   empty?: string;
   separated?: boolean;
   fileIds?: readonly string[];
   getFullPatch?: (file: PullFile) => string;
+  renderFileAction?: (file: PullFile) => ReactNode;
 }) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   if (files.length === 0) {
@@ -56,30 +58,37 @@ export function FileDiffs({
       defaultOpen={separated || index === 0}
       separated={separated}
       action={
-        file.patch === undefined ? undefined : (
-          <IconButton
-            label={
-              expanded.has(file.filename) ? "Collapse unchanged lines" : "Expand unchanged lines"
-            }
-            size="small"
-            onClick={() =>
-              setExpanded((current) => {
-                const next = new Set(current);
-                if (next.has(file.filename)) {
-                  next.delete(file.filename);
-                } else {
-                  next.add(file.filename);
+        renderFileAction === undefined && file.patch === undefined ? undefined : (
+          <>
+            {renderFileAction?.(file)}
+            {file.patch !== undefined && (
+              <IconButton
+                label={
+                  expanded.has(file.filename)
+                    ? "Collapse unchanged lines"
+                    : "Expand unchanged lines"
                 }
-                return next;
-              })
-            }
-          >
-            {expanded.has(file.filename) ? (
-              <ChevronsDownUp className="size-3.5" />
-            ) : (
-              <ChevronsUpDown className="size-3.5" />
+                size="small"
+                onClick={() =>
+                  setExpanded((current) => {
+                    const next = new Set(current);
+                    if (next.has(file.filename)) {
+                      next.delete(file.filename);
+                    } else {
+                      next.add(file.filename);
+                    }
+                    return next;
+                  })
+                }
+              >
+                {expanded.has(file.filename) ? (
+                  <ChevronsDownUp className="size-3.5" />
+                ) : (
+                  <ChevronsUpDown className="size-3.5" />
+                )}
+              </IconButton>
             )}
-          </IconButton>
+          </>
         )
       }
       meta={

@@ -62,9 +62,11 @@ export function CandidateBody({ body, children }: { body: string; children?: Rea
 export function FixCard({
   files,
   getFullPatch,
+  renderFileAction,
 }: {
   files: readonly PullFile[];
   getFullPatch?: (file: PullFile) => string;
+  renderFileAction?: (file: PullFile) => ReactNode;
 }) {
   const id = useId().replaceAll(":", "");
   const fileIds = files.map((_, index) => `${id}-file-${index}`);
@@ -78,6 +80,7 @@ export function FixCard({
           separated
           fileIds={fileIds}
           {...(getFullPatch === undefined ? {} : { getFullPatch })}
+          {...(renderFileAction === undefined ? {} : { renderFileAction })}
         />
       </div>
     </section>

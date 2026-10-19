@@ -35,7 +35,9 @@ export function FileFold({
             <FilePath path={path} className="flex-1 type-mono-12 text-ink" />
             {meta}
           </CollapsibleTrigger>
-          {action === undefined ? null : <span className="shrink-0 pr-2">{action}</span>}
+          {action === undefined ? null : (
+            <span className="flex shrink-0 items-center gap-1 pr-2">{action}</span>
+          )}
         </div>
         <CollapsibleContent className={FOLD}>
           <div className="border-t border-divider">{children}</div>
