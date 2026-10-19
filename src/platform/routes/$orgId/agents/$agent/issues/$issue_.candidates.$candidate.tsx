@@ -87,11 +87,11 @@ function CandidatePage() {
           {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
         </CandidateActionsEnd>
       </h1>
+      <CandidateBody body={candidate.body} />
       <DebugViews
         search={search}
         files={
-          <div className="flex w-full flex-col gap-6">
-            <CandidateBody body={candidate.body} />
+          <div className="w-full">
             <FixCard files={candidate.files} />
           </div>
         }
