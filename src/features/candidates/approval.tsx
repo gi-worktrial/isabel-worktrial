@@ -15,7 +15,7 @@ const short = (sha: string) => sha.slice(0, 7);
 
 function Rows({ children }: { children: ReactNode }) {
   return (
-    <dl className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-sm bg-fill p-3">
+    <dl className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-x-3 gap-y-2 rounded-sm bg-fill p-3">
       {children}
     </dl>
   );
