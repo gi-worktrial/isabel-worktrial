@@ -31,10 +31,12 @@ export function FileDiffs({
   files,
   empty = "This Candidate doesn't change any files yet.",
   separated = false,
+  fileIds,
 }: {
   files: readonly PullFile[];
   empty?: string;
   separated?: boolean;
+  fileIds?: readonly string[];
 }) {
   if (files.length === 0) {
     return <EmptyState title="No changes" description={empty} />;
@@ -43,8 +45,9 @@ export function FileDiffs({
   const folds = files.map((file, index) => (
     <FileFold
       key={file.filename}
+      {...(fileIds?.[index] === undefined ? {} : { id: fileIds[index] })}
       path={file.filename}
-      defaultOpen={index === 0}
+      defaultOpen={separated || index === 0}
       separated={separated}
       meta={
         <LineCounts

@@ -1,11 +1,10 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 import { FileDiffs } from "#/file-diffs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/ui/collapsible";
 import { CopyButton } from "#/ui/copy-button";
 import { Markdown } from "#/ui/markdown";
 import { splitApplyPrompt } from "#src/features/candidates/candidate-body";
-import { totalLines } from "#src/features/candidates/file-fold";
 import { needsDebug } from "#src/features/candidates/proofs";
 import {
   type CandidateResults,
@@ -13,7 +12,7 @@ import {
   type PullFile,
   getCandidateStatus,
 } from "#src/sdk/index";
-import { LineCounts } from "#src/ui/file-name";
+import { FilePath } from "#src/ui/file-name";
 import { FOLD } from "#src/ui/fold";
 
 /** A Candidate's rationale at the reading width, its Apply prompt folded behind its Copy, since the prompt repeats the rationale and the Fix shown on the page. */
@@ -52,18 +51,37 @@ export function CandidateBody({ body, children }: { body: string; children?: Rea
   );
 }
 
-/** The Candidate's Fix in one card: how many files and lines it changes, then each file's diff. */
+/** The Candidate's changed files, with navigation and one expanded card per file. */
 export function FixCard({ files }: { files: readonly PullFile[] }) {
+  const id = useId().replaceAll(":", "");
+  const fileIds = files.map((_, index) => `${id}-file-${index}`);
+
   return (
-    <section aria-label="Fix" className="flex flex-col gap-2">
-      <header className="flex items-center gap-2">
-        <h3 className="type-label-13 font-semibold text-ink">Fix</h3>
-        <span className="type-label-13 text-muted tabular-nums">
-          {files.length === 1 ? "1 file" : `${files.length} files`}
-        </span>
-        <LineCounts {...totalLines(files)} className="ml-auto type-mono-12" />
-      </header>
-      <FileDiffs files={files} separated />
+    <section aria-label="Fix" className="flex items-start gap-3">
+      <nav
+        aria-label="Changed files"
+        className="sticky top-3 hidden max-h-[calc(100dvh-7.5rem)] w-56 shrink-0 flex-col overflow-auto card lg:flex"
+      >
+        <div className="flex h-10 shrink-0 items-center border-b border-divider px-3 type-label-13 font-medium text-muted">
+          Files
+        </div>
+        <ul className="flex flex-col p-2">
+          {files.map((file, index) => (
+            <li key={file.filename}>
+              <a
+                href={`#${fileIds[index]}`}
+                title={file.filename}
+                className="flex h-8 min-w-0 items-center rounded-xs px-2 hover:bg-fill"
+              >
+                <FilePath path={file.filename} className="flex-1 type-mono-12 text-ink" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="min-w-0 flex-1">
+        <FileDiffs files={files} separated fileIds={fileIds} />
+      </div>
     </section>
   );
 }

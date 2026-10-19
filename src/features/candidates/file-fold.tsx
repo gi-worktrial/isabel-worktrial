@@ -7,12 +7,14 @@ import { FOLD } from "#src/ui/fold";
 
 /** One file of a list: its path row, with `meta` at the right, folding its diff away. Rows part with one hairline. */
 export function FileFold({
+  id,
   path,
   meta,
   defaultOpen,
   separated = false,
   children,
 }: {
+  id?: string;
   path: string;
   meta?: ReactNode;
   defaultOpen: boolean;
@@ -22,6 +24,7 @@ export function FileFold({
   return (
     <Collapsible defaultOpen={defaultOpen} asChild>
       <section
+        id={id}
         aria-label={path}
         className={separated ? "overflow-clip card" : "border-b border-divider last:border-b-0"}
       >

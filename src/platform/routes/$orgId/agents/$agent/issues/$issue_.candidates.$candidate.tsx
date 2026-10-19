@@ -17,6 +17,7 @@ import { Tag } from "#/ui/tag";
 import { crumbs } from "#/crumbs";
 import { ShipDialog } from "#src/features/candidates/approval";
 import { CandidateBranch } from "#src/features/candidates/branches";
+import { totalLines } from "#src/features/candidates/file-fold";
 import {
   CandidateActionsEnd,
   CandidateBody,
@@ -90,6 +91,7 @@ function CandidatePage() {
       <CandidateBody body={candidate.body} />
       <DebugViews
         search={search}
+        fileSummary={{ count: candidate.files.length, ...totalLines(candidate.files) }}
         files={
           <div className="w-full">
             <FixCard files={candidate.files} />

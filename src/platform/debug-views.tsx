@@ -3,17 +3,21 @@ import type { ReactNode } from "react";
 import type { DebugSearch } from "#/debug-search";
 import { IssueTraceTable } from "#/issue-traces";
 import { Tab, Tabs } from "#/ui/tabs";
+import { Tag } from "#/ui/tag";
 import { TabActionsEnd } from "#src/ui/tab-actions";
+import { LineCounts } from "#src/ui/file-name";
 
 /** Debug's Files, Grades, and Traces tabs. Files stays mounted while hidden so its unsaved edits survive. */
 export function DebugViews({
   search: { view, afters = [] },
   files,
   grades,
+  fileSummary,
 }: {
   search: DebugSearch;
   files: ReactNode;
   grades: ReactNode;
+  fileSummary?: { count: number; added: number; removed: number };
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -24,7 +28,14 @@ export function DebugViews({
           activeOptions={{ exact: true }}
           aria-current={view === undefined ? "page" : undefined}
         >
-          Files
+          {fileSummary === undefined ? (
+            "Files"
+          ) : (
+            <>
+              Files changed
+              <Tag className="h-4 px-1.5">{fileSummary.count}</Tag>
+            </>
+          )}
         </Tab>
         <Tab
           to="."
@@ -41,6 +52,13 @@ export function DebugViews({
           Traces
         </Tab>
         <TabActionsEnd />
+        {view === undefined && fileSummary !== undefined && (
+          <LineCounts
+            added={fileSummary.added}
+            removed={fileSummary.removed}
+            className="type-mono-12"
+          />
+        )}
       </Tabs>
       <div className={view === undefined ? "flex min-h-0 flex-1" : "hidden"}>{files}</div>
       {view === "grades" && (
