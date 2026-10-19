@@ -88,7 +88,10 @@ function TracePage() {
     <article aria-label="Spans" className="@container flex min-h-0 flex-col gap-4">
       <SpanTurnHeader spans={spans} annotations={annotations} selected={selected} />
       <div className="grid min-h-0 gap-6 @3xl:grid-cols-[minmax(20rem,1fr)_minmax(0,2fr)]">
-        <section aria-label="Trace tree" className="flex min-w-0 flex-col">
+        <section
+          aria-label="Trace tree"
+          className="flex min-w-0 flex-col @3xl:sticky @3xl:top-4 @3xl:self-start"
+        >
           <ol aria-label="Span tree" className="flex min-w-0 flex-col">
             {rows.map(({ span, depth }, index) => {
               const kind = spanKind(span);
