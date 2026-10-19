@@ -66,6 +66,7 @@ function IssuePage() {
   const issue = useIssue();
   const params = { orgId, agent, issue: issue.id };
   const lastEdited = useSuspenseQuery(issueEventsQuery(params)).data.events[0]?.at;
+  const { openActivity } = usePebbleDock();
   const approved = useQuery({
     ...candidatesQuery(params),
     enabled: issue.approved !== undefined,
@@ -120,7 +121,14 @@ function IssuePage() {
           </Fact>
           {lastEdited !== undefined && (
             <Fact label="Last edited" orientation="vertical">
-              <Timestamp at={lastEdited} />
+              <button
+                type="button"
+                aria-label="View full issue history"
+                className="cursor-pointer rounded-xs text-left underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                onClick={() => openActivity(params)}
+              >
+                <Timestamp at={lastEdited} />
+              </button>
             </Fact>
           )}
         </Facts>
