@@ -108,7 +108,7 @@ function TracePage() {
                     search={{ span: span.span_id }}
                     replace
                     aria-current={span === selected ? "true" : undefined}
-                  style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
+                  style={{ paddingLeft: `${depth + 0.25}rem` }}
                   className="flex h-7 min-w-0 self-center items-center gap-2 rounded-xs pr-2 type-label-13 text-ink hover:bg-fill aria-current:row-selected"
                   >
                     <Icon aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
