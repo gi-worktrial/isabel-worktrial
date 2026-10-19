@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { createTwoFilesPatch } from "diff";
 
 import { CandidateActions, CandidateNotFound } from "#/candidate-results";
 import { debugSearchSchema } from "#/debug-search";
@@ -11,6 +12,7 @@ import {
   candidateQuery,
   issueQuery,
   issueTracesQuery,
+  treeQuery,
 } from "#/queries";
 import { buttonVariants } from "#/ui/button";
 import { Tag } from "#/ui/tag";
@@ -25,6 +27,9 @@ import {
   debugVariant,
 } from "#src/features/candidates/candidate-page";
 import { CandidateGrades } from "#src/features/debug/eval-grades";
+import { entryText } from "#src/features/debug/files";
+import { candidateBasehead } from "#src/features/debug/debug-diff";
+import { comparisonQuery } from "#src/queries/extra";
 
 export const Route = createFileRoute(
   "/$orgId/agents/$agent/issues/$issue_/candidates/$candidate",
@@ -40,6 +45,25 @@ export const Route = createFileRoute(
         queryClient.ensureQueryData(
           issueTracesQuery({ ...params, after: deps.afters?.at(-1), limit: SESSION_PAGE_SIZE }),
         ),
+    ]);
+    const comparison = await queryClient.ensureQueryData(
+      comparisonQuery({
+        orgId: params.orgId,
+        agent: params.agent,
+        basehead: candidateBasehead(issue.id, candidate.head_sha),
+      }),
+    );
+    await Promise.all([
+      queryClient.ensureQueryData(
+        treeQuery({ orgId: params.orgId, agent: params.agent, ref: candidate.head_sha }),
+      ),
+      queryClient.ensureQueryData(
+        treeQuery({
+          orgId: params.orgId,
+          agent: params.agent,
+          ref: comparison.merge_base_commit.sha,
+        }),
+      ),
     ]);
     return crumbs(
       { label: "Inbox", to: "/$orgId/agents/$agent/issues" },
@@ -61,6 +85,29 @@ function CandidatePage() {
   const candidate = useSuspenseQuery(candidateQuery(params)).data;
   const issue = useIssue();
   const startWork = useStartIssueWork();
+  const comparison = useSuspenseQuery(
+    comparisonQuery({
+      orgId,
+      agent,
+      basehead: candidateBasehead(issue.id, candidate.head_sha),
+    }),
+  ).data;
+  const head = useSuspenseQuery(treeQuery({ orgId, agent, ref: candidate.head_sha })).data;
+  const base = useSuspenseQuery(
+    treeQuery({ orgId, agent, ref: comparison.merge_base_commit.sha }),
+  ).data;
+  const getFullPatch = (file: Candidate["files"][number]) => {
+    const previous = file.previous_filename ?? file.filename;
+    return createTwoFilesPatch(
+      previous,
+      file.filename,
+      file.status === "added" ? "" : entryText(base, previous),
+      file.status === "removed" ? "" : entryText(head, file.filename),
+      "",
+      "",
+      { context: Number.MAX_SAFE_INTEGER },
+    );
+  };
 
   return (
     <section
@@ -94,7 +141,7 @@ function CandidatePage() {
         fileSummary={{ count: candidate.files.length, ...totalLines(candidate.files) }}
         files={
           <div className="w-full">
-            <FixCard files={candidate.files} />
+            <FixCard files={candidate.files} getFullPatch={getFullPatch} />
           </div>
         }
         grades={<CandidateGrades candidate={candidate} />}

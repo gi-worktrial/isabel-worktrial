@@ -59,7 +59,13 @@ export function CandidateBody({ body, children }: { body: string; children?: Rea
 }
 
 /** The Candidate's changed files, with navigation and one expanded card per file. */
-export function FixCard({ files }: { files: readonly PullFile[] }) {
+export function FixCard({
+  files,
+  getFullPatch,
+}: {
+  files: readonly PullFile[];
+  getFullPatch?: (file: PullFile) => string;
+}) {
   const id = useId().replaceAll(":", "");
   const fileIds = files.map((_, index) => `${id}-file-${index}`);
 
@@ -67,7 +73,12 @@ export function FixCard({ files }: { files: readonly PullFile[] }) {
     <section aria-label="Fix" className="flex items-start gap-3">
       <ChangedFilesNav files={files} fileIds={fileIds} />
       <div className="min-w-0 flex-1">
-        <FileDiffs files={files} separated fileIds={fileIds} />
+        <FileDiffs
+          files={files}
+          separated
+          fileIds={fileIds}
+          {...(getFullPatch === undefined ? {} : { getFullPatch })}
+        />
       </div>
     </section>
   );

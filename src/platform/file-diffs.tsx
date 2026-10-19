@@ -1,7 +1,7 @@
 import type { PullFile } from "@grounded-intelligence/grounded-sdk";
 import { preloadHighlighter } from "@pierre/diffs";
 import { PatchDiff } from "@pierre/diffs/react";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 
 import { EmptyState } from "#/ui/empty-state";
@@ -35,11 +35,13 @@ export function FileDiffs({
   empty = "This Candidate doesn't change any files yet.",
   separated = false,
   fileIds,
+  getFullPatch,
 }: {
   files: readonly PullFile[];
   empty?: string;
   separated?: boolean;
   fileIds?: readonly string[];
+  getFullPatch?: (file: PullFile) => string;
 }) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   if (files.length === 0) {
@@ -73,9 +75,9 @@ export function FileDiffs({
             }
           >
             {expanded.has(file.filename) ? (
-              <Minimize2 className="size-3.5" />
+              <ChevronsDownUp className="size-3.5" />
             ) : (
-              <Maximize2 className="size-3.5" />
+              <ChevronsUpDown className="size-3.5" />
             )}
           </IconButton>
         )
@@ -91,7 +93,13 @@ export function FileDiffs({
       {file.patch === undefined ? (
         <p className="px-3 py-2 type-meta-12 text-muted">No text diff for this file.</p>
       ) : (
-        <PatchView patch={filePatch(file)} expandUnchanged={expanded.has(file.filename)} />
+        <PatchView
+          patch={
+            expanded.has(file.filename) && getFullPatch !== undefined
+              ? getFullPatch(file)
+              : filePatch(file)
+          }
+        />
       )}
     </FileFold>
   ));
@@ -101,10 +109,8 @@ export function FileDiffs({
 /** One unified diff, highlighted for the current theme. */
 export function PatchView({
   patch,
-  expandUnchanged = false,
 }: {
   patch: string;
-  expandUnchanged?: boolean;
 }) {
   const theme = useTheme();
   return (
@@ -116,7 +122,6 @@ export function PatchView({
           themeType: theme,
           diffStyle: "unified",
           disableFileHeader: true,
-          expandUnchanged,
           unsafeCSS: HIDE_COLLAPSED_CONTEXT,
           overflow: "wrap",
         }}

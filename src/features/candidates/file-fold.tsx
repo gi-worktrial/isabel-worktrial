@@ -30,7 +30,7 @@ export function FileFold({
         aria-label={path}
         className={separated ? "overflow-clip card" : "border-b border-divider last:border-b-0"}
       >
-        <div className="flex items-center hover:bg-subtle">
+        <div className="flex items-center bg-subtle hover:bg-fill">
           <CollapsibleTrigger className="focus-inset mx-0 h-9 min-w-0 flex-1 rounded-none px-3 hover:bg-transparent">
             <FilePath path={path} className="flex-1 type-mono-12 text-ink" />
             {meta}

@@ -35,6 +35,16 @@
   margin-left: 0;
 }
 
+[data-item-section="icon"] svg[data-icon-name="file-tree-icon-chevron"] {
+  width: 12px;
+  height: 12px;
+}
+
+[data-item-type="folder"] > [data-item-section="git"] {
+  order: 2;
+  margin-left: 4px;
+}
+
 /* names come from the label and cut at the end */
 [data-type="item"]:not(:has([data-item-flattened-subitems])) {
   & > [data-item-section="content"] {
