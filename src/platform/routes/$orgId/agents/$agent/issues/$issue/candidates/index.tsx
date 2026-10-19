@@ -160,18 +160,18 @@ function CandidateCards() {
                   </Tag>
                 )}
               </span>
+              {rationale !== "" && (
+                <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
+              )}
             </div>
             <Link
               to="/$orgId/agents/$agent/issues/$issue/candidates/$candidate"
               params={{ ...params, candidate: candidate.id }}
-              className={buttonVariants({ variant: "secondary", size: "small" })}
+              className={buttonVariants({ variant: "primary", size: "small" })}
             >
               View candidate
             </Link>
           </header>
-          {rationale !== "" && (
-            <Markdown text={rationale} mdx className="line-clamp-2 text-muted" />
-          )}
           <div className="flex flex-wrap items-center gap-2">
             <CandidateProofs candidate={candidate} />
           </div>
