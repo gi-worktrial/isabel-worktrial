@@ -23,7 +23,7 @@ import {
   useIssue,
   useIssueChange,
 } from "../../../../../issue-view";
-import { Button } from "#/ui/button";
+import { Button, IconButton } from "#/ui/button";
 import { ConfirmDialog } from "#/ui/dialog";
 import { Fact, Facts } from "#/ui/facts";
 import { Textarea } from "#/ui/input";
@@ -121,15 +121,15 @@ function IssuePage() {
           </Fact>
           {lastEdited !== undefined && (
             <Fact label="Last edited" orientation="vertical">
-              <button
-                type="button"
-                aria-label="View full issue history"
-                className="flex cursor-pointer items-center gap-1.5 rounded-xs text-left underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              <Timestamp at={lastEdited} />
+              <IconButton
+                label="View full issue history"
+                size="small"
+                className="-my-1"
                 onClick={() => openActivity(params)}
               >
-                <Timestamp at={lastEdited} />
                 <History aria-hidden="true" className="size-3.5 text-muted" />
-              </button>
+              </IconButton>
             </Fact>
           )}
         </Facts>
