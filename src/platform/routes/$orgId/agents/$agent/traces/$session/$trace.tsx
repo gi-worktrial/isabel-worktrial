@@ -245,9 +245,6 @@ function Conversation({ messages }: { messages: Message[] }) {
             message.role === "user" ? "items-end" : "items-start",
           )}
         >
-          <p className="type-meta-12 font-medium text-muted">
-            {ROLES.get(message.role) ?? message.role}
-          </p>
           <div
             className={cn(
               "flex min-w-0 max-w-reading flex-col gap-1 rounded-md px-3 py-2",
@@ -284,6 +281,9 @@ function Conversation({ messages }: { messages: Message[] }) {
               }
             })}
           </div>
+          <p className="type-meta-12 font-medium text-muted">
+            {ROLES.get(message.role) ?? message.role}
+          </p>
         </li>
       ))}
     </ol>
