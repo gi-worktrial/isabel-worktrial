@@ -278,11 +278,18 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
       return;
     }
     dropped.current = true;
+    const list = issuesQuery(params);
+    const detail = issueQuery({ ...params, issue: issue.id });
+    const previous = queryClient.getQueryData<IssueSummary[]>(list.queryKey);
+    queryClient.setQueryData<IssueSummary[]>(list.queryKey, (current) =>
+      current?.map((row) => (row.id === issue.id ? { ...row, state: to } : row)),
+    );
+    setDragged(undefined);
+    setDragHeight(0);
+    setOver(undefined);
     startTransition(async () => {
       try {
-        const current = await queryClient.fetchQuery(
-          issueQuery({ ...params, issue: issue.id }),
-        );
+        const current = await queryClient.fetchQuery({ ...detail, staleTime: 0 });
         await client.issues.update({
           agent: params.agent,
           repo,
@@ -292,12 +299,13 @@ function IssueBoard({ rows, states }: { rows: IssueSummary[]; states: readonly I
         });
         setError(undefined);
       } catch (caught) {
+        queryClient.setQueryData(list.queryKey, previous);
         setError(caught instanceof Error ? caught.message : String(caught));
       }
-      await queryClient.invalidateQueries();
-      setDragged(undefined);
-      setDragHeight(0);
-      setOver(undefined);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: list.queryKey }),
+        queryClient.invalidateQueries({ queryKey: detail.queryKey }),
+      ]);
     });
   }
 
