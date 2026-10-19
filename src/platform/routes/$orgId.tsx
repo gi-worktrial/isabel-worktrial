@@ -28,9 +28,9 @@ import {
   ArrowLeftRight,
   ArrowLeftToLine,
   ArrowRightToLine,
-  ChevronDown,
+  ArrowDown,
+  ArrowUp,
   ChevronRight,
-  ChevronUp,
   Columns2,
   Expand,
   PanelRight,
@@ -845,8 +845,8 @@ function Shell() {
                       {crumbNeighbors !== undefined && (
                         <span className="flex shrink-0 items-center">
                           {[
-                            { key: "up", Icon: ChevronUp, target: crumbNeighbors.up },
-                            { key: "down", Icon: ChevronDown, target: crumbNeighbors.down },
+                            { key: "up", Icon: ArrowUp, target: crumbNeighbors.up },
+                            { key: "down", Icon: ArrowDown, target: crumbNeighbors.down },
                           ].map(({ key, Icon, target }) =>
                             target === undefined ? (
                               <span
