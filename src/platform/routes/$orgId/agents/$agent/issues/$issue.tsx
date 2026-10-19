@@ -7,7 +7,7 @@ import {
   issueQuery,
 } from "#/queries";
 import type { Issue } from "@grounded-intelligence/grounded-sdk";
-import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, useMatchRoute } from "@tanstack/react-router";
 import { ChevronDown, History } from "lucide-react";
 import { useState } from "react";
 
@@ -82,6 +82,11 @@ function IssuePage() {
   const { orgId, agent } = Route.useParams();
   const issue = useIssue();
   const params = { orgId, agent, issue: issue.id };
+  const comparing =
+    useMatchRoute()({
+      to: "/$orgId/agents/$agent/issues/$issue/candidates/compare",
+      params,
+    }) !== false;
   const lastEdited = useSuspenseQuery(issueEventsQuery(params)).data.events[0]?.at;
   const { openActivity } = usePebbleDock();
   const approved = useQuery({
@@ -95,7 +100,7 @@ function IssuePage() {
 
   return (
     <article aria-label="Issue" className="flex min-w-0 flex-1 flex-col gap-4">
-      <header className="flex flex-col gap-3 py-3">
+      {!comparing && <header className="flex flex-col gap-3 py-3">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <h1 className="flex min-w-0 flex-1 basis-64 flex-col items-start gap-1 type-title-18 text-ink">
             <span className="type-label-13 font-normal text-muted">{issue.id}</span>
@@ -163,9 +168,9 @@ function IssuePage() {
         {issue.body.trim() !== "" && (
           <IssueOverview key={issue.id} text={issue.body} />
         )}
-      </header>
+      </header>}
       <section aria-label="Issue workspace" className="flex flex-col gap-4">
-        <Tabs label="Issue sections">
+        {!comparing && <Tabs label="Issue sections">
           {issue.state === "detected" || issue.state === "reviewing" ? (
             <>
               <CandidatesTab params={params} />
@@ -178,7 +183,7 @@ function IssuePage() {
             Traces <Count className={TAB_COUNT}>{issue.trace_count}</Count>
           </Tab>
           <TabActionsEnd />
-        </Tabs>
+        </Tabs>}
         <Outlet />
       </section>
     </article>
