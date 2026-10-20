@@ -61,6 +61,9 @@ function EvalGrades({
   }
 
   const { evals: registry, results } = evals.data;
+  if (results.length === 0 && run.status !== "completed") {
+    return <GradesSkeleton />;
+  }
   if (results.length === 0) {
     return (
       <div className="p-3">
@@ -104,7 +107,16 @@ function EvalGrades({
 }
 
 /** A Candidate's newest run's Grades, for Debug's Grades tab. */
-export function CandidateGrades({ candidate }: { candidate: CandidateSummary }) {
+export function CandidateGrades({
+  candidate,
+  pending = false,
+}: {
+  candidate: CandidateSummary;
+  pending?: boolean;
+}) {
+  if (pending) {
+    return <GradesSkeleton />;
+  }
   return (
     <EvalGrades
       run={candidate.results?.run}

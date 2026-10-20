@@ -8,6 +8,7 @@ import {
   getCandidateStatus,
 } from "@grounded-intelligence/grounded-sdk";
 import { useParams, useRouteContext } from "@tanstack/react-router";
+import { LoaderCircle } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { APPROVAL_OUTDATED, useIssue } from "#/issue-view";
@@ -49,7 +50,21 @@ export function CandidateStatusTag({
 }
 
 /** How many of a Candidate's New and Existing Evals pass in its newest completed run. */
-export function CandidateResultTags({ results }: { results: CandidateResults | undefined }) {
+export function CandidateResultTags({
+  results,
+  pending = false,
+}: {
+  results: CandidateResults | undefined;
+  pending?: boolean;
+}) {
+  if (pending) {
+    return (
+      <Tag>
+        <LoaderCircle aria-hidden="true" className="size-3 motion-safe:animate-spin" />
+        Running Evals
+      </Tag>
+    );
+  }
   if (results?.new_evals === undefined || results.existing_evals === undefined) {
     return null;
   }

@@ -2,7 +2,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { type Candidate, canApprove } from "@grounded-intelligence/grounded-sdk";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { createTwoFilesPatch } from "diff";
-import { Pencil } from "lucide-react";
+import { LoaderCircle, Pencil } from "lucide-react";
+import { useEffect } from "react";
 
 import {
   CandidateActions,
@@ -14,12 +15,14 @@ import { DebugViews } from "#/debug-views";
 import { useIssue, useIssueChange, useStartIssueWork } from "#/issue-view";
 import {
   SESSION_PAGE_SIZE,
+  RUN_POLL_INTERVAL,
   candidateQuery,
+  isCandidatePending,
   issueQuery,
   issueTracesQuery,
   treeQuery,
 } from "#/queries";
-import { buttonVariants } from "#/ui/button";
+import { Button, buttonVariants } from "#/ui/button";
 import { cn } from "#/ui/cn";
 import { Tag } from "#/ui/tag";
 import { Tooltip } from "#/ui/tooltip";
@@ -93,10 +96,29 @@ export const Route = createFileRoute(
 function CandidatePage() {
   const params = Route.useParams();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { orgId, agent } = params;
-  const candidate = useSuspenseQuery(candidateQuery(params)).data;
+  const candidate = useSuspenseQuery({
+    ...candidateQuery(params),
+    refetchInterval: ({ state: { data } }) =>
+      data !== undefined && (search.rerun !== undefined || isCandidatePending(data))
+        ? RUN_POLL_INTERVAL
+        : false,
+  }).data;
   const issue = useIssue();
   const startWork = useStartIssueWork();
+  const evaluating =
+    search.rerun !== undefined ||
+    (candidate.results !== undefined && candidate.results.run.completed_at === null);
+  useEffect(() => {
+    const run = candidate.results?.run;
+    if (search.rerun !== undefined && run !== undefined && run.id !== search.rerun) {
+      void navigate({
+        search: (previous) => ({ ...previous, rerun: undefined }),
+        replace: true,
+      });
+    }
+  }, [candidate.results?.run, navigate, search.rerun]);
   const comparison = useSuspenseQuery(
     comparisonQuery({
       orgId,
@@ -147,7 +169,9 @@ function CandidatePage() {
             >
               Edit
             </Link>
-            {canApprove(issue.state, candidate.results) && <ShipButton candidate={candidate} />}
+            {(evaluating || canApprove(issue.state, candidate.results)) && (
+              <ShipButton candidate={candidate} loading={evaluating} />
+            )}
           </CandidateActionsEnd>
         </h1>
         <CandidateBody body={candidate.body} />
@@ -155,7 +179,7 @@ function CandidatePage() {
       <DebugViews
         search={search}
         fileSummary={{ count: candidate.files.length, ...totalLines(candidate.files) }}
-        gradeBadges={<CandidateResultTags results={candidate.results} />}
+        gradeBadges={<CandidateResultTags results={candidate.results} pending={evaluating} />}
         traceCount={issue.trace_count}
         files={
           <div className="w-full">
@@ -179,14 +203,23 @@ function CandidatePage() {
             />
           </div>
         }
-        grades={<CandidateGrades candidate={candidate} />}
+        grades={<CandidateGrades candidate={candidate} pending={evaluating} />}
       />
     </section>
   );
 }
 
-function ShipButton({ candidate }: { candidate: Candidate }) {
+function ShipButton({ candidate, loading }: { candidate: Candidate; loading: boolean }) {
   const { pending, error, change } = useIssueChange();
+
+  if (loading) {
+    return (
+      <Button variant="primary" disabled aria-busy="true">
+        <LoaderCircle aria-hidden="true" className="size-3.5 motion-safe:animate-spin" />
+        Ship candidate
+      </Button>
+    );
+  }
 
   return (
     <span className="flex items-center gap-2">

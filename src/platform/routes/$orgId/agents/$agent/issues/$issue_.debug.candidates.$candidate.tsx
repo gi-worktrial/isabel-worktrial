@@ -116,7 +116,7 @@ function DebugPage() {
     await navigate({
       to: "/$orgId/agents/$agent/issues/$issue/candidates/$candidate",
       params: { orgId, agent, issue, candidate: candidate.id },
-      search: { view: "grades" },
+      search: { view: "grades", rerun: candidate.results?.run.id ?? "none" },
     });
   }
   const branching = useBranching({ candidate, tree, changes, saveHere: save });
